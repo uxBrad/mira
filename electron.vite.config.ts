@@ -30,6 +30,13 @@ export default defineConfig({
         '@': resolve('src')
       }
     },
-    plugins: [react()]
+    plugins: [react()],
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve(__dirname, 'index.html')
+        }
+      }
+    }
   }
 })
