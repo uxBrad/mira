@@ -71,7 +71,7 @@ function createWindow(): void {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   electronApp.setAppUserModelId('com.groundsforaccess')
 
   app.on('browser-window-created', (_, window) => {
@@ -79,7 +79,7 @@ app.whenReady().then(() => {
   })
 
   // Initialize local database
-  initDatabase()
+  await initDatabase()
 
   // Register IPC handlers
   registerAuthHandlers(ipcMain)

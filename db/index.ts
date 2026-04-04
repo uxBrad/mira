@@ -1,13 +1,13 @@
 import { app } from 'electron'
-import { drizzle, BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
-import Database from 'better-sqlite3'
+import { drizzle, LibSQLDatabase } from 'drizzle-orm/libsql'
+import { createClient, Client } from '@libsql/client'
 import { join } from 'path'
 import { existsSync, mkdirSync } from 'fs'
 import * as schema from './schema'
 
-let db: BetterSQLite3Database<typeof schema> | null = null
+let db: LibSQLDatabase<typeof schema> | null = null
 
-export function initDatabase(): void {
+export async function initDatabase(): Promise<void> {
   const userDataPath = app.getPath('userData')
   const dbDir = join(userDataPath, 'data')
 
@@ -16,26 +16,25 @@ export function initDatabase(): void {
   }
 
   const dbPath = join(dbDir, 'grounds-for-access.db')
-  const sqlite = new Database(dbPath)
 
-  // Enable WAL mode for better performance
-  sqlite.pragma('journal_mode = WAL')
-  sqlite.pragma('foreign_keys = ON')
+  const client = createClient({
+    url: `file:${dbPath}`
+  })
 
-  db = drizzle(sqlite, { schema })
+  db = drizzle(client, { schema })
 
-  // Run migrations inline for simplicity
-  runMigrations(sqlite)
+  await runMigrations(client)
 }
 
-export function getDb(): BetterSQLite3Database<typeof schema> {
+export function getDb(): LibSQLDatabase<typeof schema> {
   if (!db) throw new Error('Database not initialized. Call initDatabase() first.')
   return db
 }
 
-function runMigrations(sqlite: Database.Database): void {
-  sqlite.exec(`
-    CREATE TABLE IF NOT EXISTS projects (
+async function runMigrations(client: Client): Promise<void> {
+  // Execute each statement individually for compatibility
+  const statements = [
+    `CREATE TABLE IF NOT EXISTS projects (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       client_name TEXT,
@@ -44,9 +43,8 @@ function runMigrations(sqlite: Database.Database): void {
       status TEXT NOT NULL DEFAULT 'in_progress',
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS findings (
+    )`,
+    `CREATE TABLE IF NOT EXISTS findings (
       id TEXT PRIMARY KEY,
       project_id TEXT NOT NULL REFERENCES projects(id),
       title TEXT NOT NULL,
@@ -63,10 +61,13 @@ function runMigrations(sqlite: Database.Database): void {
       notes TEXT,
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL
-    );
+    )`,
+    `CREATE INDEX IF NOT EXISTS idx_findings_project_id ON findings(project_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status)`,
+    `CREATE INDEX IF NOT EXISTS idx_projects_updated_at ON projects(updated_at)`
+  ]
 
-    CREATE INDEX IF NOT EXISTS idx_findings_project_id ON findings(project_id);
-    CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status);
-    CREATE INDEX IF NOT EXISTS idx_projects_updated_at ON projects(updated_at);
-  `)
+  for (const sql of statements) {
+    await client.execute(sql)
+  }
 }
