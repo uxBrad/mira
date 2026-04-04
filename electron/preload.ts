@@ -10,7 +10,9 @@ const authAPI = {
   logout: () => ipcRenderer.invoke('auth:logout'),
   getSession: () => ipcRenderer.invoke('auth:getSession'),
   forgotPassword: (email: string) => ipcRenderer.invoke('auth:forgotPassword', email),
-  resetPassword: (data: { token: string; password: string }) =>
+  verifyEmail: (email: string, code: string) =>
+    ipcRenderer.invoke('auth:verifyEmail', { email, code }),
+  resetPassword: (data: { email: string; code: string; password: string }) =>
     ipcRenderer.invoke('auth:resetPassword', data),
   getSubscriptionStatus: () => ipcRenderer.invoke('auth:getSubscriptionStatus'),
   createCheckout: (plan: 'monthly' | 'yearly') =>
@@ -63,6 +65,13 @@ const findingsAPI = {
     ipcRenderer.invoke('findings:addScreenshot', findingId, sourcePath)
 }
 
+// Update API
+const updateAPI = {
+  onAvailable: (cb: () => void) => ipcRenderer.on('update:available', cb),
+  onReady: (cb: () => void) => ipcRenderer.on('update:ready', cb),
+  install: () => ipcRenderer.invoke('update:install')
+}
+
 // Export API
 const exportAPI = {
   exportPDF: (projectId: string) => ipcRenderer.invoke('export:pdf', projectId),
@@ -77,7 +86,8 @@ if (process.contextIsolated) {
       auth: authAPI,
       projects: projectsAPI,
       findings: findingsAPI,
-      export: exportAPI
+      export: exportAPI,
+      update: updateAPI
     })
   } catch (error) {
     console.error(error)
@@ -86,5 +96,5 @@ if (process.contextIsolated) {
   // @ts-ignore (define in dts)
   window.electron = electronAPI
   // @ts-ignore (define in dts)
-  window.api = { auth: authAPI, projects: projectsAPI, findings: findingsAPI, export: exportAPI }
+  window.api = { auth: authAPI, projects: projectsAPI, findings: findingsAPI, export: exportAPI, update: updateAPI }
 }

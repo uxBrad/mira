@@ -7,8 +7,6 @@ import AppShell from './components/layout/AppShell'
 import LoginPage from './pages/auth/Login'
 import RegisterPage from './pages/auth/Register'
 import ForgotPasswordPage from './pages/auth/ForgotPassword'
-import ResetPasswordPage from './pages/auth/ResetPassword'
-import VerifyEmailPage from './pages/auth/VerifyEmail'
 
 // App pages
 import DashboardPage from './pages/dashboard'
@@ -59,9 +57,7 @@ function AppRoutes() {
       <Route path="/login" element={<AuthRoute><LoginPage /></AuthRoute>} />
       <Route path="/register" element={<AuthRoute><RegisterPage /></AuthRoute>} />
       <Route path="/forgot-password" element={<AuthRoute><ForgotPasswordPage /></AuthRoute>} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/verify-email" element={<VerifyEmailPage />} />
-      <Route path="/paywall" element={<ProtectedRoute><PaywallPage /></ProtectedRoute>} />
+<Route path="/paywall" element={<ProtectedRoute><PaywallPage /></ProtectedRoute>} />
 
       {/* App routes */}
       <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>

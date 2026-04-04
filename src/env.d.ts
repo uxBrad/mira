@@ -15,8 +15,9 @@ interface Window {
         refreshToken: string
         user: { id: string; email: string; name: string | null }
       } | null>
+      verifyEmail: (email: string, code: string) => Promise<{ success: boolean }>
       forgotPassword: (email: string) => Promise<{ message: string }>
-      resetPassword: (data: { token: string; password: string }) => Promise<{ message: string }>
+      resetPassword: (data: { email: string; code: string; password: string }) => Promise<{ message: string }>
       getSubscriptionStatus: () => Promise<{
         access: 'trialing' | 'active' | 'expired' | 'past_due' | 'offline' | 'unauthenticated'
         daysRemaining?: number
@@ -100,6 +101,11 @@ interface Window {
       exportPDF: (projectId: string) => Promise<{ success?: boolean; path?: string; canceled?: boolean }>
       exportCSV: (projectId: string) => Promise<{ success?: boolean; path?: string; canceled?: boolean }>
       chooseScreenshot: () => Promise<string | null>
+    }
+    update: {
+      onAvailable: (cb: () => void) => void
+      onReady: (cb: () => void) => void
+      install: () => Promise<void>
     }
   }
 }

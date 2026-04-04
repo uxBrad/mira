@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { cn } from '../../lib/utils'
 import { Button } from '../ui/button'
 import { useToast } from '../ui/use-toast'
+import UpdateBanner from '../UpdateBanner'
 
 export default function AppShell() {
   const { session, subscriptionStatus, logout } = useAuth()
@@ -120,10 +121,13 @@ export default function AppShell() {
       {/* Main content */}
       <main
         id="main-content"
-        className="flex-1 overflow-y-auto focus:outline-none"
+        className="flex-1 flex flex-col overflow-hidden focus:outline-none"
         tabIndex={-1}
       >
-        <Outlet />
+        <UpdateBanner />
+        <div className="flex-1 overflow-y-auto">
+          <Outlet />
+        </div>
       </main>
     </div>
   )

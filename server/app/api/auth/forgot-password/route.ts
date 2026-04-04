@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../../lib/prisma'
-import { generateSecureToken, hashToken } from '../../../../lib/jwt'
+import { hashToken } from '../../../../lib/jwt'
 import { sendPasswordResetEmail } from '../../../../lib/resend'
+
+function generateOtpCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString()
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,32 +14,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email is required.' }, { status: 400 })
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() }
-    })
+    const emailLower = email.toLowerCase().trim()
+    const user = await prisma.user.findUnique({ where: { email: emailLower } })
 
     // Always return success to avoid email enumeration
     if (!user) {
-      return NextResponse.json({ message: 'If an account exists, a reset link has been sent.' })
+      return NextResponse.json({ message: 'If an account exists, a reset code has been sent.' })
     }
 
-    // Delete any existing reset tokens
+    // Delete any existing reset tokens for this user
     await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } })
 
-    const token = generateSecureToken()
+    const code = generateOtpCode()
+    const tokenHash = hashToken(`reset:${emailLower}:${code}`)
+
     await prisma.passwordResetToken.create({
       data: {
         userId: user.id,
-        tokenHash: hashToken(token),
+        tokenHash,
         expiresAt: new Date(Date.now() + 60 * 60 * 1000) // 1 hour
       }
     })
 
-    await sendPasswordResetEmail(user.email, token)
+    await sendPasswordResetEmail(emailLower, code)
 
-    return NextResponse.json({ message: 'If an account exists, a reset link has been sent.' })
+    return NextResponse.json({ message: 'If an account exists, a reset code has been sent.' })
   } catch (error) {
     console.error('Forgot password error:', error)
-    return NextResponse.json({ error: 'Failed to send reset email.' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to send reset code.' }, { status: 500 })
   }
 }

@@ -1,6 +1,7 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { autoUpdater } from 'electron-updater'
 import { registerAuthHandlers } from './ipc/auth'
 import { registerProjectHandlers } from './ipc/projects'
 import { registerFindingHandlers } from './ipc/findings'
@@ -8,6 +9,33 @@ import { registerExportHandlers } from './ipc/export'
 import { initDatabase } from '../db'
 
 let mainWindow: BrowserWindow | null = null
+
+function setupAutoUpdater(): void {
+  // Don't check for updates in development
+  if (is.dev) return
+
+  autoUpdater.autoDownload = true
+  autoUpdater.autoInstallOnAppQuit = true
+
+  autoUpdater.on('update-available', () => {
+    mainWindow?.webContents.send('update:available')
+  })
+
+  autoUpdater.on('update-downloaded', () => {
+    mainWindow?.webContents.send('update:ready')
+  })
+
+  autoUpdater.on('error', (err) => {
+    console.error('Auto-updater error:', err)
+  })
+
+  // Check for updates ~5 seconds after window is shown
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch((err) => {
+      console.error('Update check failed:', err)
+    })
+  }, 5000)
+}
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -28,6 +56,7 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow!.show()
+    setupAutoUpdater()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -58,6 +87,11 @@ app.whenReady().then(() => {
   registerFindingHandlers(ipcMain)
   registerExportHandlers(ipcMain, () => mainWindow)
 
+  // Auto-updater: quit and install
+  ipcMain.handle('update:install', () => {
+    autoUpdater.quitAndInstall()
+  })
+
   createWindow()
 
   app.on('activate', function () {
@@ -71,7 +105,6 @@ app.on('window-all-closed', () => {
   }
 })
 
-// Expose mainWindow getter for export handlers
 export function getMainWindow(): BrowserWindow | null {
   return mainWindow
 }

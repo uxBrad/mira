@@ -64,6 +64,16 @@ export function registerAuthHandlers(ipcMain: IpcMain): void {
     return json
   })
 
+  ipcMain.handle('auth:verifyEmail', async (_, data: { email: string; code: string }) => {
+    const res = await apiRequest('/api/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+    const json = await res.json()
+    if (!res.ok) throw new Error(json.error || 'Verification failed')
+    return json
+  })
+
   ipcMain.handle('auth:login', async (_, data: { email: string; password: string }) => {
     const res = await apiRequest('/api/auth/login', {
       method: 'POST',
@@ -103,11 +113,11 @@ export function registerAuthHandlers(ipcMain: IpcMain): void {
       body: JSON.stringify({ email })
     })
     const json = await res.json()
-    if (!res.ok) throw new Error(json.error || 'Failed to send reset email')
+    if (!res.ok) throw new Error(json.error || 'Failed to send reset code')
     return json
   })
 
-  ipcMain.handle('auth:resetPassword', async (_, data: { token: string; password: string }) => {
+  ipcMain.handle('auth:resetPassword', async (_, data: { email: string; code: string; password: string }) => {
     const res = await apiRequest('/api/auth/reset-password', {
       method: 'POST',
       body: JSON.stringify(data)
@@ -146,7 +156,6 @@ export function registerAuthHandlers(ipcMain: IpcMain): void {
     const json = await res.json()
     if (!res.ok) throw new Error(json.error || 'Failed to create checkout')
 
-    // Open in default browser
     shell.openExternal(json.url)
     return { success: true }
   })

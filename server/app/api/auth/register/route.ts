@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '../../../../lib/prisma'
-import { generateSecureToken, hashToken } from '../../../../lib/jwt'
+import { hashToken } from '../../../../lib/jwt'
 import { sendVerificationEmail } from '../../../../lib/resend'
 import { stripe } from '../../../../lib/stripe'
+
+function generateOtpCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString()
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,30 +51,30 @@ export async function POST(request: NextRequest) {
         data: {
           userId: user.id,
           stripeCustomerId: stripeCustomer.id,
-          status: 'trialing',
-          // Trial start is set when email is verified
+          status: 'trialing'
         }
       })
 
       return user
     })
 
-    // Send verification email
-    const verificationToken = generateSecureToken()
-    // Store token hash as part of user metadata (simple approach: use a dedicated field)
-    // For simplicity, we use the PasswordResetToken table with a short-lived token
+    // Generate 6-digit OTP code for email verification
+    const code = generateOtpCode()
+    const tokenHash = hashToken(`verify:${emailLower}:${code}`)
+
+    // Store token (reuse passwordResetToken table)
     await prisma.passwordResetToken.create({
       data: {
         userId: user.id,
-        tokenHash: hashToken(`verify:${verificationToken}`),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+        tokenHash,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
       }
     })
 
-    await sendVerificationEmail(emailLower, verificationToken)
+    await sendVerificationEmail(emailLower, code)
 
     return NextResponse.json(
-      { message: 'Account created. Please check your email to verify your account.' },
+      { message: 'Account created. Check your email for a 6-digit verification code.' },
       { status: 201 }
     )
   } catch (error) {

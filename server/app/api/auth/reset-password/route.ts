@@ -5,24 +5,44 @@ import { hashToken } from '../../../../lib/jwt'
 
 export async function POST(request: NextRequest) {
   try {
-    const { token, password } = await request.json()
+    const { email, code, password } = await request.json()
 
-    if (!token || !password) {
-      return NextResponse.json({ error: 'Token and password are required.' }, { status: 400 })
+    if (!email || !code || !password) {
+      return NextResponse.json({ error: 'Email, code, and password are required.' }, { status: 400 })
     }
 
     if (password.length < 8) {
       return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 })
     }
 
-    const tokenHash = hashToken(token)
-    const record = await prisma.passwordResetToken.findUnique({ where: { tokenHash } })
+    const emailLower = email.toLowerCase().trim()
+    const tokenHash = hashToken(`reset:${emailLower}:${code}`)
 
-    if (!record || record.expiresAt < new Date() || record.usedAt) {
+    const record = await prisma.passwordResetToken.findUnique({
+      where: { tokenHash },
+      include: { user: true }
+    })
+
+    if (!record) {
       return NextResponse.json(
-        { error: 'Invalid or expired reset link. Please request a new one.' },
+        { error: 'Invalid code. Please check your email and try again.' },
         { status: 400 }
       )
+    }
+
+    if (record.expiresAt < new Date()) {
+      return NextResponse.json(
+        { error: 'This code has expired. Please request a new one.' },
+        { status: 400 }
+      )
+    }
+
+    if (record.usedAt) {
+      return NextResponse.json({ error: 'This code has already been used.' }, { status: 400 })
+    }
+
+    if (record.user.email !== emailLower) {
+      return NextResponse.json({ error: 'Invalid code.' }, { status: 400 })
     }
 
     const passwordHash = await bcrypt.hash(password, 12)
@@ -36,7 +56,7 @@ export async function POST(request: NextRequest) {
         where: { tokenHash },
         data: { usedAt: new Date() }
       }),
-      // Revoke all refresh tokens (force re-login)
+      // Revoke all refresh tokens — force re-login on all devices
       prisma.refreshToken.deleteMany({ where: { userId: record.userId } })
     ])
 
