@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     const passwordHash = await bcrypt.hash(password, 12)
 
     // Create Stripe customer (skip if Stripe not configured)
-    let stripeCustomerId = 'pending'
+    let stripeCustomerId: string | null = null
     try {
       const stripeCustomer = await stripe.customers.create({
         email: emailLower,
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       // Auto-verify in development so you don't need email/Resend configured
       await prisma.user.update({
         where: { id: user.id },
-        data: { emailVerified: new Date() }
+        data: { emailVerified: true, emailVerifiedAt: new Date() }
       })
     } else {
       await sendVerificationEmail(emailLower, code)
