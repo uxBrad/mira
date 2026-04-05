@@ -30,12 +30,18 @@ export async function POST(request: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 12)
 
-    // Create Stripe customer
-    const stripeCustomer = await stripe.customers.create({
-      email: emailLower,
-      name: name || undefined,
-      metadata: { source: 'grounds-for-access' }
-    })
+    // Create Stripe customer (skip if Stripe not configured)
+    let stripeCustomerId = 'pending'
+    try {
+      const stripeCustomer = await stripe.customers.create({
+        email: emailLower,
+        name: name || undefined,
+        metadata: { source: 'grounds-for-access' }
+      })
+      stripeCustomerId = stripeCustomer.id
+    } catch {
+      // Stripe not configured — will be created on first subscription attempt
+    }
 
     // Create user + subscription in a transaction
     const user = await prisma.$transaction(async (tx) => {
@@ -50,7 +56,7 @@ export async function POST(request: NextRequest) {
       await tx.subscription.create({
         data: {
           userId: user.id,
-          stripeCustomerId: stripeCustomer.id,
+          stripeCustomerId,
           status: 'trialing'
         }
       })
@@ -71,7 +77,12 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    await sendVerificationEmail(emailLower, code)
+    try {
+      await sendVerificationEmail(emailLower, code)
+    } catch {
+      // Email not configured — log code to console for local testing
+      console.log(`\n📧 VERIFICATION CODE for ${emailLower}: ${code}\n`)
+    }
 
     return NextResponse.json(
       { message: 'Account created. Check your email for a 6-digit verification code.' },
