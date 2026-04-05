@@ -12,19 +12,18 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { login } = useAuth()
-  const navigate = useNavigate()
   const { toast } = useToast()
+  const navigate = useNavigate()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     setIsLoading(true)
-
     try {
       await login(email, password)
-      navigate('/', { replace: true })
+      navigate('/')
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Login failed. Please try again.'
+      const message = err instanceof Error ? err.message : 'Login failed.'
       setError(message)
       toast({ variant: 'destructive', title: 'Login failed', description: message })
     } finally {
@@ -33,92 +32,90 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="flex items-center gap-2.5 mb-8 justify-center">
-          <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center" aria-hidden="true">
-            <span className="text-primary-foreground font-bold text-base">G</span>
-          </div>
-          <span className="font-bold text-xl">Grounds for Access</span>
-        </div>
-
-        <div className="border rounded-xl p-6 shadow-sm bg-card">
-          <h1 className="text-xl font-semibold mb-1">Sign in</h1>
-          <p className="text-sm text-muted-foreground mb-6">
-            Welcome back. Enter your credentials to continue.
+    <div className="min-h-screen flex" style={{ background: '#fcf9f8' }}>
+      {/* Left brand panel */}
+      <div
+        className="hidden lg:flex w-2/5 flex-col justify-between px-12 py-12"
+        style={{ background: '#f6f3f2' }}
+      >
+        <span className="font-display text-xl font-bold text-foreground">
+          Grounds<br />
+          <span className="text-primary">for Access</span>
+        </span>
+        <div>
+          <p className="font-display text-3xl font-semibold leading-snug text-foreground mb-4">
+            The professional tool for accessibility auditing.
           </p>
+          <p className="font-data text-sm text-muted-foreground">
+            Document, classify, and report WCAG findings with precision.
+          </p>
+        </div>
+        <p className="font-data text-xs text-muted-foreground">
+          © {new Date().getFullYear()} Grounds for Access
+        </p>
+      </div>
+
+      {/* Right form panel */}
+      <div className="flex-1 flex items-center justify-center px-8">
+        <div className="w-full max-w-sm">
+          <div className="mb-10 lg:hidden">
+            <span className="font-display text-xl font-bold">
+              Grounds <span className="text-primary">for Access</span>
+            </span>
+          </div>
+
+          <h1 className="text-2xl font-semibold tracking-tight mb-1">Welcome back</h1>
+          <p className="font-data text-sm text-muted-foreground mb-8">Sign in to your account</p>
 
           <form onSubmit={handleSubmit} noValidate aria-label="Sign in form">
             {error && (
               <div
                 role="alert"
                 aria-live="assertive"
-                className="mb-4 rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive"
+                className="mb-6 px-4 py-3 font-data text-sm text-primary"
+                style={{ background: '#ebe7e7' }}
               >
                 {error}
               </div>
             )}
 
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="email">Email address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  aria-required="true"
-                  disabled={isLoading}
-                />
+            <div className="space-y-6">
+              <div className="space-y-1">
+                <Label htmlFor="email" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
+                  Email
+                </Label>
+                <Input id="email" type="email" autoComplete="email" required value={email}
+                  onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" disabled={isLoading} />
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link
-                    to="/forgot-password"
-                    className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
-                  >
+                  <Label htmlFor="password" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
+                    Password
+                  </Label>
+                  <Link to="/forgot-password" className="font-data text-xs text-primary hover:underline underline-offset-4">
                     Forgot password?
                   </Link>
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  aria-required="true"
-                  disabled={isLoading}
-                />
+                <Input id="password" type="password" autoComplete="current-password" required
+                  value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} />
               </div>
 
               <Button type="submit" className="w-full" disabled={isLoading || !email || !password}>
                 {isLoading ? (
-                  <>
-                    <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
-                    Signing in…
-                  </>
-                ) : (
-                  'Sign in'
-                )}
+                  <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />Signing in…</>
+                ) : 'Sign in'}
               </Button>
             </div>
           </form>
-        </div>
 
-        <p className="text-center text-sm text-muted-foreground mt-4">
-          Don&apos;t have an account?{' '}
-          <Link to="/register" className="text-primary hover:underline underline-offset-4 font-medium">
-            Create one
-          </Link>
-          {' '}— 7-day free trial, no credit card required.
-        </p>
+          <p className="font-data text-center text-sm text-muted-foreground mt-8">
+            Don&apos;t have an account?{' '}
+            <Link to="/register" className="text-primary hover:underline underline-offset-4 font-medium">
+              Create one
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   )

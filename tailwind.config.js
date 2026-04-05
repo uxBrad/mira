@@ -4,6 +4,11 @@ module.exports = {
   content: ['./index.html', './src/**/*.{ts,tsx,js,jsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['Noto Serif', 'Georgia', 'serif'],
+        data: ['Space Grotesk', 'monospace']
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -43,12 +48,30 @@ module.exports = {
           serious: 'hsl(var(--severity-serious))',
           moderate: 'hsl(var(--severity-moderate))',
           minor: 'hsl(var(--severity-minor))'
+        },
+        /* Named surface tokens for direct use */
+        surface: {
+          DEFAULT: '#fcf9f8',
+          lowest: '#ffffff',
+          low: '#f6f3f2',
+          container: '#eceae9',
+          high: '#ebe7e7',
+          highest: '#e5e2e1',
+          dim: '#dcd9d9'
         }
       },
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)'
+        /* Strict 0px system — architectural permanence */
+        none: '0px',
+        sm: '0px',
+        DEFAULT: '0px',
+        md: '0px',
+        lg: '0px',
+        xl: '0px',
+        '2xl': '0px',
+        '3xl': '0px',
+        /* Only exception: full circles for avatars/spinners */
+        full: '9999px'
       },
       keyframes: {
         'accordion-down': {
