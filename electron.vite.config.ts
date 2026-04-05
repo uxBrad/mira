@@ -32,6 +32,7 @@ export default defineConfig({
     }
   },
   renderer: {
+    root: resolve(__dirname),
     resolve: {
       alias: {
         '@renderer': resolve('src'),
