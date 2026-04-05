@@ -77,15 +77,25 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    try {
+    const isDev = process.env.NODE_ENV === 'development'
+
+    if (isDev) {
+      // Auto-verify in development so you don't need email/Resend configured
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerified: new Date() }
+      })
+    } else {
       await sendVerificationEmail(emailLower, code)
-    } catch {
-      // Email not configured — log code to console for local testing
-      console.log(`\n📧 VERIFICATION CODE for ${emailLower}: ${code}\n`)
     }
 
     return NextResponse.json(
-      { message: 'Account created. Check your email for a 6-digit verification code.' },
+      {
+        message: isDev
+          ? 'Account created. (Dev mode: email auto-verified — go straight to login.)'
+          : 'Account created. Check your email for a 6-digit verification code.',
+        devAutoVerified: isDev
+      },
       { status: 201 }
     )
   } catch (error) {

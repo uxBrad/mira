@@ -3,7 +3,7 @@
 interface Window {
   api: {
     auth: {
-      register: (data: { email: string; password: string; name: string }) => Promise<{ message: string }>
+      register: (data: { email: string; password: string; name: string }) => Promise<{ message: string; devAutoVerified?: boolean }>
       login: (data: { email: string; password: string }) => Promise<{
         token: string
         refreshToken: string

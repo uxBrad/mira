@@ -36,8 +36,13 @@ export default function RegisterPage() {
 
     setIsLoading(true)
     try {
-      await register(name, email, password)
-      setStep('verify')
+      const result = await register(name, email, password)
+      if ((result as { devAutoVerified?: boolean })?.devAutoVerified) {
+        await login(email, password)
+        navigate('/')
+      } else {
+        setStep('verify')
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Registration failed. Please try again.'
       setError(message)
