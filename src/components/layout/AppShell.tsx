@@ -2,7 +2,6 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, Settings, LogOut, Clock } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { cn } from '../../lib/utils'
-import { Button } from '../ui/button'
 import { useToast } from '../ui/use-toast'
 import UpdateBanner from '../UpdateBanner'
 
