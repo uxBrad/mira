@@ -191,35 +191,50 @@ function buildReportHtml(
     day: 'numeric'
   })
 
+  const RED = '#c0392b'
+  const BG = '#f5f0ef'
+
   const totalFindings = findingsData.length
   const openFindings = findingsData.filter((f) => f.status === 'open' || f.status === 'in_progress').length
 
+  // Derive a human-readable audit type from the project standards field
+  const auditTypeLabel = project.standards
+    ? `${escapeHtml(project.standards)} Compliance Audit`
+    : 'Accessibility Compliance Audit'
+
+  function findingBadge(f: typeof findingsData[number]): string {
+    const s = f.status || 'open'
+    if (s === 'resolved') return `<span style="background:#16a34a;color:white;font-size:10px;font-weight:700;padding:3px 10px;letter-spacing:0.08em;text-transform:uppercase;"">PASS</span>`
+    if (s === 'wont_fix') return `<span style="background:#6b7280;color:white;font-size:10px;font-weight:700;padding:3px 10px;letter-spacing:0.08em;text-transform:uppercase;">N/A</span>`
+    return `<span style="background:${RED};color:white;font-size:10px;font-weight:700;padding:3px 10px;letter-spacing:0.08em;text-transform:uppercase;">FAIL</span>`
+  }
+
   const findingsHtml = findingsData
     .map(
-      (f, i) => `
-    <div class="finding" style="page-break-inside: avoid; margin-bottom: 24px; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-      <div class="finding-header" style="background: #f9fafb; padding: 16px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: flex-start; gap: 12px;">
-        <div style="flex: 1;">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-            <span style="font-size: 12px; color: #6b7280; font-weight: 500;">#${i + 1}</span>
-            <span style="background: ${severityColor(f.severity || 'moderate')}22; color: ${severityColor(f.severity || 'moderate')}; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em;">${f.severity || 'moderate'}</span>
-            ${f.wcagLevel ? `<span style="background: #dbeafe; color: #1d4ed8; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 9999px;">WCAG ${f.wcagLevel}</span>` : ''}
-            <span style="margin-left: auto; font-size: 12px; color: #6b7280;">${statusLabel(f.status || 'open')}</span>
-          </div>
-          <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #111827;">${escapeHtml(f.title)}</h3>
-          ${f.wcagCriterion ? `<p style="margin: 4px 0 0; font-size: 12px; color: #6b7280;">WCAG ${f.wcagCriterion}${f.pageUrl ? ` · ${escapeHtml(f.pageUrl)}` : ''}</p>` : ''}
-        </div>
+      (f) => `
+    <div style="page-break-inside: avoid; margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #e0d9d7;">
+      <!-- Criteria row -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 6px;">
+        <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #888;">
+          ${f.wcagCriterion ? `Criteria ${escapeHtml(f.wcagCriterion)}` : '&nbsp;'}
+        </span>
+        ${findingBadge(f)}
       </div>
-      <div style="padding: 16px;">
-        ${f.description ? `<div style="margin-bottom: 12px;"><p style="font-weight: 600; font-size: 13px; color: #374151; margin: 0 0 4px;">Issue</p><p style="margin: 0; font-size: 14px; color: #4b5563; line-height: 1.6;">${escapeHtml(f.description)}</p></div>` : ''}
-        ${f.recommendations ? `<div style="margin-bottom: 12px;"><p style="font-weight: 600; font-size: 13px; color: #374151; margin: 0 0 4px;">Recommendation</p><p style="margin: 0; font-size: 14px; color: #4b5563; line-height: 1.6;">${escapeHtml(f.recommendations)}</p></div>` : ''}
-        ${f.notes ? `<div><p style="font-weight: 600; font-size: 13px; color: #374151; margin: 0 0 4px;">Notes</p><p style="margin: 0; font-size: 14px; color: #4b5563; line-height: 1.6;">${escapeHtml(f.notes)}</p></div>` : ''}
-        ${
-          f.standards && f.standards.length > 0
-            ? `<div style="margin-top: 12px; display: flex; gap: 6px; flex-wrap: wrap;">${f.standards.map((s) => `<span style="background: #f3f4f6; color: #374151; font-size: 11px; padding: 2px 8px; border-radius: 4px;">${s}</span>`).join('')}</div>`
-            : ''
-        }
+      <!-- Finding title -->
+      <h3 style="font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 700; color: #1a1a1a; margin: 0 0 12px;">${escapeHtml(f.title)}</h3>
+      <!-- Meta row -->
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+        ${f.severity ? `<span style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:600; color:${severityColor(f.severity)}; background:${severityColor(f.severity)}18; padding:2px 8px; text-transform:uppercase; letter-spacing:0.06em;">${escapeHtml(f.severity)}</span>` : ''}
+        ${f.pageUrl ? `<span style="font-family:-apple-system,sans-serif; font-size:11px; color:#6b7280; padding:2px 8px; background:#f0ede9;">${escapeHtml(f.pageUrl)}</span>` : ''}
+        ${f.component ? `<span style="font-family:-apple-system,sans-serif; font-size:11px; color:#6b7280; padding:2px 8px; background:#f0ede9;">${escapeHtml(f.component)}</span>` : ''}
       </div>
+      ${f.description ? `<p style="font-family:-apple-system,sans-serif; margin:0 0 10px; font-size:14px; color:#444; line-height:1.65;">${escapeHtml(f.description)}</p>` : ''}
+      ${f.recommendations ? `
+        <div style="border-left: 3px solid ${RED}; padding-left: 12px; margin-top: 10px;">
+          <p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:${RED}; margin:0 0 4px;">Recommendation</p>
+          <p style="font-family:-apple-system,sans-serif; margin:0; font-size:13px; color:#333; line-height:1.6;">${escapeHtml(f.recommendations)}</p>
+        </div>` : ''}
+      ${f.notes ? `<p style="font-family:-apple-system,sans-serif; margin:10px 0 0; font-size:12px; color:#888; line-height:1.5;"><em>Note: ${escapeHtml(f.notes)}</em></p>` : ''}
     </div>
   `
     )
@@ -229,95 +244,104 @@ function buildReportHtml(
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Accessibility Audit Report — ${escapeHtml(project.name)}</title>
 <style>
-  * { box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 0; color: #111827; background: white; }
-  .page { max-width: 800px; margin: 0 auto; padding: 48px; }
-  @media print { .page { padding: 0; } }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: white; color: #1a1a1a; }
+  @page { margin: 0; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 </style>
 </head>
 <body>
-<!-- Cover Page -->
-<div class="page" style="min-height: 100vh; display: flex; flex-direction: column; justify-content: center; border-bottom: 4px solid #2563eb;">
-  <div style="margin-bottom: 48px;">
-    <div style="width: 48px; height: 48px; background: #2563eb; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; justify-content: center;">
-      <span style="color: white; font-weight: 800; font-size: 20px;">G</span>
+
+<!-- ══════════════════════════════════════
+     COVER PAGE
+══════════════════════════════════════ -->
+<div style="min-height:100vh; background:${BG}; padding: 72px 80px; display:flex; flex-direction:column; justify-content:space-between;">
+
+  <!-- Top: client + title -->
+  <div>
+    ${project.clientName ? `<p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; font-size:12px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:${RED}; margin-bottom:24px;">${escapeHtml(project.clientName)}</p>` : ''}
+
+    <h1 style="font-family:Georgia,'Times New Roman',serif; font-size:52px; font-weight:700; line-height:1.15; color:#1a1a1a; margin-bottom:20px;">
+      ${escapeHtml(auditTypeLabel)}
+    </h1>
+
+    <!-- Red decorative bar -->
+    <div style="width:56px; height:5px; background:${RED}; margin-bottom:40px;"></div>
+
+    ${project.name !== auditTypeLabel ? `<p style="font-family:-apple-system,sans-serif; font-size:16px; color:#555; margin-bottom:8px;">${escapeHtml(project.name)}</p>` : ''}
+    ${project.url ? `<p style="font-family:-apple-system,sans-serif; font-size:13px; color:#888;">${escapeHtml(project.url)}</p>` : ''}
+  </div>
+
+  <!-- Stats row -->
+  <div>
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:40px;">
+      ${[
+        { label: 'Total Issues', value: totalFindings },
+        { label: 'Critical', value: severityCounts.critical },
+        { label: 'Serious', value: severityCounts.serious },
+        { label: 'Open', value: openFindings }
+      ].map((s) => `
+        <div style="background:white; padding:20px 16px;">
+          <p style="font-family:Georgia,serif; font-size:40px; font-weight:700; color:${RED}; line-height:1;">${s.value}</p>
+          <p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#888; margin-top:6px;">${s.label}</p>
+        </div>
+      `).join('')}
     </div>
-    <p style="font-size: 13px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 12px;">Accessibility Audit Report</p>
-    <h1 style="font-size: 40px; font-weight: 800; margin: 0 0 12px; line-height: 1.2; color: #111827;">${escapeHtml(project.name)}</h1>
-    ${project.clientName ? `<p style="font-size: 18px; color: #6b7280; margin: 0 0 8px;">Prepared for: <strong>${escapeHtml(project.clientName)}</strong></p>` : ''}
-    ${project.url ? `<p style="font-size: 14px; color: #9ca3af; margin: 0;">${escapeHtml(project.url)}</p>` : ''}
+    <p style="font-family:-apple-system,sans-serif; font-size:12px; color:#aaa;">Generated ${date} · Echo</p>
   </div>
-  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 48px;">
-    ${[
-      { label: 'Total Issues', value: totalFindings, color: '#2563eb' },
-      { label: 'Critical', value: severityCounts.critical, color: '#dc2626' },
-      { label: 'Serious', value: severityCounts.serious, color: '#ea580c' },
-      { label: 'Open', value: openFindings, color: '#d97706' }
-    ]
-      .map(
-        (stat) => `
-      <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; text-align: center;">
-        <p style="font-size: 32px; font-weight: 800; color: ${stat.color}; margin: 0;">${stat.value}</p>
-        <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0; font-weight: 500;">${stat.label}</p>
-      </div>
-    `
-      )
-      .join('')}
-  </div>
-  <p style="font-size: 14px; color: #9ca3af; margin: 0;">Generated ${date} · Echo</p>
 </div>
 
-<!-- Executive Summary -->
-<div class="page" style="padding-top: 32px;">
-  <h2 style="font-size: 24px; font-weight: 700; color: #111827; border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; margin-bottom: 24px;">Executive Summary</h2>
-  <p style="font-size: 15px; color: #4b5563; line-height: 1.7; margin-bottom: 24px;">
-    This accessibility audit of <strong>${escapeHtml(project.name)}</strong> identified <strong>${totalFindings} issue${totalFindings !== 1 ? 's' : ''}</strong> across the evaluated scope.
-    ${severityCounts.critical > 0 ? `<strong style="color: #dc2626">${severityCounts.critical} critical issue${severityCounts.critical !== 1 ? 's' : ''}</strong> require immediate attention. ` : ''}
-    ${totalFindings === 0 ? 'No accessibility issues were found during this audit.' : `A total of ${openFindings} issue${openFindings !== 1 ? 's' : ''} remain${openFindings === 1 ? 's' : ''} open.`}
+<!-- ══════════════════════════════════════
+     SUMMARY PAGE
+══════════════════════════════════════ -->
+<div style="padding: 64px 80px; background:white; page-break-before:always;">
+  ${project.clientName ? `<p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:${RED}; margin-bottom:16px;">${escapeHtml(project.clientName)}</p>` : ''}
+  <h2 style="font-family:Georgia,serif; font-size:32px; font-weight:700; color:#1a1a1a; margin-bottom:12px;">Summary</h2>
+  <div style="width:40px; height:4px; background:${RED}; margin-bottom:32px;"></div>
+
+  <p style="font-family:-apple-system,sans-serif; font-size:15px; color:#444; line-height:1.7; margin-bottom:36px;">
+    This accessibility audit of <strong>${escapeHtml(project.name)}</strong> identified
+    <strong>${totalFindings} issue${totalFindings !== 1 ? 's' : ''}</strong> across the evaluated scope.
+    ${severityCounts.critical > 0 ? `<strong style="color:${RED}">${severityCounts.critical} critical issue${severityCounts.critical !== 1 ? 's' : ''}</strong> require immediate attention. ` : ''}
+    ${totalFindings === 0 ? 'No accessibility issues were found during this audit.' : `${openFindings} issue${openFindings !== 1 ? 's' : ''} remain${openFindings === 1 ? 's' : ''} open.`}
   </p>
 
-  <!-- Severity breakdown -->
-  <div style="margin-bottom: 32px;">
-    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Issues by Severity</h3>
-    ${[
-      { label: 'Critical', count: severityCounts.critical, color: '#dc2626' },
-      { label: 'Serious', count: severityCounts.serious, color: '#ea580c' },
-      { label: 'Moderate', count: severityCounts.moderate, color: '#d97706' },
-      { label: 'Minor', count: severityCounts.minor, color: '#65a30d' }
-    ]
-      .map(
-        (s) => `
-      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-        <span style="min-width: 80px; font-size: 13px; font-weight: 500; color: #374151;">${s.label}</span>
-        <div style="flex: 1; background: #f3f4f6; border-radius: 4px; height: 20px; overflow: hidden;">
-          <div style="width: ${totalFindings > 0 ? Math.round((s.count / totalFindings) * 100) : 0}%; background: ${s.color}; height: 100%; border-radius: 4px;"></div>
-        </div>
-        <span style="min-width: 28px; text-align: right; font-size: 14px; font-weight: 700; color: ${s.color};">${s.count}</span>
+  <!-- Severity bars -->
+  <h3 style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#888; margin-bottom:20px;">Issues by Severity</h3>
+  ${[
+    { label: 'Critical', count: severityCounts.critical, color: '#c0392b' },
+    { label: 'Serious', count: severityCounts.serious, color: '#e67e22' },
+    { label: 'Moderate', count: severityCounts.moderate, color: '#d4ac0d' },
+    { label: 'Minor', count: severityCounts.minor, color: '#27ae60' }
+  ].map((s) => `
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:10px;">
+      <span style="font-family:-apple-system,sans-serif; font-size:12px; font-weight:600; color:#333; min-width:72px;">${s.label}</span>
+      <div style="flex:1; background:#ede9e7; height:16px;">
+        <div style="width:${totalFindings > 0 ? Math.round((s.count / totalFindings) * 100) : 0}%; background:${s.color}; height:100%;"></div>
       </div>
-    `
-      )
-      .join('')}
-  </div>
+      <span style="font-family:Georgia,serif; font-size:16px; font-weight:700; color:${s.color}; min-width:24px; text-align:right;">${s.count}</span>
+    </div>
+  `).join('')}
 
-  <!-- Project details -->
-  ${
-    project.description
-      ? `<div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-      <p style="font-weight: 600; font-size: 13px; color: #374151; margin: 0 0 8px;">Audit Scope</p>
-      <p style="margin: 0; font-size: 14px; color: #4b5563; line-height: 1.6;">${escapeHtml(project.description)}</p>
-    </div>`
-      : ''
-  }
+  ${project.description ? `
+  <div style="margin-top:36px; padding:20px 24px; background:${BG};">
+    <p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#888; margin-bottom:8px;">Audit Scope</p>
+    <p style="font-family:-apple-system,sans-serif; font-size:14px; color:#444; line-height:1.6;">${escapeHtml(project.description)}</p>
+  </div>` : ''}
 </div>
 
-<!-- Detailed Findings -->
-<div class="page" style="padding-top: 16px;">
-  <h2 style="font-size: 24px; font-weight: 700; color: #111827; border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; margin-bottom: 24px;">Detailed Findings</h2>
-  ${findingsHtml || '<p style="color: #6b7280; font-style: italic;">No findings recorded for this project.</p>'}
+<!-- ══════════════════════════════════════
+     FINDINGS PAGES
+══════════════════════════════════════ -->
+<div style="padding: 64px 80px; background:white; page-break-before:always;">
+  ${project.clientName ? `<p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:${RED}; margin-bottom:16px;">${escapeHtml(project.clientName)}</p>` : ''}
+  <h2 style="font-family:Georgia,serif; font-size:32px; font-weight:700; color:#1a1a1a; margin-bottom:12px;">Detailed Findings</h2>
+  <div style="width:40px; height:4px; background:${RED}; margin-bottom:40px;"></div>
+  ${findingsHtml || '<p style="font-family:-apple-system,sans-serif; font-size:14px; color:#aaa; font-style:italic;">No findings recorded for this project.</p>'}
 </div>
+
 </body>
 </html>`
 }
