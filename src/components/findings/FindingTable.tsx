@@ -48,8 +48,8 @@ export function FindingTable({ findings, isLoading, onEdit, onUpdate, onDelete }
 
   return (
     <ul className="space-y-0" role="list" aria-label="Findings">
-      {findings.map((finding, i) => (
-        <li key={finding.id} style={{ background: i % 2 === 1 ? '#ebe7e7' : 'transparent' }}>
+      {findings.map((finding) => (
+        <li key={finding.id}>
           <FindingRow
             finding={finding}
             onEdit={() => onEdit(finding)}

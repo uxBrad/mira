@@ -6,16 +6,13 @@ import {
   Download,
   ExternalLink,
   AlertCircle,
-  Pencil,
-  ChevronDown,
-  Check,
-  X as XIcon,
   Eye,
   MousePointer,
   BookOpen,
   Shield,
   LayoutGrid,
-  Settings2
+  Settings2,
+  ListChecks
 } from 'lucide-react'
 import { useFindings } from '../../hooks/useFindings'
 import { useTemplates } from '../../hooks/useTemplates'
@@ -23,6 +20,14 @@ import { FindingTable } from '../../components/findings/FindingTable'
 import { FindingFormSidebar } from '../../components/findings/FindingFormSidebar'
 import { ProjectFormDialog } from '../../components/projects/ProjectFormDialog'
 import { useToast } from '../../components/ui/use-toast'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription
+} from '../../components/ui/dialog'
 
 const STATUS_LABELS: Record<string, string> = {
   in_progress: 'In Progress',
@@ -95,19 +100,13 @@ export default function ProjectPage() {
   const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [pageFilter, setPageFilter] = useState<string[]>([])
   const [componentFilter, setComponentFilter] = useState<string[]>([])
-  const [templatePickerOpen, setTemplatePickerOpen] = useState(false)
   const [findingInitialData, setFindingInitialData] = useState<Partial<Finding> | undefined>(undefined)
-  const templatePickerRef = useRef<HTMLDivElement>(null)
 
-  // Quick-add page
-  const [addingPage, setAddingPage] = useState(false)
+  // Modal add page / component
+  const [pageModalOpen, setPageModalOpen] = useState(false)
+  const [componentModalOpen, setComponentModalOpen] = useState(false)
   const [newPageValue, setNewPageValue] = useState('')
-  const newPageRef = useRef<HTMLInputElement>(null)
-
-  // Quick-add component
-  const [addingComponent, setAddingComponent] = useState(false)
   const [newComponentValue, setNewComponentValue] = useState('')
-  const newComponentRef = useRef<HTMLInputElement>(null)
 
   const { findings, isLoading, error, createFinding, updateFinding, deleteFinding } = useFindings(id!)
   const { templates } = useTemplates()
@@ -121,25 +120,6 @@ export default function ProjectPage() {
       .finally(() => setIsLoadingProject(false))
   }, [id, navigate])
 
-  // Close template picker when clicking outside
-  useEffect(() => {
-    if (!templatePickerOpen) return
-    function handleClick(e: MouseEvent) {
-      if (templatePickerRef.current && !templatePickerRef.current.contains(e.target as Node)) {
-        setTemplatePickerOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [templatePickerOpen])
-
-  useEffect(() => {
-    if (addingPage) setTimeout(() => newPageRef.current?.focus(), 50)
-  }, [addingPage])
-
-  useEffect(() => {
-    if (addingComponent) setTimeout(() => newComponentRef.current?.focus(), 50)
-  }, [addingComponent])
 
   // Derived filter options from findings
   const uniquePages = Array.from(
@@ -249,7 +229,7 @@ export default function ProjectPage() {
     if (!project.auditUrls.includes(trimmed)) {
       await handleAddPage(trimmed)
     }
-    setAddingPage(false)
+    setPageModalOpen(false)
     setNewPageValue('')
   }
 
@@ -259,7 +239,7 @@ export default function ProjectPage() {
     if (!project.components.includes(trimmed)) {
       await handleAddComponent(trimmed)
     }
-    setAddingComponent(false)
+    setComponentModalOpen(false)
     setNewComponentValue('')
   }
 
@@ -565,42 +545,75 @@ export default function ProjectPage() {
             Precision tools for modern accessibility compliance workflows.
           </p>
 
-          {/* Add finding split button */}
-          <div className="mb-3 relative" ref={templatePickerRef}>
-            <div className="flex w-full">
-              <button
-                className="flex-1 flex items-center justify-between px-4 py-3 font-sans text-xs font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90"
-                style={{ background: '#610000', letterSpacing: '0.1em' }}
-                onClick={openBlankFinding}
+          {/* Primary: Add Finding */}
+          <button
+            className="flex w-full items-center justify-between px-4 py-3 mb-2 font-sans text-sm font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90"
+            style={{ background: '#610000', letterSpacing: '0.1em' }}
+            onClick={openBlankFinding}
+          >
+            <span>Add Finding</span>
+            <Plus className="h-4 w-4" aria-hidden="true" />
+          </button>
+
+          {/* Secondary: Step-by-Step Audit */}
+          <button
+            className="flex w-full items-center justify-between px-4 py-3 mb-4 font-sans text-sm font-bold uppercase tracking-widest transition-colors hover:bg-[#e0dbd9]"
+            style={{ background: '#e5e2e1', color: '#2b2c2c', letterSpacing: '0.1em' }}
+            onClick={openBlankFinding}
+          >
+            <span>Step-by-Step Audit</span>
+            <ListChecks className="h-4 w-4" aria-hidden="true" />
+          </button>
+
+          {/* Tertiary buttons */}
+          <div className="space-y-2">
+            {/* Pages */}
+            <button
+              onClick={() => setPageModalOpen(true)}
+              className="flex w-full items-center justify-between px-3 py-2.5 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
+              style={{ border: '1px solid #d0cac8', color: '#2b2c2c', background: 'transparent' }}
+            >
+              <span className="flex items-center gap-2">
+                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                Pages
+              </span>
+              <span
+                className="flex items-center justify-center font-sans text-xs font-bold text-white"
+                style={{ background: '#610000', borderRadius: '9999px', minWidth: '20px', height: '20px', padding: '0 5px' }}
               >
-                <span>Step-by-Step Audit</span>
-                <Plus className="h-4 w-4" aria-hidden="true" />
-              </button>
-              <button
-                className="px-2.5 font-sans text-white transition-opacity hover:opacity-90"
-                style={{ background: '#610000', borderLeft: '1px solid rgba(255,255,255,0.2)' }}
-                onClick={() => setTemplatePickerOpen((v) => !v)}
-                aria-label="Add finding from template"
-                aria-expanded={templatePickerOpen}
+                {project.auditUrls.length}
+              </span>
+            </button>
+
+            {/* Components */}
+            <button
+              onClick={() => setComponentModalOpen(true)}
+              className="flex w-full items-center justify-between px-3 py-2.5 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
+              style={{ border: '1px solid #d0cac8', color: '#2b2c2c', background: 'transparent' }}
+            >
+              <span className="flex items-center gap-2">
+                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                Components
+              </span>
+              <span
+                className="flex items-center justify-center font-sans text-xs font-bold text-white"
+                style={{ background: '#610000', borderRadius: '9999px', minWidth: '20px', height: '20px', padding: '0 5px' }}
               >
-                <ChevronDown className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </div>
-            {templatePickerOpen && (
-              <div
-                className="absolute top-full left-0 right-0 z-20 shadow-ambient overflow-hidden"
-                style={{ background: '#fcf9f8', border: '1px solid #e0dbd9' }}
-                role="menu"
-              >
-                <button
-                  className="w-full text-left px-4 py-2.5 font-sans text-sm hover:bg-[#ebe7e7] transition-colors"
-                  role="menuitem"
-                  onClick={() => { setTemplatePickerOpen(false); openBlankFinding() }}
-                >
-                  Add finding from template
-                </button>
-              </div>
-            )}
+                {project.components.length}
+              </span>
+            </button>
+
+            {/* Configure Project */}
+            <button
+              onClick={() => setEditProjectOpen(true)}
+              className="flex w-full items-center justify-between px-3 py-2.5 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
+              style={{ border: '1px solid #d0cac8', color: '#2b2c2c', background: 'transparent' }}
+            >
+              <span className="flex items-center gap-2">
+                <Settings2 className="h-3.5 w-3.5" aria-hidden="true" />
+                Configure Project
+              </span>
+            </button>
           </div>
 
           {/* Export PDF */}
@@ -608,7 +621,7 @@ export default function ProjectPage() {
             onClick={handleExportPDF}
             disabled={!!isExporting}
             aria-busy={isExporting === 'pdf'}
-            className="flex w-full items-center justify-between px-4 py-3 font-sans text-xs font-bold uppercase tracking-widest transition-colors mb-1 disabled:opacity-40"
+            className="flex w-full items-center justify-between px-4 py-3 mt-4 font-sans text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-40 hover:bg-[#d8d4d2]"
             style={{ background: '#e5e2e1', color: '#2b2c2c', letterSpacing: '0.1em' }}
           >
             <span>{isExporting === 'pdf' ? 'Generating…' : 'Export Report (PDF)'}</span>
@@ -620,78 +633,12 @@ export default function ProjectPage() {
             onClick={handleExportCSV}
             disabled={!!isExporting || findings.length === 0}
             aria-busy={isExporting === 'csv'}
-            className="flex w-full items-center justify-between px-4 py-3 font-sans text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-40"
+            className="flex w-full items-center justify-between px-4 py-3 mt-1 font-sans text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-40 hover:bg-[#d8d4d2]"
             style={{ background: '#e5e2e1', color: '#2b2c2c', letterSpacing: '0.1em' }}
           >
             <span>{isExporting === 'csv' ? 'Exporting…' : 'Export CSV'}</span>
             <Download className="h-4 w-4" aria-hidden="true" />
           </button>
-
-          {/* Configure / Edit project link */}
-          <button
-            onClick={() => setEditProjectOpen(true)}
-            className="mt-4 flex items-center gap-1.5 font-serif italic text-sm underline underline-offset-4 transition-colors hover:opacity-70"
-            style={{ color: '#610000' }}
-          >
-            <Settings2 className="h-3.5 w-3.5 not-italic" aria-hidden="true" />
-            Configure Project
-          </button>
-
-          {/* Add Page / Component */}
-          <div className="mt-5 space-y-2">
-            {addingPage ? (
-              <div className="flex items-center gap-1.5">
-                <input
-                  ref={newPageRef}
-                  value={newPageValue}
-                  onChange={(e) => setNewPageValue(e.target.value)}
-                  placeholder="/about"
-                  className="flex-1 h-8 px-2 font-sans text-xs border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                  style={{ borderColor: '#d0cac8' }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') confirmAddPage()
-                    if (e.key === 'Escape') { setAddingPage(false); setNewPageValue('') }
-                  }}
-                />
-                <button onClick={confirmAddPage} className="text-primary hover:opacity-80" aria-label="Confirm"><Check className="h-4 w-4" /></button>
-                <button onClick={() => { setAddingPage(false); setNewPageValue('') }} className="text-muted-foreground hover:text-foreground" aria-label="Cancel"><XIcon className="h-4 w-4" /></button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setAddingPage(true)}
-                className="flex items-center gap-1.5 font-sans text-xs font-medium text-[#5f5e5e] hover:text-foreground transition-colors"
-              >
-                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-                Add Page
-              </button>
-            )}
-            {addingComponent ? (
-              <div className="flex items-center gap-1.5">
-                <input
-                  ref={newComponentRef}
-                  value={newComponentValue}
-                  onChange={(e) => setNewComponentValue(e.target.value)}
-                  placeholder="Navigation"
-                  className="flex-1 h-8 px-2 font-sans text-xs border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                  style={{ borderColor: '#d0cac8' }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') confirmAddComponent()
-                    if (e.key === 'Escape') { setAddingComponent(false); setNewComponentValue('') }
-                  }}
-                />
-                <button onClick={confirmAddComponent} className="text-primary hover:opacity-80" aria-label="Confirm"><Check className="h-4 w-4" /></button>
-                <button onClick={() => { setAddingComponent(false); setNewComponentValue('') }} className="text-muted-foreground hover:text-foreground" aria-label="Cancel"><XIcon className="h-4 w-4" /></button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setAddingComponent(true)}
-                className="flex items-center gap-1.5 font-sans text-xs font-medium text-[#5f5e5e] hover:text-foreground transition-colors"
-              >
-                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-                Add Component
-              </button>
-            )}
-          </div>
         </div>
 
         {/* Masthead divider */}
@@ -732,6 +679,78 @@ export default function ProjectPage() {
           </dl>
         </div>
       </aside>
+
+      {/* ── Add Page modal ── */}
+      <Dialog open={pageModalOpen} onOpenChange={(o) => { setPageModalOpen(o); if (!o) setNewPageValue('') }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Add Page</DialogTitle>
+            <DialogDescription>Enter a URL or page name to track in this audit.</DialogDescription>
+          </DialogHeader>
+          <input
+            autoFocus
+            value={newPageValue}
+            onChange={(e) => setNewPageValue(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') confirmAddPage() }}
+            placeholder="/about or Home"
+            className="w-full h-9 px-3 font-sans text-sm border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+            style={{ borderColor: '#d0cac8' }}
+          />
+          <DialogFooter>
+            <button
+              onClick={() => { setPageModalOpen(false); setNewPageValue('') }}
+              className="px-4 py-2 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
+              style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmAddPage}
+              disabled={!newPageValue.trim()}
+              className="px-4 py-2 font-sans text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+              style={{ background: '#610000' }}
+            >
+              Add Page
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Add Component modal ── */}
+      <Dialog open={componentModalOpen} onOpenChange={(o) => { setComponentModalOpen(o); if (!o) setNewComponentValue('') }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Add Component</DialogTitle>
+            <DialogDescription>Enter a component name to track in this audit.</DialogDescription>
+          </DialogHeader>
+          <input
+            autoFocus
+            value={newComponentValue}
+            onChange={(e) => setNewComponentValue(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') confirmAddComponent() }}
+            placeholder="Navigation, Hero, Footer…"
+            className="w-full h-9 px-3 font-sans text-sm border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+            style={{ borderColor: '#d0cac8' }}
+          />
+          <DialogFooter>
+            <button
+              onClick={() => { setComponentModalOpen(false); setNewComponentValue('') }}
+              className="px-4 py-2 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
+              style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmAddComponent}
+              disabled={!newComponentValue.trim()}
+              className="px-4 py-2 font-sans text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+              style={{ background: '#610000' }}
+            >
+              Add Component
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Slide-in finding form sidebar ── */}
       <FindingFormSidebar
