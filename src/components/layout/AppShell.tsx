@@ -37,8 +37,7 @@ export default function AppShell() {
         {/* Brand */}
         <div className="px-5 py-5 titlebar-drag">
           <span className="font-display text-lg font-bold tracking-tight text-foreground">
-            Grounds<br />
-            <span className="text-primary">for Access</span>
+            Echo
           </span>
         </div>
 

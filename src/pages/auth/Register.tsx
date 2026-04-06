@@ -82,9 +82,9 @@ export default function RegisterPage() {
         <div className="w-full max-w-sm">
           <div className="flex items-center gap-2.5 mb-8 justify-center">
             <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center" aria-hidden="true">
-              <span className="text-primary-foreground font-bold text-base">G</span>
+              <span className="text-primary-foreground font-bold text-base">E</span>
             </div>
-            <span className="font-bold text-xl">Grounds for Access</span>
+            <span className="font-bold text-xl">Echo</span>
           </div>
 
           <div className="border rounded-xl p-6 shadow-sm bg-card">
@@ -159,9 +159,9 @@ export default function RegisterPage() {
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-2.5 mb-8 justify-center">
           <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center" aria-hidden="true">
-            <span className="text-primary-foreground font-bold text-base">G</span>
+            <span className="text-primary-foreground font-bold text-base">E</span>
           </div>
-          <span className="font-bold text-xl">Grounds for Access</span>
+          <span className="font-bold text-xl">Echo</span>
         </div>
 
         <div className="border rounded-xl p-6 shadow-sm bg-card">

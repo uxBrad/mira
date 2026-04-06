@@ -64,6 +64,16 @@ export function registerAuthHandlers(ipcMain: IpcMain): void {
     return json
   })
 
+  ipcMain.handle('auth:resendVerification', async (_, email: string) => {
+    const res = await apiRequest('/api/auth/resend-verification', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    })
+    const json = await res.json()
+    if (!res.ok) throw new Error(json.error || 'Failed to resend verification email')
+    return json
+  })
+
   ipcMain.handle('auth:verifyEmail', async (_, data: { email: string; code: string }) => {
     const res = await apiRequest('/api/auth/verify-email', {
       method: 'POST',

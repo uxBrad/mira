@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     if (!user.emailVerified) {
       return NextResponse.json(
-        { error: 'Please verify your email before signing in. Check your inbox for the verification link.' },
+        { error: 'Please verify your email before signing in. Check your inbox for a 6-digit verification code.' },
         { status: 403 }
       )
     }

@@ -16,6 +16,7 @@ interface Window {
         user: { id: string; email: string; name: string | null }
       } | null>
       verifyEmail: (email: string, code: string) => Promise<{ success: boolean }>
+      resendVerification: (email: string) => Promise<{ success: boolean }>
       forgotPassword: (email: string) => Promise<{ message: string }>
       resetPassword: (data: { email: string; code: string; password: string }) => Promise<{ message: string }>
       getSubscriptionStatus: () => Promise<{

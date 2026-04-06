@@ -12,6 +12,8 @@ const authAPI = {
   forgotPassword: (email: string) => ipcRenderer.invoke('auth:forgotPassword', email),
   verifyEmail: (email: string, code: string) =>
     ipcRenderer.invoke('auth:verifyEmail', { email, code }),
+  resendVerification: (email: string) =>
+    ipcRenderer.invoke('auth:resendVerification', email),
   resetPassword: (data: { email: string; code: string; password: string }) =>
     ipcRenderer.invoke('auth:resetPassword', data),
   getSubscriptionStatus: () => ipcRenderer.invoke('auth:getSubscriptionStatus'),

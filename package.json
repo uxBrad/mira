@@ -1,12 +1,12 @@
 {
-  "name": "grounds-for-access",
+  "name": "echo",
   "version": "0.1.0",
   "description": "Accessibility audit management tool",
   "main": "./out/main/index.js",
   "author": {
-    "name": "Grounds for Access"
+    "name": "Echo"
   },
-  "homepage": "https://groundsforaccess.com",
+  "homepage": "https://helloecho.app",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",

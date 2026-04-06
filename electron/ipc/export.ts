@@ -267,7 +267,7 @@ function buildReportHtml(
       )
       .join('')}
   </div>
-  <p style="font-size: 14px; color: #9ca3af; margin: 0;">Generated ${date} · Grounds for Access</p>
+  <p style="font-size: 14px; color: #9ca3af; margin: 0;">Generated ${date} · Echo</p>
 </div>
 
 <!-- Executive Summary -->
