@@ -31,6 +31,19 @@ interface FindingFormData {
   notes?: string
 }
 
+interface FindingTemplate {
+  id: string
+  title: string
+  description: string | null
+  wcagCriterion: string | null
+  wcagLevel: string | null
+  standards: string[]
+  category: string | null
+  severity: string | null
+  recommendations: string | null
+  notes: string | null
+}
+
 interface FindingFormSidebarProps {
   open: boolean
   onClose: () => void
@@ -41,6 +54,7 @@ interface FindingFormSidebarProps {
   auditComponents?: string[]
   onAddPage?: (page: string) => Promise<void>
   onAddComponent?: (component: string) => Promise<void>
+  templates?: FindingTemplate[]
   initialData?: Partial<FindingFormData>
 }
 
@@ -54,6 +68,7 @@ export function FindingFormSidebar({
   auditComponents = [],
   onAddPage,
   onAddComponent,
+  templates = [],
   initialData
 }: FindingFormSidebarProps) {
   const [title, setTitle] = useState(initialData?.title || '')
@@ -80,6 +95,7 @@ export function FindingFormSidebar({
   const [newComponentValue, setNewComponentValue] = useState('')
   const [localPages, setLocalPages] = useState<string[]>(auditPages)
   const [localComponents, setLocalComponents] = useState<string[]>(auditComponents)
+  const [selectedTemplateId, setSelectedTemplateId] = useState('')
 
   const titleRef = useRef<HTMLInputElement>(null)
   const newPageRef = useRef<HTMLInputElement>(null)
@@ -114,6 +130,7 @@ export function FindingFormSidebar({
       setNewPageValue('')
       setAddingComponent(false)
       setNewComponentValue('')
+      setSelectedTemplateId('')
       setTimeout(() => titleRef.current?.focus(), 50)
     }
   }, [open])
@@ -148,6 +165,22 @@ export function FindingFormSidebar({
       const nonWcag = prev.filter((s) => !s.startsWith('WCAG'))
       return [...nonWcag, ...matchingWcag]
     })
+  }
+
+  function applyTemplateById(templateId: string) {
+    setSelectedTemplateId(templateId)
+    const t = templates.find((tmpl) => tmpl.id === templateId)
+    if (!t) return
+    setTitle(t.title)
+    setDescription(t.description ?? '')
+    setWcagCriterion(t.wcagCriterion ?? '')
+    setWcagLevel(t.wcagLevel ?? '')
+    setStandards(t.standards ?? [])
+    setCategory(t.category ?? '')
+    setSeverity(t.severity ?? 'moderate')
+    setRecommendations(t.recommendations ?? '')
+    setNotes(t.notes ?? '')
+    setCriterionSearch('')
   }
 
   function toggleStandard(std: string) {
@@ -278,6 +311,27 @@ export function FindingFormSidebar({
             )}
 
             <div className="space-y-5">
+              {/* Load from template */}
+              {mode === 'create' && templates.length > 0 && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="sf-template" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
+                    Load from template
+                  </Label>
+                  <Select value={selectedTemplateId} onValueChange={applyTemplateById}>
+                    <SelectTrigger id="sf-template">
+                      <SelectValue placeholder="Select a template…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {templates.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               {/* Title */}
               <div className="space-y-1.5">
                 <Label htmlFor="sf-title" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">

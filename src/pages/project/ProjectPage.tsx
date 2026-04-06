@@ -579,13 +579,12 @@ export default function ProjectPage() {
                 Add finding
               </Button>
               <Button
-                variant="outline"
-                className="px-2 border-l-0"
-                style={{ borderRadius: 0, borderLeft: '1px solid rgba(0,0,0,0.15)' }}
+                className="px-2"
+                style={{ borderRadius: 0, borderLeft: '1px solid rgba(255,255,255,0.25)' }}
                 onClick={() => setTemplatePickerOpen((v) => !v)}
                 aria-label="Add finding from template"
                 aria-expanded={templatePickerOpen}
-                aria-haspopup="listbox"
+                aria-haspopup="menu"
               >
                 <ChevronDown className="h-4 w-4" aria-hidden="true" />
               </Button>
@@ -596,25 +595,15 @@ export default function ProjectPage() {
               <div
                 className="absolute top-full left-0 right-0 z-20 border shadow-md overflow-hidden"
                 style={{ background: '#fcf9f8', borderColor: '#ebe7e7' }}
-                role="listbox"
-                aria-label="Select a finding template"
+                role="menu"
               >
-                {templates.length === 0 ? (
-                  <p className="px-3 py-2.5 font-data text-xs text-muted-foreground">
-                    No templates yet — create them in Finding Templates.
-                  </p>
-                ) : (
-                  templates.map((t) => (
-                    <button
-                      key={t.id}
-                      className="w-full text-left px-3 py-2.5 font-data text-sm hover:bg-[#ebe7e7] transition-colors"
-                      onClick={() => applyTemplate(t)}
-                      role="option"
-                    >
-                      {t.title}
-                    </button>
-                  ))
-                )}
+                <button
+                  className="w-full text-left px-3 py-2.5 font-data text-sm hover:bg-[#ebe7e7] transition-colors"
+                  role="menuitem"
+                  onClick={() => { setTemplatePickerOpen(false); openBlankFinding() }}
+                >
+                  Add finding from template
+                </button>
               </div>
             )}
           </div>
@@ -758,6 +747,7 @@ export default function ProjectPage() {
         auditComponents={project.components}
         onAddPage={handleAddPage}
         onAddComponent={handleAddComponent}
+        templates={templates}
         initialData={editFinding ? {
           ...editFinding,
           description: editFinding.description ?? undefined,
