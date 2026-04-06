@@ -87,10 +87,10 @@ export default function ProjectPage() {
   const [editFinding, setEditFinding] = useState<Finding | null>(null)
   const [editProjectOpen, setEditProjectOpen] = useState(false)
   const [isExporting, setIsExporting] = useState<'pdf' | 'csv' | null>(null)
-  const [severityFilter, setSeverityFilter] = useState('all')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [pageFilter, setPageFilter] = useState('all')
-  const [componentFilter, setComponentFilter] = useState('all')
+  const [severityFilter, setSeverityFilter] = useState<string[]>([])
+  const [statusFilter, setStatusFilter] = useState<string[]>([])
+  const [pageFilter, setPageFilter] = useState<string[]>([])
+  const [componentFilter, setComponentFilter] = useState<string[]>([])
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false)
   const [findingInitialData, setFindingInitialData] = useState<Partial<Finding> | undefined>(undefined)
   const templatePickerRef = useRef<HTMLDivElement>(null)
@@ -146,19 +146,23 @@ export default function ProjectPage() {
   )
 
   const filtered = findings.filter((f) => {
-    if (severityFilter !== 'all' && f.severity !== severityFilter) return false
-    if (statusFilter !== 'all' && f.status !== statusFilter) return false
-    if (pageFilter !== 'all' && f.pageUrl !== pageFilter) return false
-    if (componentFilter !== 'all' && f.component !== componentFilter) return false
+    if (severityFilter.length > 0 && !severityFilter.includes(f.severity ?? '')) return false
+    if (statusFilter.length > 0 && !statusFilter.includes(f.status ?? '')) return false
+    if (pageFilter.length > 0 && !pageFilter.includes(f.pageUrl ?? '')) return false
+    if (componentFilter.length > 0 && !componentFilter.includes(f.component ?? '')) return false
     return true
   })
 
-  const activeFilterCount = [
-    severityFilter !== 'all',
-    statusFilter !== 'all',
-    pageFilter !== 'all',
-    componentFilter !== 'all'
-  ].filter(Boolean).length
+  const activeFilterCount =
+    severityFilter.length + statusFilter.length + pageFilter.length + componentFilter.length
+
+  function toggleFilter(
+    value: string,
+    current: string[],
+    setter: React.Dispatch<React.SetStateAction<string[]>>
+  ) {
+    setter(current.includes(value) ? current.filter((v) => v !== value) : [...current, value])
+  }
 
   function openBlankFinding() {
     setFindingInitialData(undefined)
@@ -374,152 +378,151 @@ export default function ProjectPage() {
       {/* ── Body ── */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* Left: filter panel */}
-        <aside
-          className="w-52 flex-shrink-0 flex flex-col px-5 py-6 overflow-y-auto"
-          style={{ background: '#f6f3f2', borderRight: '1px solid #ebe7e7' }}
-          aria-label="Filter findings"
-        >
-          {/* Severity */}
-          <div className="mb-6">
-            <p className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground mb-3">
-              Severity
-            </p>
-            <div className="space-y-0.5" role="group" aria-label="Filter by severity">
-              {SEVERITY_FILTERS.map((f) => (
-                <button
-                  key={f.key}
-                  onClick={() => setSeverityFilter(f.key)}
-                  aria-pressed={severityFilter === f.key}
-                  className={`w-full text-left px-3 py-2 font-data text-sm transition-colors ${
-                    severityFilter === f.key
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-[#ebe7e7] hover:text-foreground'
-                  }`}
-                >
-                  {f.label}
-                  {f.key !== 'all' && (
-                    <span className="ml-1 text-xs opacity-60">
-                      ({severityCounts[f.key as keyof typeof severityCounts] ?? 0})
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Status */}
-          <div className="mb-6">
-            <p className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground mb-3">
-              Status
-            </p>
-            <div className="space-y-0.5" role="group" aria-label="Filter by status">
-              {STATUS_FILTERS.map((f) => (
-                <button
-                  key={f.key}
-                  onClick={() => setStatusFilter(f.key)}
-                  aria-pressed={statusFilter === f.key}
-                  className={`w-full text-left px-3 py-2 font-data text-sm transition-colors ${
-                    statusFilter === f.key
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-[#ebe7e7] hover:text-foreground'
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Page filter */}
-          {uniquePages.length > 0 && (
-            <div className="mb-6">
-              <p className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground mb-3">
-                Page
-              </p>
-              <div className="space-y-0.5" role="group" aria-label="Filter by page">
-                <button
-                  onClick={() => setPageFilter('all')}
-                  aria-pressed={pageFilter === 'all'}
-                  className={`w-full text-left px-3 py-2 font-data text-sm transition-colors ${
-                    pageFilter === 'all'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-[#ebe7e7] hover:text-foreground'
-                  }`}
-                >
-                  All pages
-                </button>
-                {uniquePages.map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setPageFilter(page)}
-                    aria-pressed={pageFilter === page}
-                    className={`w-full text-left px-3 py-2 font-data text-sm transition-colors truncate ${
-                      pageFilter === page
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:bg-[#ebe7e7] hover:text-foreground'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Component filter */}
-          {uniqueComponents.length > 0 && (
-            <div className="mb-6">
-              <p className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground mb-3">
-                Component
-              </p>
-              <div className="space-y-0.5" role="group" aria-label="Filter by component">
-                <button
-                  onClick={() => setComponentFilter('all')}
-                  aria-pressed={componentFilter === 'all'}
-                  className={`w-full text-left px-3 py-2 font-data text-sm transition-colors ${
-                    componentFilter === 'all'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-[#ebe7e7] hover:text-foreground'
-                  }`}
-                >
-                  All components
-                </button>
-                {uniqueComponents.map((comp) => (
-                  <button
-                    key={comp}
-                    onClick={() => setComponentFilter(comp)}
-                    aria-pressed={componentFilter === comp}
-                    className={`w-full text-left px-3 py-2 font-data text-sm transition-colors truncate ${
-                      componentFilter === comp
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:bg-[#ebe7e7] hover:text-foreground'
-                    }`}
-                  >
-                    {comp}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeFilterCount > 0 && (
-            <button
-              onClick={() => {
-                setSeverityFilter('all')
-                setStatusFilter('all')
-                setPageFilter('all')
-                setComponentFilter('all')
-              }}
-              className="font-data text-xs text-primary hover:underline underline-offset-4 text-left px-3"
-            >
-              Clear filters
-            </button>
-          )}
-        </aside>
-
         {/* Center: findings */}
         <main id="main-findings" className="flex-1 overflow-y-auto px-8 py-6">
+
+          {/* Filter bar */}
+          {findings.length > 0 && (
+            <div
+              className="mb-5 pb-4 flex flex-col gap-3"
+              style={{ borderBottom: '1px solid #ebe7e7' }}
+              aria-label="Filter findings"
+            >
+              {/* Severity chips */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground w-20 flex-shrink-0">
+                  Severity
+                </span>
+                <div className="flex items-center gap-1.5 flex-wrap" role="group" aria-label="Filter by severity">
+                  {SEVERITY_FILTERS.filter((f) => f.key !== 'all').map((f) => {
+                    const active = severityFilter.includes(f.key)
+                    return (
+                      <button
+                        key={f.key}
+                        onClick={() => toggleFilter(f.key, severityFilter, setSeverityFilter)}
+                        aria-pressed={active}
+                        className={`px-2.5 py-0.5 font-data text-xs transition-colors border ${
+                          active
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-transparent text-muted-foreground border-[#ebe7e7] hover:border-foreground hover:text-foreground'
+                        }`}
+                        style={{ borderRadius: 2 }}
+                      >
+                        {f.label}
+                        <span className="ml-1 opacity-60">
+                          ({severityCounts[f.key as keyof typeof severityCounts] ?? 0})
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Status chips */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground w-20 flex-shrink-0">
+                  Status
+                </span>
+                <div className="flex items-center gap-1.5 flex-wrap" role="group" aria-label="Filter by status">
+                  {STATUS_FILTERS.filter((f) => f.key !== 'all').map((f) => {
+                    const active = statusFilter.includes(f.key)
+                    return (
+                      <button
+                        key={f.key}
+                        onClick={() => toggleFilter(f.key, statusFilter, setStatusFilter)}
+                        aria-pressed={active}
+                        className={`px-2.5 py-0.5 font-data text-xs transition-colors border ${
+                          active
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-transparent text-muted-foreground border-[#ebe7e7] hover:border-foreground hover:text-foreground'
+                        }`}
+                        style={{ borderRadius: 2 }}
+                      >
+                        {f.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Page chips */}
+              {uniquePages.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground w-20 flex-shrink-0">
+                    Page
+                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap" role="group" aria-label="Filter by page">
+                    {uniquePages.map((page) => {
+                      const active = pageFilter.includes(page)
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => toggleFilter(page, pageFilter, setPageFilter)}
+                          aria-pressed={active}
+                          className={`px-2.5 py-0.5 font-data text-xs transition-colors border truncate max-w-[200px] ${
+                            active
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-transparent text-muted-foreground border-[#ebe7e7] hover:border-foreground hover:text-foreground'
+                          }`}
+                          style={{ borderRadius: 2 }}
+                        >
+                          {page}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Component chips */}
+              {uniqueComponents.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground w-20 flex-shrink-0">
+                    Component
+                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap" role="group" aria-label="Filter by component">
+                    {uniqueComponents.map((comp) => {
+                      const active = componentFilter.includes(comp)
+                      return (
+                        <button
+                          key={comp}
+                          onClick={() => toggleFilter(comp, componentFilter, setComponentFilter)}
+                          aria-pressed={active}
+                          className={`px-2.5 py-0.5 font-data text-xs transition-colors border truncate max-w-[200px] ${
+                            active
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-transparent text-muted-foreground border-[#ebe7e7] hover:border-foreground hover:text-foreground'
+                          }`}
+                          style={{ borderRadius: 2 }}
+                        >
+                          {comp}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Clear filters */}
+              {activeFilterCount > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="w-20 flex-shrink-0" />
+                  <button
+                    onClick={() => {
+                      setSeverityFilter([])
+                      setStatusFilter([])
+                      setPageFilter([])
+                      setComponentFilter([])
+                    }}
+                    className="font-data text-xs text-primary hover:underline underline-offset-4"
+                  >
+                    Clear all filters ({activeFilterCount})
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {error && (
             <div
               role="alert"
