@@ -103,6 +103,14 @@ export function FindingFormSidebar({
     setWcagLevel(criterion.level)
     setCategory(criterion.category)
     setCriterionSearch('')
+    // Auto-select WCAG standards matching the criterion's level
+    const matchingWcag = STANDARDS_OPTIONS
+      .filter((s) => s.value.startsWith('WCAG') && s.value.endsWith(` ${criterion.level}`))
+      .map((s) => s.value)
+    setStandards((prev) => {
+      const nonWcag = prev.filter((s) => !s.startsWith('WCAG'))
+      return [...nonWcag, ...matchingWcag]
+    })
   }
 
   function toggleStandard(std: string) {
