@@ -26,43 +26,27 @@ export default function AppShell() {
     typeof subscriptionStatus.daysRemaining === 'number'
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: '#fcf9f8' }}>
+    <div className="flex flex-col h-screen overflow-hidden" style={{ background: '#fcf9f8' }}>
 
-      {/* Left navigation column — surface-low, no border */}
-      <aside
-        className="w-52 flex-shrink-0 flex flex-col"
-        style={{ background: '#f6f3f2' }}
+      {/* Top navigation bar */}
+      <header
+        className="flex-shrink-0 flex items-center px-4 titlebar-drag"
+        style={{ background: '#f6f3f2', borderBottom: '1px solid #ebe7e7', height: '52px' }}
         aria-label="Main navigation"
       >
         {/* Brand */}
-        <div className="px-5 py-5 titlebar-drag">
-          <span className="font-display text-lg font-bold tracking-tight text-foreground">
-            Echo
-          </span>
-        </div>
+        <span className="font-display text-lg font-bold tracking-tight text-foreground w-36 flex-shrink-0">
+          Echo
+        </span>
 
-        {/* Trial banner — tonal, no border */}
-        {trialBanner && (
-          <div className="mx-4 mb-3 px-3 py-2" style={{ background: '#ebe7e7' }} role="status" aria-live="polite">
-            <div className="flex items-center gap-1.5">
-              <Clock className="h-3 w-3 text-primary flex-shrink-0" aria-hidden="true" />
-              <p className="font-data text-xs font-medium text-foreground">
-                {subscriptionStatus.daysRemaining === 0
-                  ? 'Trial expires today'
-                  : `${subscriptionStatus.daysRemaining}d remaining`}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Nav */}
-        <nav className="flex-1 px-3 py-2 space-y-0.5" aria-label="App sections">
+        {/* Nav links */}
+        <nav className="flex items-center gap-0.5 flex-1" aria-label="App sections">
           <NavLink
             to="/"
             end
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium font-data transition-colors',
+                'flex items-center gap-2 px-3 py-1.5 text-sm font-medium font-data transition-colors',
                 isActive
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:bg-surface-high hover:text-foreground'
@@ -76,7 +60,7 @@ export default function AppShell() {
             to="/settings"
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium font-data transition-colors',
+                'flex items-center gap-2 px-3 py-1.5 text-sm font-medium font-data transition-colors',
                 isActive
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:bg-surface-high hover:text-foreground'
@@ -88,24 +72,39 @@ export default function AppShell() {
           </NavLink>
         </nav>
 
+        {/* Trial banner */}
+        {trialBanner && (
+          <div className="mr-3 px-3 py-1.5" style={{ background: '#ebe7e7' }} role="status" aria-live="polite">
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-3 w-3 text-primary flex-shrink-0" aria-hidden="true" />
+              <p className="font-data text-xs font-medium text-foreground whitespace-nowrap">
+                {subscriptionStatus.daysRemaining === 0
+                  ? 'Trial expires today'
+                  : `${subscriptionStatus.daysRemaining}d remaining`}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* User / logout */}
-        <div className="px-3 py-4" style={{ borderTop: '1px solid #ebe7e7' }}>
+        <div className="flex items-center gap-1 flex-shrink-0" style={{ borderLeft: '1px solid #ebe7e7', paddingLeft: '1rem', marginLeft: '0.5rem' }}>
           {session?.user && (
-            <p className="px-3 pb-2 font-data text-xs text-muted-foreground truncate" title={session.user.email}>
+            <span className="font-data text-xs text-muted-foreground truncate max-w-[160px]" title={session.user.email}>
               {session.user.email}
-            </p>
+            </span>
           )}
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-2.5 px-3 py-2 text-sm font-data text-muted-foreground hover:text-primary transition-colors"
+            className="flex items-center gap-1.5 px-2 py-1.5 text-sm font-data text-muted-foreground hover:text-primary transition-colors"
+            aria-label="Sign out"
           >
             <LogOut className="h-4 w-4" aria-hidden="true" />
             Sign out
           </button>
         </div>
-      </aside>
+      </header>
 
-      {/* Main content — surface */}
+      {/* Main content */}
       <main
         id="main-content"
         className="flex-1 flex flex-col overflow-hidden focus:outline-none"
