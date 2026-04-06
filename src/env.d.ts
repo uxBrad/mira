@@ -39,6 +39,7 @@ interface Window {
         status: string
         standards: string | null
         auditUrls: string[]
+        components: string[]
         createdAt: number
         updatedAt: number
         findingCount: number
@@ -52,6 +53,7 @@ interface Window {
         status: string
         standards: string | null
         auditUrls: string[]
+        components: string[]
         createdAt: number
         updatedAt: number
       }>
@@ -62,18 +64,19 @@ interface Window {
         description?: string
         standards?: string
         auditUrls?: string[]
+        components?: string[]
       }) => Promise<{
         id: string; name: string; clientName: string | null; url: string | null
         description: string | null; status: string; standards: string | null
-        auditUrls: string[]; createdAt: number; updatedAt: number
+        auditUrls: string[]; components: string[]; createdAt: number; updatedAt: number
       }>
       update: (id: string, data: {
         name?: string; clientName?: string; url?: string; description?: string
-        status?: string; standards?: string; auditUrls?: string[]
+        status?: string; standards?: string; auditUrls?: string[]; components?: string[]
       }) => Promise<{
         id: string; name: string; clientName: string | null; url: string | null
         description: string | null; status: string; standards: string | null
-        auditUrls: string[]; createdAt: number; updatedAt: number
+        auditUrls: string[]; components: string[]; createdAt: number; updatedAt: number
       }>
       delete: (id: string) => Promise<{ success: boolean }>
     }

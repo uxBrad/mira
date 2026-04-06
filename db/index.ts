@@ -89,6 +89,7 @@ async function runMigrations(client: Client): Promise<void> {
   const alterStatements = [
     `ALTER TABLE projects ADD COLUMN standards TEXT`,
     `ALTER TABLE projects ADD COLUMN audit_urls TEXT`,
+    `ALTER TABLE projects ADD COLUMN components TEXT`,
     `ALTER TABLE findings ADD COLUMN component TEXT`
   ]
 

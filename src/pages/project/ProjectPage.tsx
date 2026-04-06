@@ -8,7 +8,9 @@ import {
   ExternalLink,
   AlertCircle,
   Pencil,
-  ChevronDown
+  ChevronDown,
+  Check,
+  X as XIcon
 } from 'lucide-react'
 import { useFindings } from '../../hooks/useFindings'
 import { useTemplates } from '../../hooks/useTemplates'
@@ -50,6 +52,7 @@ interface Project {
   status: string
   standards: string | null
   auditUrls: string[]
+  components: string[]
   createdAt: number
   updatedAt: number
 }
@@ -92,6 +95,16 @@ export default function ProjectPage() {
   const [findingInitialData, setFindingInitialData] = useState<Partial<Finding> | undefined>(undefined)
   const templatePickerRef = useRef<HTMLDivElement>(null)
 
+  // Quick-add page
+  const [addingPage, setAddingPage] = useState(false)
+  const [newPageValue, setNewPageValue] = useState('')
+  const newPageRef = useRef<HTMLInputElement>(null)
+
+  // Quick-add component
+  const [addingComponent, setAddingComponent] = useState(false)
+  const [newComponentValue, setNewComponentValue] = useState('')
+  const newComponentRef = useRef<HTMLInputElement>(null)
+
   const { findings, isLoading, error, createFinding, updateFinding, deleteFinding } = useFindings(id!)
   const { templates } = useTemplates()
 
@@ -115,6 +128,14 @@ export default function ProjectPage() {
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [templatePickerOpen])
+
+  useEffect(() => {
+    if (addingPage) setTimeout(() => newPageRef.current?.focus(), 50)
+  }, [addingPage])
+
+  useEffect(() => {
+    if (addingComponent) setTimeout(() => newComponentRef.current?.focus(), 50)
+  }, [addingComponent])
 
   // Derived filter options from findings
   const uniquePages = Array.from(
@@ -184,12 +205,49 @@ export default function ProjectPage() {
     status?: string
     standards?: string
     auditUrls?: string[]
+    components?: string[]
   }) {
     if (!id) return
     const updated = await window.api.projects.update(id, data)
     setProject(updated as Project)
     setEditProjectOpen(false)
     toast({ title: 'Project updated' })
+  }
+
+  async function handleAddPage(page: string) {
+    if (!project || !id) return
+    const updated = await window.api.projects.update(id, {
+      auditUrls: [...project.auditUrls, page]
+    })
+    setProject(updated as Project)
+  }
+
+  async function handleAddComponent(component: string) {
+    if (!project || !id) return
+    const updated = await window.api.projects.update(id, {
+      components: [...project.components, component]
+    })
+    setProject(updated as Project)
+  }
+
+  async function confirmAddPage() {
+    const trimmed = newPageValue.trim()
+    if (!trimmed || !project) return
+    if (!project.auditUrls.includes(trimmed)) {
+      await handleAddPage(trimmed)
+    }
+    setAddingPage(false)
+    setNewPageValue('')
+  }
+
+  async function confirmAddComponent() {
+    const trimmed = newComponentValue.trim()
+    if (!trimmed || !project) return
+    if (!project.components.includes(trimmed)) {
+      await handleAddComponent(trimmed)
+    }
+    setAddingComponent(false)
+    setNewComponentValue('')
   }
 
   async function handleExportPDF() {
@@ -561,6 +619,76 @@ export default function ProjectPage() {
             )}
           </div>
 
+          {/* Add Page quick-add */}
+          <div className="mt-2">
+            {addingPage ? (
+              <div className="flex items-center gap-1.5">
+                <input
+                  ref={newPageRef}
+                  value={newPageValue}
+                  onChange={(e) => setNewPageValue(e.target.value)}
+                  placeholder="/about"
+                  className="flex-1 h-8 px-2 text-xs border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                  style={{ borderColor: '#ebe7e7' }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') confirmAddPage()
+                    if (e.key === 'Escape') { setAddingPage(false); setNewPageValue('') }
+                  }}
+                />
+                <button onClick={confirmAddPage} className="text-primary hover:opacity-80" aria-label="Confirm">
+                  <Check className="h-4 w-4" />
+                </button>
+                <button onClick={() => { setAddingPage(false); setNewPageValue('') }} className="text-muted-foreground hover:text-foreground" aria-label="Cancel">
+                  <XIcon className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => setAddingPage(true)}
+              >
+                <Plus className="h-4 w-4 mr-1.5" aria-hidden="true" />
+                Add Page
+              </Button>
+            )}
+          </div>
+
+          {/* Add Component quick-add */}
+          <div className="mt-2">
+            {addingComponent ? (
+              <div className="flex items-center gap-1.5">
+                <input
+                  ref={newComponentRef}
+                  value={newComponentValue}
+                  onChange={(e) => setNewComponentValue(e.target.value)}
+                  placeholder="Navigation"
+                  className="flex-1 h-8 px-2 text-xs border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                  style={{ borderColor: '#ebe7e7' }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') confirmAddComponent()
+                    if (e.key === 'Escape') { setAddingComponent(false); setNewComponentValue('') }
+                  }}
+                />
+                <button onClick={confirmAddComponent} className="text-primary hover:opacity-80" aria-label="Confirm">
+                  <Check className="h-4 w-4" />
+                </button>
+                <button onClick={() => { setAddingComponent(false); setNewComponentValue('') }} className="text-muted-foreground hover:text-foreground" aria-label="Cancel">
+                  <XIcon className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                className="w-full justify-start mt-0"
+                onClick={() => setAddingComponent(true)}
+              >
+                <Plus className="h-4 w-4 mr-1.5" aria-hidden="true" />
+                Add Component
+              </Button>
+            )}
+          </div>
+
           <div className="space-y-1 mt-2">
             <button
               onClick={() => setEditProjectOpen(true)}
@@ -627,6 +755,9 @@ export default function ProjectPage() {
         mode={editFinding ? 'edit' : 'create'}
         projectId={id!}
         auditPages={project.auditUrls}
+        auditComponents={project.components}
+        onAddPage={handleAddPage}
+        onAddComponent={handleAddComponent}
         initialData={editFinding ? {
           ...editFinding,
           description: editFinding.description ?? undefined,
@@ -656,7 +787,8 @@ export default function ProjectPage() {
           description: project.description ?? undefined,
           status: project.status,
           standards: project.standards ?? undefined,
-          auditUrls: project.auditUrls
+          auditUrls: project.auditUrls,
+          components: project.components
         }}
       />
     </div>

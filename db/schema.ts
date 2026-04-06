@@ -8,7 +8,8 @@ export const projects = sqliteTable('projects', {
   description: text('description'),
   status: text('status').notNull().default('in_progress'),
   standards: text('standards'),
-  auditUrls: text('audit_urls'), // JSON array of path strings e.g. ["/home", "/checkout"]
+  auditUrls: text('audit_urls'),   // JSON array of path strings e.g. ["/home", "/checkout"]
+  components: text('components'),  // JSON array of component names e.g. ["Navigation", "Header"]
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull()
 })

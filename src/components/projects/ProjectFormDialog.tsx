@@ -133,11 +133,11 @@ export function ProjectFormDialog({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="fixed top-0 left-0 z-50 h-full w-[480px] flex flex-col overflow-hidden transition-transform duration-200"
+        className="fixed top-0 right-0 z-50 h-full w-[480px] flex flex-col overflow-hidden transition-transform duration-200"
         style={{
           background: '#fcf9f8',
-          transform: open ? 'translateX(0)' : 'translateX(-100%)',
-          borderRight: '1px solid #ebe7e7'
+          transform: open ? 'translateX(0)' : 'translateX(100%)',
+          borderLeft: '1px solid #ebe7e7'
         }}
       >
         {/* Panel header */}

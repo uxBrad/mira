@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Image } from 'lucide-react'
+import { X, Image, Plus, Check } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
@@ -38,6 +38,9 @@ interface FindingFormSidebarProps {
   mode: 'create' | 'edit'
   projectId: string
   auditPages?: string[]
+  auditComponents?: string[]
+  onAddPage?: (page: string) => Promise<void>
+  onAddComponent?: (component: string) => Promise<void>
   initialData?: Partial<FindingFormData>
 }
 
@@ -48,6 +51,9 @@ export function FindingFormSidebar({
   mode,
   projectId,
   auditPages = [],
+  auditComponents = [],
+  onAddPage,
+  onAddComponent,
   initialData
 }: FindingFormSidebarProps) {
   const [title, setTitle] = useState(initialData?.title || '')
@@ -66,7 +72,26 @@ export function FindingFormSidebar({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [criterionSearch, setCriterionSearch] = useState('')
+
+  // Inline add page/component state
+  const [addingPage, setAddingPage] = useState(false)
+  const [newPageValue, setNewPageValue] = useState('')
+  const [addingComponent, setAddingComponent] = useState(false)
+  const [newComponentValue, setNewComponentValue] = useState('')
+  const [localPages, setLocalPages] = useState<string[]>(auditPages)
+  const [localComponents, setLocalComponents] = useState<string[]>(auditComponents)
+
   const titleRef = useRef<HTMLInputElement>(null)
+  const newPageRef = useRef<HTMLInputElement>(null)
+  const newComponentRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setLocalPages(auditPages)
+  }, [auditPages])
+
+  useEffect(() => {
+    setLocalComponents(auditComponents)
+  }, [auditComponents])
 
   useEffect(() => {
     if (open) {
@@ -85,6 +110,10 @@ export function FindingFormSidebar({
       setNotes(initialData?.notes || '')
       setError(null)
       setCriterionSearch('')
+      setAddingPage(false)
+      setNewPageValue('')
+      setAddingComponent(false)
+      setNewComponentValue('')
       setTimeout(() => titleRef.current?.focus(), 50)
     }
   }, [open])
@@ -97,6 +126,14 @@ export function FindingFormSidebar({
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
+
+  useEffect(() => {
+    if (addingPage) setTimeout(() => newPageRef.current?.focus(), 50)
+  }, [addingPage])
+
+  useEffect(() => {
+    if (addingComponent) setTimeout(() => newComponentRef.current?.focus(), 50)
+  }, [addingComponent])
 
   function handleCriterionSelect(criterion: typeof WCAG_CRITERIA[number]) {
     setWcagCriterion(criterion.id)
@@ -122,6 +159,32 @@ export function FindingFormSidebar({
   async function chooseScreenshot() {
     const path = await window.api.export.chooseScreenshot()
     if (path) setScreenshotPath(path)
+  }
+
+  async function confirmAddPage() {
+    const trimmed = newPageValue.trim()
+    if (!trimmed) return
+    if (!localPages.includes(trimmed)) {
+      const updated = [...localPages, trimmed]
+      setLocalPages(updated)
+      if (onAddPage) await onAddPage(trimmed)
+    }
+    setPageUrl(trimmed)
+    setAddingPage(false)
+    setNewPageValue('')
+  }
+
+  async function confirmAddComponent() {
+    const trimmed = newComponentValue.trim()
+    if (!trimmed) return
+    if (!localComponents.includes(trimmed)) {
+      const updated = [...localComponents, trimmed]
+      setLocalComponents(updated)
+      if (onAddComponent) await onAddComponent(trimmed)
+    }
+    setComponent(trimmed)
+    setAddingComponent(false)
+    setNewComponentValue('')
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -266,37 +329,92 @@ export function FindingFormSidebar({
                 </div>
               </div>
 
-              {/* Page + Component */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="sf-page" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
-                    Page
-                  </Label>
-                  {auditPages.length > 0 ? (
-                    <Select value={pageUrl} onValueChange={setPageUrl} disabled={isLoading}>
-                      <SelectTrigger id="sf-page">
-                        <SelectValue placeholder="Select page…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {auditPages.map((p) => (
-                          <SelectItem key={p} value={p}>{p}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
+              {/* Page */}
+              <div className="space-y-1.5">
+                <Label htmlFor="sf-page" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
+                  Page
+                </Label>
+                {localPages.length > 0 ? (
+                  <Select value={pageUrl} onValueChange={setPageUrl} disabled={isLoading}>
+                    <SelectTrigger id="sf-page">
+                      <SelectValue placeholder="Select page…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {localPages.map((p) => (
+                        <SelectItem key={p} value={p}>{p}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    id="sf-page"
+                    value={pageUrl}
+                    onChange={(e) => setPageUrl(e.target.value)}
+                    placeholder="/home"
+                    disabled={isLoading}
+                  />
+                )}
+                {/* Inline add page */}
+                {addingPage ? (
+                  <div className="flex items-center gap-1.5 mt-1">
                     <Input
-                      id="sf-page"
-                      value={pageUrl}
-                      onChange={(e) => setPageUrl(e.target.value)}
-                      placeholder="/home"
-                      disabled={isLoading}
+                      ref={newPageRef}
+                      value={newPageValue}
+                      onChange={(e) => setNewPageValue(e.target.value)}
+                      placeholder="/about"
+                      className="h-7 text-xs"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') { e.preventDefault(); confirmAddPage() }
+                        if (e.key === 'Escape') { setAddingPage(false); setNewPageValue('') }
+                      }}
                     />
-                  )}
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="sf-component" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
-                    Component
-                  </Label>
+                    <button
+                      type="button"
+                      onClick={confirmAddPage}
+                      className="flex-shrink-0 text-primary hover:opacity-80"
+                      aria-label="Confirm add page"
+                    >
+                      <Check className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setAddingPage(false); setNewPageValue('') }}
+                      className="flex-shrink-0 text-muted-foreground hover:text-foreground"
+                      aria-label="Cancel"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setAddingPage(true)}
+                    disabled={isLoading}
+                    className="flex items-center gap-1 font-data text-xs text-primary hover:underline underline-offset-4 mt-1"
+                  >
+                    <Plus className="h-3 w-3" aria-hidden="true" />
+                    Add new page
+                  </button>
+                )}
+              </div>
+
+              {/* Component */}
+              <div className="space-y-1.5">
+                <Label htmlFor="sf-component" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
+                  Component
+                </Label>
+                {localComponents.length > 0 ? (
+                  <Select value={component} onValueChange={setComponent} disabled={isLoading}>
+                    <SelectTrigger id="sf-component">
+                      <SelectValue placeholder="Select component…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {localComponents.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
                   <Input
                     id="sf-component"
                     value={component}
@@ -304,7 +422,49 @@ export function FindingFormSidebar({
                     placeholder="Navigation"
                     disabled={isLoading}
                   />
-                </div>
+                )}
+                {/* Inline add component */}
+                {addingComponent ? (
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <Input
+                      ref={newComponentRef}
+                      value={newComponentValue}
+                      onChange={(e) => setNewComponentValue(e.target.value)}
+                      placeholder="Login form"
+                      className="h-7 text-xs"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') { e.preventDefault(); confirmAddComponent() }
+                        if (e.key === 'Escape') { setAddingComponent(false); setNewComponentValue('') }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={confirmAddComponent}
+                      className="flex-shrink-0 text-primary hover:opacity-80"
+                      aria-label="Confirm add component"
+                    >
+                      <Check className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setAddingComponent(false); setNewComponentValue('') }}
+                      className="flex-shrink-0 text-muted-foreground hover:text-foreground"
+                      aria-label="Cancel"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setAddingComponent(true)}
+                    disabled={isLoading}
+                    className="flex items-center gap-1 font-data text-xs text-primary hover:underline underline-offset-4 mt-1"
+                  >
+                    <Plus className="h-3 w-3" aria-hidden="true" />
+                    Add new component
+                  </button>
+                )}
               </div>
 
               {/* Category */}
