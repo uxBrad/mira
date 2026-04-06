@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, globalShortcut } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { autoUpdater } from 'electron-updater'
@@ -58,6 +58,14 @@ function createWindow(): void {
   mainWindow.on('ready-to-show', () => {
     mainWindow!.show()
     // if (is.dev) mainWindow!.webContents.openDevTools()
+
+    // Dev-only: F12 / Ctrl+Shift+I toggles DevTools
+    if (is.dev) {
+      const toggleDevTools = () => mainWindow?.webContents.toggleDevTools()
+      globalShortcut.register('F12', toggleDevTools)
+      globalShortcut.register('CmdOrCtrl+Shift+I', toggleDevTools)
+    }
+
     setupAutoUpdater()
   })
 
