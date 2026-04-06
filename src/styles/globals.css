@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400&family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Surface scale — warm, no blue */
+    --background: 20 40% 98%;          /* #fcf9f8 */
+    --foreground: 0 2% 11%;            /* #1c1b1b */
+    --card: 0 0% 100%;                 /* #ffffff */
+    --card-foreground: 0 2% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 2% 11%;
+
+    /* Primary: surgical red */
+    --primary: 0 100% 38%;             /* #c00000 */
+    --primary-foreground: 9 100% 91%; /* #ffdad4 */
+
+    /* Secondary: surface-highest */
+    --secondary: 10 4% 89%;            /* #e5e2e1 */
+    --secondary-foreground: 0 2% 11%;
+
+    /* Muted: surface-low */
+    --muted: 20 11% 96%;               /* #f6f3f2 */
+    --muted-foreground: 0 2% 42%;
+
+    /* Accent: surface-high */
+    --accent: 0 4% 91%;                /* #ebe7e7 */
+    --accent-foreground: 0 2% 11%;
+
+    /* Destructive = primary red */
+    --destructive: 0 100% 38%;
+    --destructive-foreground: 9 100% 91%;
+
+    /* No-line rule: ghost border at very low opacity */
+    --border: 0 0% 78%;                /* #c6c6c6 — used sparingly */
+    --input: 10 4% 89%;                /* surface-highest */
+    --ring: 0 100% 38%;                /* red focus ring */
+
+    /* 0px radius everywhere — architectural permanence */
+    --radius: 0rem;
+
+    /* Severity — keep legible */
+    --severity-critical: 0 100% 38%;
+    --severity-serious: 24 95% 50%;
+    --severity-moderate: 38 92% 46%;
+    --severity-minor: 142 60% 35%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* Drag region for macOS */
+  .titlebar-drag {
+    -webkit-app-region: drag;
+  }
+  .titlebar-no-drag {
+    -webkit-app-region: no-drag;
+  }
+
+  /* Focus: red ring, no softness */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-1 ring-offset-background;
+  }
+
+  /* Skip link */
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:font-medium;
+  }
+}
+
+@layer utilities {
+  /* Space Grotesk for all technical/audit data */
+  .font-data {
+    font-family: 'Space Grotesk', monospace;
+  }
+
+  /* Noto Serif for display/brand moments */
+  .font-display {
+    font-family: 'Noto Serif', Georgia, serif;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Glass effect for floating palettes */
+  .glass {
+    background: rgba(229, 226, 225, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* Ambient shadow — diffused, never harsh */
+  .shadow-ambient {
+    box-shadow: 0 20px 40px rgba(28, 27, 27, 0.06);
+  }
+}

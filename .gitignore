@@ -1,0 +1,20 @@
+node_modules
+dist
+out
+.env
+.env.local
+.DS_Store
+*.local
+
+# Server
+server/node_modules
+server/.next
+server/.env.local
+
+# DB
+*.db
+*.db-shm
+*.db-wal
+
+# Electron build
+release/
