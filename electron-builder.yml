@@ -1,6 +1,6 @@
-appId: com.groundsforaccess.app
-productName: Grounds for Access
-copyright: Copyright © 2024 Grounds for Access
+appId: com.helloecho.app
+productName: Echo
+copyright: Copyright © 2024 Echo
 
 directories:
   buildResources: resources
