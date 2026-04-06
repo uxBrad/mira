@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400&family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;0,6..72,800;1,6..72,400;1,6..72,600&family=Manrope:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -14,9 +14,9 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 2% 11%;
 
-    /* Primary: surgical red */
-    --primary: 0 100% 38%;             /* #c00000 */
-    --primary-foreground: 9 100% 91%; /* #ffdad4 */
+    /* Primary: velvet red */
+    --primary: 0 100% 19%;             /* #610000 */
+    --primary-foreground: 0 0% 100%;  /* #ffffff */
 
     /* Secondary: surface-highest */
     --secondary: 10 4% 89%;            /* #e5e2e1 */
@@ -31,13 +31,13 @@
     --accent-foreground: 0 2% 11%;
 
     /* Destructive = primary red */
-    --destructive: 0 100% 38%;
-    --destructive-foreground: 9 100% 91%;
+    --destructive: 0 100% 19%;
+    --destructive-foreground: 0 0% 100%;
 
     /* No-line rule: ghost border at very low opacity */
     --border: 0 0% 78%;                /* #c6c6c6 — used sparingly */
     --input: 10 4% 89%;                /* surface-highest */
-    --ring: 0 100% 38%;                /* red focus ring */
+    --ring: 0 100% 19%;                /* velvet red focus ring */
 
     /* 0px radius everywhere — architectural permanence */
     --radius: 0rem;
@@ -55,15 +55,15 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Manrope', system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Inter', system-ui, sans-serif;
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    font-family: 'Newsreader', Georgia, serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 
   /* Drag region for macOS */
@@ -86,14 +86,14 @@
 }
 
 @layer utilities {
-  /* Space Grotesk for all technical/audit data */
+  /* Manrope for all labels/data — uppercase tracking utility */
   .font-data {
-    font-family: 'Space Grotesk', monospace;
+    font-family: 'Manrope', system-ui, sans-serif;
   }
 
-  /* Noto Serif for display/brand moments */
+  /* Newsreader for display/brand moments */
   .font-display {
-    font-family: 'Noto Serif', Georgia, serif;
+    font-family: 'Newsreader', Georgia, serif;
   }
 
   .text-balance {

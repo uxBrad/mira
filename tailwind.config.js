@@ -5,9 +5,9 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        serif: ['Noto Serif', 'Georgia', 'serif'],
-        data: ['Space Grotesk', 'monospace']
+        sans: ['Manrope', 'system-ui', 'sans-serif'],
+        serif: ['Newsreader', 'Georgia', 'serif'],
+        data: ['Manrope', 'system-ui', 'sans-serif']
       },
       colors: {
         border: 'hsl(var(--border))',

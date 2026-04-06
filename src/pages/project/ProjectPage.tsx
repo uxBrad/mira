@@ -4,18 +4,21 @@ import {
   ArrowLeft,
   Plus,
   Download,
-  FileText,
   ExternalLink,
   AlertCircle,
   Pencil,
   ChevronDown,
   Check,
-  X as XIcon
+  X as XIcon,
+  Eye,
+  MousePointer,
+  BookOpen,
+  Shield,
+  LayoutGrid,
+  Settings2
 } from 'lucide-react'
 import { useFindings } from '../../hooks/useFindings'
 import { useTemplates } from '../../hooks/useTemplates'
-import { Button } from '../../components/ui/button'
-import { Badge } from '../../components/ui/badge'
 import { FindingTable } from '../../components/findings/FindingTable'
 import { FindingFormSidebar } from '../../components/findings/FindingFormSidebar'
 import { ProjectFormDialog } from '../../components/projects/ProjectFormDialog'
@@ -87,6 +90,7 @@ export default function ProjectPage() {
   const [editFinding, setEditFinding] = useState<Finding | null>(null)
   const [editProjectOpen, setEditProjectOpen] = useState(false)
   const [isExporting, setIsExporting] = useState<'pdf' | 'csv' | null>(null)
+  const [principleFilter, setPrincipleFilter] = useState<string>('all')
   const [severityFilter, setSeverityFilter] = useState<string[]>([])
   const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [pageFilter, setPageFilter] = useState<string[]>([])
@@ -146,6 +150,10 @@ export default function ProjectPage() {
   )
 
   const filtered = findings.filter((f) => {
+    if (principleFilter !== 'all') {
+      const prefix = f.wcagCriterion?.split('.')[0]
+      if (prefix !== principleFilter) return false
+    }
     if (severityFilter.length > 0 && !severityFilter.includes(f.severity ?? '')) return false
     if (statusFilter.length > 0 && !statusFilter.includes(f.status ?? '')) return false
     if (pageFilter.length > 0 && !pageFilter.includes(f.pageUrl ?? '')) return false
@@ -154,6 +162,7 @@ export default function ProjectPage() {
   })
 
   const activeFilterCount =
+    (principleFilter !== 'all' ? 1 : 0) +
     severityFilter.length + statusFilter.length + pageFilter.length + componentFilter.length
 
   function toggleFilter(
@@ -309,216 +318,197 @@ export default function ProjectPage() {
     minor: findings.filter((f) => f.severity === 'minor').length
   }
 
+  const resolvedCount = findings.filter((f) => f.status === 'resolved').length
+  const complianceScore = findings.length > 0 ? Math.round((resolvedCount / findings.length) * 100) : 0
+
+  const PRINCIPLES = [
+    { key: 'all', label: 'All', icon: LayoutGrid },
+    { key: '1', label: 'Perceivable', icon: Eye },
+    { key: '2', label: 'Operable', icon: MousePointer },
+    { key: '3', label: 'Understandable', icon: BookOpen },
+    { key: '4', label: 'Robust', icon: Shield },
+  ]
+
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex h-full overflow-hidden">
 
-      {/* ── Top header bar ── */}
-      <div
-        className="flex-shrink-0 px-8 py-5"
-        style={{ borderBottom: '1px solid #ebe7e7' }}
-      >
-        <button
-          onClick={() => navigate('/')}
-          className="flex items-center gap-1.5 font-data text-xs text-muted-foreground hover:text-foreground mb-3 transition-colors"
-          aria-label="Back to dashboard"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-          All projects
-        </button>
+      {/* ── Main column ── */}
+      <div className="flex-1 flex flex-col overflow-hidden">
 
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-2xl font-semibold tracking-tight">{project.name}</h1>
-              <Badge variant={project.status === 'in_progress' ? 'default' : 'secondary'}>
-                {STATUS_LABELS[project.status] || project.status}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-3 mt-1 flex-wrap">
-              {project.clientName && (
-                <span className="font-data text-sm text-muted-foreground">{project.clientName}</span>
-              )}
-              {project.url && (
-                <a
-                  href={project.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-data text-xs text-primary hover:underline"
-                >
-                  {project.url}
-                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                </a>
-              )}
-            </div>
-            {project.description && (
-              <p className="font-data text-sm text-muted-foreground mt-1 max-w-2xl">
-                {project.description}
-              </p>
+        {/* Project header */}
+        <div className="flex-shrink-0 px-10 pt-8 pb-0" style={{ background: '#fcf9f8' }}>
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-1.5 font-sans text-xs font-medium text-[#5f5e5e] hover:text-foreground mb-5 transition-colors"
+            aria-label="Back to dashboard"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+            All projects
+          </button>
+
+          {/* Standards label */}
+          {project.standards && (
+            <p
+              className="font-sans text-xs font-bold uppercase mb-3"
+              style={{ color: '#610000', letterSpacing: '0.12em' }}
+            >
+              {project.standards} Audit
+            </p>
+          )}
+
+          {/* Project name — large serif */}
+          <h1
+            className="font-serif font-bold leading-none mb-1"
+            style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em', color: '#1a1a1a' }}
+          >
+            {project.name}
+          </h1>
+
+          {/* Client + URL */}
+          <div className="flex items-center gap-3 mt-2 mb-5 flex-wrap">
+            {project.clientName && (
+              <span className="font-sans text-sm" style={{ color: '#5f5e5e' }}>{project.clientName}</span>
+            )}
+            {project.url && (
+              <a
+                href={project.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-sans text-xs hover:underline"
+                style={{ color: '#5f5e5e' }}
+              >
+                {project.url}
+                <ExternalLink className="h-3 w-3" aria-hidden="true" />
+              </a>
             )}
           </div>
 
-          {findings.length > 0 && (
-            <div className="flex items-center gap-3 flex-shrink-0" role="region" aria-label="Finding severity summary">
-              {[
-                { label: 'Critical', count: severityCounts.critical, color: 'text-red-600' },
-                { label: 'Serious', count: severityCounts.serious, color: 'text-orange-600' },
-                { label: 'Moderate', count: severityCounts.moderate, color: 'text-yellow-700' },
-                { label: 'Minor', count: severityCounts.minor, color: 'text-green-700' }
-              ].map((s) => (
-                <div key={s.label} className="text-center" aria-label={`${s.count} ${s.label.toLowerCase()}`}>
-                  <p className={`text-xl font-bold ${s.color}`}>{s.count}</p>
-                  <p className="font-data text-xs text-muted-foreground">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          )}
+          {/* Separator */}
+          <div style={{ height: '1px', background: '#e0dbd9', marginBottom: 0 }} />
+
+          {/* WCAG Principle tabs */}
+          <div
+            className="flex items-center gap-0 -mb-px overflow-x-auto"
+            role="tablist"
+            aria-label="Filter by WCAG principle"
+            style={{ scrollbarWidth: 'none' }}
+          >
+            {PRINCIPLES.map(({ key, label, icon: Icon }) => {
+              const active = principleFilter === key
+              return (
+                <button
+                  key={key}
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setPrincipleFilter(key)}
+                  className="flex items-center gap-1.5 px-4 py-3 font-sans text-xs font-bold uppercase tracking-widest transition-colors whitespace-nowrap flex-shrink-0"
+                  style={{
+                    letterSpacing: '0.1em',
+                    background: active ? '#610000' : 'transparent',
+                    color: active ? '#ffffff' : '#5f5e5e',
+                    borderBottom: active ? 'none' : '2px solid transparent',
+                  }}
+                >
+                  <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                  {label}
+                </button>
+              )
+            })}
+          </div>
         </div>
-      </div>
 
-      {/* ── Body ── */}
-      <div className="flex flex-1 overflow-hidden">
+        {/* Findings list */}
+        <main id="main-findings" className="flex-1 overflow-y-auto px-10 py-6">
 
-        {/* Center: findings */}
-        <main id="main-findings" className="flex-1 overflow-y-auto px-8 py-6">
-
-          {/* Filter bar */}
+          {/* Secondary filters row */}
           {findings.length > 0 && (
-            <div
-              className="mb-5 pb-4 flex flex-col gap-3"
-              style={{ borderBottom: '1px solid #ebe7e7' }}
-              aria-label="Filter findings"
-            >
-              {/* Severity chips */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground w-20 flex-shrink-0">
-                  Severity
-                </span>
-                <div className="flex items-center gap-1.5 flex-wrap" role="group" aria-label="Filter by severity">
-                  {SEVERITY_FILTERS.filter((f) => f.key !== 'all').map((f) => {
-                    const active = severityFilter.includes(f.key)
-                    return (
-                      <button
-                        key={f.key}
-                        onClick={() => toggleFilter(f.key, severityFilter, setSeverityFilter)}
-                        aria-pressed={active}
-                        className={`px-2.5 py-0.5 font-data text-xs transition-colors border ${
-                          active
-                            ? 'bg-primary text-primary-foreground border-primary'
-                            : 'bg-transparent text-muted-foreground border-[#ebe7e7] hover:border-foreground hover:text-foreground'
-                        }`}
-                        style={{ borderRadius: 2 }}
-                      >
-                        {f.label}
-                        <span className="ml-1 opacity-60">
-                          ({severityCounts[f.key as keyof typeof severityCounts] ?? 0})
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Status chips */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground w-20 flex-shrink-0">
-                  Status
-                </span>
-                <div className="flex items-center gap-1.5 flex-wrap" role="group" aria-label="Filter by status">
-                  {STATUS_FILTERS.filter((f) => f.key !== 'all').map((f) => {
-                    const active = statusFilter.includes(f.key)
-                    return (
-                      <button
-                        key={f.key}
-                        onClick={() => toggleFilter(f.key, statusFilter, setStatusFilter)}
-                        aria-pressed={active}
-                        className={`px-2.5 py-0.5 font-data text-xs transition-colors border ${
-                          active
-                            ? 'bg-primary text-primary-foreground border-primary'
-                            : 'bg-transparent text-muted-foreground border-[#ebe7e7] hover:border-foreground hover:text-foreground'
-                        }`}
-                        style={{ borderRadius: 2 }}
-                      >
-                        {f.label}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Page chips */}
-              {uniquePages.length > 0 && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground w-20 flex-shrink-0">
-                    Page
-                  </span>
-                  <div className="flex items-center gap-1.5 flex-wrap" role="group" aria-label="Filter by page">
-                    {uniquePages.map((page) => {
-                      const active = pageFilter.includes(page)
-                      return (
-                        <button
-                          key={page}
-                          onClick={() => toggleFilter(page, pageFilter, setPageFilter)}
-                          aria-pressed={active}
-                          className={`px-2.5 py-0.5 font-data text-xs transition-colors border truncate max-w-[200px] ${
-                            active
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : 'bg-transparent text-muted-foreground border-[#ebe7e7] hover:border-foreground hover:text-foreground'
-                          }`}
-                          style={{ borderRadius: 2 }}
-                        >
-                          {page}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Component chips */}
-              {uniqueComponents.length > 0 && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground w-20 flex-shrink-0">
-                    Component
-                  </span>
-                  <div className="flex items-center gap-1.5 flex-wrap" role="group" aria-label="Filter by component">
-                    {uniqueComponents.map((comp) => {
-                      const active = componentFilter.includes(comp)
-                      return (
-                        <button
-                          key={comp}
-                          onClick={() => toggleFilter(comp, componentFilter, setComponentFilter)}
-                          aria-pressed={active}
-                          className={`px-2.5 py-0.5 font-data text-xs transition-colors border truncate max-w-[200px] ${
-                            active
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : 'bg-transparent text-muted-foreground border-[#ebe7e7] hover:border-foreground hover:text-foreground'
-                          }`}
-                          style={{ borderRadius: 2 }}
-                        >
-                          {comp}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Clear filters */}
-              {activeFilterCount > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="w-20 flex-shrink-0" />
+            <div className="flex items-center gap-2 flex-wrap mb-4">
+              {SEVERITY_FILTERS.filter((f) => f.key !== 'all').map((f) => {
+                const active = severityFilter.includes(f.key)
+                return (
                   <button
-                    onClick={() => {
-                      setSeverityFilter([])
-                      setStatusFilter([])
-                      setPageFilter([])
-                      setComponentFilter([])
+                    key={f.key}
+                    onClick={() => toggleFilter(f.key, severityFilter, setSeverityFilter)}
+                    aria-pressed={active}
+                    className="font-sans text-xs font-semibold px-2.5 py-1 transition-colors"
+                    style={{
+                      letterSpacing: '0.06em',
+                      background: active ? '#2b2c2c' : '#f0ede9',
+                      color: active ? '#ffffff' : '#5f5e5e',
                     }}
-                    className="font-data text-xs text-primary hover:underline underline-offset-4"
                   >
-                    Clear all filters ({activeFilterCount})
+                    {f.label}
+                    <span className="ml-1 opacity-60">
+                      ({severityCounts[f.key as keyof typeof severityCounts] ?? 0})
+                    </span>
                   </button>
-                </div>
+                )
+              })}
+              {STATUS_FILTERS.filter((f) => f.key !== 'all').map((f) => {
+                const active = statusFilter.includes(f.key)
+                return (
+                  <button
+                    key={f.key}
+                    onClick={() => toggleFilter(f.key, statusFilter, setStatusFilter)}
+                    aria-pressed={active}
+                    className="font-sans text-xs font-semibold px-2.5 py-1 transition-colors"
+                    style={{
+                      background: active ? '#2b2c2c' : '#f0ede9',
+                      color: active ? '#ffffff' : '#5f5e5e',
+                    }}
+                  >
+                    {f.label}
+                  </button>
+                )
+              })}
+              {uniquePages.map((page) => {
+                const active = pageFilter.includes(page)
+                return (
+                  <button
+                    key={page}
+                    onClick={() => toggleFilter(page, pageFilter, setPageFilter)}
+                    aria-pressed={active}
+                    className="font-sans text-xs px-2.5 py-1 transition-colors truncate max-w-[160px]"
+                    style={{
+                      background: active ? '#2b2c2c' : '#f0ede9',
+                      color: active ? '#ffffff' : '#5f5e5e',
+                    }}
+                  >
+                    {page}
+                  </button>
+                )
+              })}
+              {uniqueComponents.map((comp) => {
+                const active = componentFilter.includes(comp)
+                return (
+                  <button
+                    key={comp}
+                    onClick={() => toggleFilter(comp, componentFilter, setComponentFilter)}
+                    aria-pressed={active}
+                    className="font-sans text-xs px-2.5 py-1 transition-colors truncate max-w-[160px]"
+                    style={{
+                      background: active ? '#2b2c2c' : '#f0ede9',
+                      color: active ? '#ffffff' : '#5f5e5e',
+                    }}
+                  >
+                    {comp}
+                  </button>
+                )
+              })}
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={() => {
+                    setPrincipleFilter('all')
+                    setSeverityFilter([])
+                    setStatusFilter([])
+                    setPageFilter([])
+                    setComponentFilter([])
+                  }}
+                  className="font-sans text-xs underline underline-offset-2 transition-colors"
+                  style={{ color: '#610000' }}
+                >
+                  Clear all
+                </button>
               )}
             </div>
           )}
@@ -527,15 +517,15 @@ export default function ProjectPage() {
             <div
               role="alert"
               className="flex items-center gap-2 text-primary px-4 py-3 mb-5"
-              style={{ background: '#ebe7e7' }}
+              style={{ background: '#f0ede9' }}
             >
               <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-              <p className="font-data text-sm">{error}</p>
+              <p className="font-sans text-sm">{error}</p>
             </div>
           )}
 
           {!isLoading && findings.length > 0 && (
-            <p className="font-data text-xs text-muted-foreground mb-4">
+            <p className="font-sans text-xs mb-2" style={{ color: '#5f5e5e' }}>
               {filtered.length === findings.length
                 ? `${findings.length} finding${findings.length !== 1 ? 's' : ''}`
                 : `${filtered.length} of ${findings.length} findings`}
@@ -543,15 +533,11 @@ export default function ProjectPage() {
           )}
 
           {!isLoading && findings.length === 0 && !error && (
-            <div className="py-20 text-center">
-              <h2 className="font-semibold text-lg mb-1">No findings yet</h2>
-              <p className="font-data text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
-                Click &ldquo;Add finding&rdquo; to log your first accessibility issue.
+            <div className="py-24 text-center">
+              <h2 className="font-serif font-bold text-2xl mb-2">No findings yet</h2>
+              <p className="font-sans text-sm mb-8 max-w-xs mx-auto" style={{ color: '#5f5e5e' }}>
+                Click &ldquo;Add finding&rdquo; in the Audit Toolkit to log your first accessibility issue.
               </p>
-              <Button onClick={openBlankFinding}>
-                <Plus className="h-4 w-4" aria-hidden="true" />
-                Add finding
-              </Button>
             </div>
           )}
 
@@ -563,45 +549,51 @@ export default function ProjectPage() {
             onDelete={deleteFinding}
           />
         </main>
+      </div>
 
-        {/* Right: actions panel */}
-        <aside
-          className="w-56 flex-shrink-0 flex flex-col px-6 py-6 overflow-y-auto"
-          style={{ background: '#f6f3f2', borderLeft: '1px solid #ebe7e7' }}
-          aria-label="Project actions"
-        >
-          {/* Split button: Add finding / Add from template */}
-          <div className="mb-2 relative" ref={templatePickerRef}>
-            <div className="flex w-full" style={{ borderRadius: 0 }}>
-              <Button
-                className="flex-1 justify-start"
-                style={{ borderRadius: 0 }}
+      {/* ── Right sidebar: Audit Toolkit ── */}
+      <aside
+        className="w-72 flex-shrink-0 flex flex-col overflow-y-auto"
+        style={{ background: '#f6f3f2', borderLeft: '1px solid #e0dbd9' }}
+        aria-label="Audit toolkit"
+      >
+        <div className="px-6 pt-8 pb-6">
+          <h2 className="font-serif font-bold text-xl mb-1" style={{ letterSpacing: '-0.01em' }}>
+            Audit Toolkit
+          </h2>
+          <p className="font-sans text-xs leading-relaxed mb-6" style={{ color: '#5f5e5e' }}>
+            Precision tools for modern accessibility compliance workflows.
+          </p>
+
+          {/* Add finding split button */}
+          <div className="mb-3 relative" ref={templatePickerRef}>
+            <div className="flex w-full">
+              <button
+                className="flex-1 flex items-center justify-between px-4 py-3 font-sans text-xs font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90"
+                style={{ background: '#610000', letterSpacing: '0.1em' }}
                 onClick={openBlankFinding}
               >
-                <Plus className="h-4 w-4 mr-1.5" aria-hidden="true" />
-                Add finding
-              </Button>
-              <Button
-                className="px-2"
-                style={{ borderRadius: 0, borderLeft: '1px solid rgba(255,255,255,0.25)' }}
+                <span>Step-by-Step Audit</span>
+                <Plus className="h-4 w-4" aria-hidden="true" />
+              </button>
+              <button
+                className="px-2.5 font-sans text-white transition-opacity hover:opacity-90"
+                style={{ background: '#610000', borderLeft: '1px solid rgba(255,255,255,0.2)' }}
                 onClick={() => setTemplatePickerOpen((v) => !v)}
                 aria-label="Add finding from template"
                 aria-expanded={templatePickerOpen}
-                aria-haspopup="menu"
               >
                 <ChevronDown className="h-4 w-4" aria-hidden="true" />
-              </Button>
+              </button>
             </div>
-
-            {/* Template picker dropdown */}
             {templatePickerOpen && (
               <div
-                className="absolute top-full left-0 right-0 z-20 border shadow-md overflow-hidden"
-                style={{ background: '#fcf9f8', borderColor: '#ebe7e7' }}
+                className="absolute top-full left-0 right-0 z-20 shadow-ambient overflow-hidden"
+                style={{ background: '#fcf9f8', border: '1px solid #e0dbd9' }}
                 role="menu"
               >
                 <button
-                  className="w-full text-left px-3 py-2.5 font-data text-sm hover:bg-[#ebe7e7] transition-colors"
+                  className="w-full text-left px-4 py-2.5 font-sans text-sm hover:bg-[#ebe7e7] transition-colors"
                   role="menuitem"
                   onClick={() => { setTemplatePickerOpen(false); openBlankFinding() }}
                 >
@@ -611,8 +603,42 @@ export default function ProjectPage() {
             )}
           </div>
 
-          {/* Add Page quick-add */}
-          <div className="mt-2">
+          {/* Export PDF */}
+          <button
+            onClick={handleExportPDF}
+            disabled={!!isExporting}
+            aria-busy={isExporting === 'pdf'}
+            className="flex w-full items-center justify-between px-4 py-3 font-sans text-xs font-bold uppercase tracking-widest transition-colors mb-1 disabled:opacity-40"
+            style={{ background: '#e5e2e1', color: '#2b2c2c', letterSpacing: '0.1em' }}
+          >
+            <span>{isExporting === 'pdf' ? 'Generating…' : 'Export Report (PDF)'}</span>
+            <Download className="h-4 w-4" aria-hidden="true" />
+          </button>
+
+          {/* Export CSV */}
+          <button
+            onClick={handleExportCSV}
+            disabled={!!isExporting || findings.length === 0}
+            aria-busy={isExporting === 'csv'}
+            className="flex w-full items-center justify-between px-4 py-3 font-sans text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-40"
+            style={{ background: '#e5e2e1', color: '#2b2c2c', letterSpacing: '0.1em' }}
+          >
+            <span>{isExporting === 'csv' ? 'Exporting…' : 'Export CSV'}</span>
+            <Download className="h-4 w-4" aria-hidden="true" />
+          </button>
+
+          {/* Configure / Edit project link */}
+          <button
+            onClick={() => setEditProjectOpen(true)}
+            className="mt-4 flex items-center gap-1.5 font-serif italic text-sm underline underline-offset-4 transition-colors hover:opacity-70"
+            style={{ color: '#610000' }}
+          >
+            <Settings2 className="h-3.5 w-3.5 not-italic" aria-hidden="true" />
+            Configure Project
+          </button>
+
+          {/* Add Page / Component */}
+          <div className="mt-5 space-y-2">
             {addingPage ? (
               <div className="flex items-center gap-1.5">
                 <input
@@ -620,34 +646,25 @@ export default function ProjectPage() {
                   value={newPageValue}
                   onChange={(e) => setNewPageValue(e.target.value)}
                   placeholder="/about"
-                  className="flex-1 h-8 px-2 text-xs border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                  style={{ borderColor: '#ebe7e7' }}
+                  className="flex-1 h-8 px-2 font-sans text-xs border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                  style={{ borderColor: '#d0cac8' }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') confirmAddPage()
                     if (e.key === 'Escape') { setAddingPage(false); setNewPageValue('') }
                   }}
                 />
-                <button onClick={confirmAddPage} className="text-primary hover:opacity-80" aria-label="Confirm">
-                  <Check className="h-4 w-4" />
-                </button>
-                <button onClick={() => { setAddingPage(false); setNewPageValue('') }} className="text-muted-foreground hover:text-foreground" aria-label="Cancel">
-                  <XIcon className="h-4 w-4" />
-                </button>
+                <button onClick={confirmAddPage} className="text-primary hover:opacity-80" aria-label="Confirm"><Check className="h-4 w-4" /></button>
+                <button onClick={() => { setAddingPage(false); setNewPageValue('') }} className="text-muted-foreground hover:text-foreground" aria-label="Cancel"><XIcon className="h-4 w-4" /></button>
               </div>
             ) : (
-              <Button
-                variant="outline"
-                className="w-full justify-start"
+              <button
                 onClick={() => setAddingPage(true)}
+                className="flex items-center gap-1.5 font-sans text-xs font-medium text-[#5f5e5e] hover:text-foreground transition-colors"
               >
-                <Plus className="h-4 w-4 mr-1.5" aria-hidden="true" />
+                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                 Add Page
-              </Button>
+              </button>
             )}
-          </div>
-
-          {/* Add Component quick-add */}
-          <div className="mt-2">
             {addingComponent ? (
               <div className="flex items-center gap-1.5">
                 <input
@@ -655,89 +672,67 @@ export default function ProjectPage() {
                   value={newComponentValue}
                   onChange={(e) => setNewComponentValue(e.target.value)}
                   placeholder="Navigation"
-                  className="flex-1 h-8 px-2 text-xs border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                  style={{ borderColor: '#ebe7e7' }}
+                  className="flex-1 h-8 px-2 font-sans text-xs border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                  style={{ borderColor: '#d0cac8' }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') confirmAddComponent()
                     if (e.key === 'Escape') { setAddingComponent(false); setNewComponentValue('') }
                   }}
                 />
-                <button onClick={confirmAddComponent} className="text-primary hover:opacity-80" aria-label="Confirm">
-                  <Check className="h-4 w-4" />
-                </button>
-                <button onClick={() => { setAddingComponent(false); setNewComponentValue('') }} className="text-muted-foreground hover:text-foreground" aria-label="Cancel">
-                  <XIcon className="h-4 w-4" />
-                </button>
+                <button onClick={confirmAddComponent} className="text-primary hover:opacity-80" aria-label="Confirm"><Check className="h-4 w-4" /></button>
+                <button onClick={() => { setAddingComponent(false); setNewComponentValue('') }} className="text-muted-foreground hover:text-foreground" aria-label="Cancel"><XIcon className="h-4 w-4" /></button>
               </div>
             ) : (
-              <Button
-                variant="outline"
-                className="w-full justify-start mt-0"
+              <button
                 onClick={() => setAddingComponent(true)}
+                className="flex items-center gap-1.5 font-sans text-xs font-medium text-[#5f5e5e] hover:text-foreground transition-colors"
               >
-                <Plus className="h-4 w-4 mr-1.5" aria-hidden="true" />
+                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                 Add Component
-              </Button>
+              </button>
             )}
           </div>
+        </div>
 
-          <div className="space-y-1 mt-2">
-            <button
-              onClick={() => setEditProjectOpen(true)}
-              className="flex w-full items-center gap-2.5 px-3 py-2.5 font-data text-sm text-muted-foreground hover:bg-[#ebe7e7] hover:text-foreground transition-colors"
-            >
-              <Pencil className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-              Edit project
-            </button>
+        {/* Masthead divider */}
+        <div style={{ height: '12px', background: '#e5e2e1' }} aria-hidden="true" />
 
-            <button
-              onClick={handleExportCSV}
-              disabled={!!isExporting || findings.length === 0}
-              aria-busy={isExporting === 'csv'}
-              className="flex w-full items-center gap-2.5 px-3 py-2.5 font-data text-sm text-muted-foreground hover:bg-[#ebe7e7] hover:text-foreground transition-colors disabled:opacity-40 disabled:pointer-events-none"
-            >
-              <Download className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-              {isExporting === 'csv' ? 'Exporting…' : 'Export CSV'}
-            </button>
-
-            <button
-              onClick={handleExportPDF}
-              disabled={!!isExporting}
-              aria-busy={isExporting === 'pdf'}
-              className="flex w-full items-center gap-2.5 px-3 py-2.5 font-data text-sm text-muted-foreground hover:bg-[#ebe7e7] hover:text-foreground transition-colors disabled:opacity-40 disabled:pointer-events-none"
-            >
-              <FileText className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-              {isExporting === 'pdf' ? 'Generating…' : 'PDF report'}
-            </button>
-          </div>
-
-          {findings.length > 0 && (
-            <div className="mt-8 pt-6" style={{ borderTop: '1px solid #ebe7e7' }}>
-              <p className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground mb-4">
-                Summary
-              </p>
-              <dl className="space-y-3">
-                <div>
-                  <dt className="font-data text-xs text-muted-foreground">Total findings</dt>
-                  <dd className="font-data text-2xl font-bold text-foreground">{findings.length}</dd>
-                </div>
-                <div>
-                  <dt className="font-data text-xs text-muted-foreground">Open</dt>
-                  <dd className="font-data text-2xl font-bold text-primary">
-                    {findings.filter((f) => f.status === 'open').length}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="font-data text-xs text-muted-foreground">Resolved</dt>
-                  <dd className="font-data text-2xl font-bold text-foreground">
-                    {findings.filter((f) => f.status === 'resolved').length}
-                  </dd>
-                </div>
-              </dl>
+        {/* Project Statistics */}
+        <div className="px-6 py-6">
+          <p className="font-sans text-xs font-bold uppercase tracking-widest mb-5" style={{ color: '#5f5e5e', letterSpacing: '0.12em' }}>
+            Project Statistics
+          </p>
+          <dl className="space-y-5">
+            <div>
+              <dt className="font-sans text-xs mb-1" style={{ color: '#5f5e5e' }}>Compliance Score</dt>
+              <dd className="font-serif font-bold" style={{ fontSize: '2.5rem', color: '#1a1a1a', lineHeight: 1 }}>
+                {complianceScore}%
+              </dd>
+              <div className="mt-2 h-1.5" style={{ background: '#e0dbd9' }}>
+                <div
+                  className="h-full transition-all"
+                  style={{ width: `${complianceScore}%`, background: complianceScore >= 80 ? '#2d7a4f' : complianceScore >= 50 ? '#8b6914' : '#610000' }}
+                />
+              </div>
             </div>
-          )}
-        </aside>
-      </div>
+            <div>
+              <dt className="font-sans text-xs mb-0.5" style={{ color: '#5f5e5e' }}>Total findings</dt>
+              <dd className="font-serif font-bold text-2xl" style={{ color: '#1a1a1a' }}>{findings.length}</dd>
+            </div>
+            <div>
+              <dt className="font-sans text-xs mb-0.5" style={{ color: '#5f5e5e' }}>Open</dt>
+              <dd className="font-serif font-bold text-2xl" style={{ color: '#610000' }}>
+                {findings.filter((f) => f.status === 'open').length}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-sans text-xs mb-0.5" style={{ color: '#5f5e5e' }}>Resolved</dt>
+              <dd className="font-serif font-bold text-2xl" style={{ color: '#2d7a4f' }}>{resolvedCount}</dd>
+            </div>
+          </dl>
+        </div>
+      </aside>
+    </div>
 
       {/* ── Slide-in finding form sidebar ── */}
       <FindingFormSidebar

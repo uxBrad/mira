@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Settings, LogOut, Clock, FileText } from 'lucide-react'
+import { Bell, Settings, LogOut, Clock, User } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { cn } from '../../lib/utils'
 import { useToast } from '../ui/use-toast'
@@ -30,91 +30,101 @@ export default function AppShell() {
 
       {/* Top navigation bar */}
       <header
-        className="flex-shrink-0 flex items-center px-4 titlebar-drag"
-        style={{ background: '#f6f3f2', borderBottom: '1px solid #ebe7e7', height: '52px' }}
+        className="flex-shrink-0 flex items-center px-6 titlebar-drag"
+        style={{ background: '#ffffff', borderBottom: '1px solid #ebe7e7', height: '56px' }}
         aria-label="Main navigation"
       >
         {/* Brand */}
-        <span className="font-display text-lg font-bold tracking-tight text-foreground w-36 flex-shrink-0">
+        <span className="font-serif text-xl font-bold tracking-tight text-foreground mr-8 flex-shrink-0" style={{ letterSpacing: '-0.02em' }}>
           Echo
         </span>
 
         {/* Nav links */}
-        <nav className="flex items-center gap-0.5 flex-1" aria-label="App sections">
-          <NavLink
-            to="/"
-            end
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-2 px-3 py-1.5 text-sm font-medium font-data transition-colors',
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-surface-high hover:text-foreground'
-              )
-            }
-          >
-            <LayoutDashboard className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-            Dashboard
-          </NavLink>
-          <NavLink
-            to="/templates"
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-2 px-3 py-1.5 text-sm font-medium font-data transition-colors',
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-surface-high hover:text-foreground'
-              )
-            }
-          >
-            <FileText className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-            Finding Templates
-          </NavLink>
-          <NavLink
-            to="/settings"
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-2 px-3 py-1.5 text-sm font-medium font-data transition-colors',
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-surface-high hover:text-foreground'
-              )
-            }
-          >
-            <Settings className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-            Settings
-          </NavLink>
+        <nav className="flex items-center gap-0 flex-1 titlebar-no-drag" aria-label="App sections">
+          {[
+            { to: '/', label: 'Dashboard', end: true },
+            { to: '/templates', label: 'Templates', end: false },
+            { to: '/settings', label: 'Settings', end: false },
+          ].map(({ to, label, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                cn(
+                  'relative px-4 py-1 font-sans text-sm font-medium transition-colors',
+                  isActive
+                    ? 'text-foreground'
+                    : 'text-[#5f5e5e] hover:text-foreground'
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  {label}
+                  {isActive && (
+                    <span
+                      className="absolute bottom-0 left-4 right-4 h-0.5"
+                      style={{ background: '#610000', bottom: '-1px' }}
+                      aria-hidden="true"
+                    />
+                  )}
+                </>
+              )}
+            </NavLink>
+          ))}
         </nav>
 
-        {/* Trial banner */}
-        {trialBanner && (
-          <div className="mr-3 px-3 py-1.5" style={{ background: '#ebe7e7' }} role="status" aria-live="polite">
-            <div className="flex items-center gap-1.5">
-              <Clock className="h-3 w-3 text-primary flex-shrink-0" aria-hidden="true" />
-              <p className="font-data text-xs font-medium text-foreground whitespace-nowrap">
-                {subscriptionStatus.daysRemaining === 0
-                  ? 'Trial expires today'
-                  : `${subscriptionStatus.daysRemaining}d remaining`}
-              </p>
+        {/* Right icons */}
+        <div className="flex items-center gap-1 flex-shrink-0 titlebar-no-drag">
+          {/* Trial badge */}
+          {trialBanner && (
+            <div className="mr-2 px-2.5 py-1" style={{ background: '#f6f3f2' }} role="status" aria-live="polite">
+              <div className="flex items-center gap-1.5">
+                <Clock className="h-3 w-3 text-primary flex-shrink-0" aria-hidden="true" />
+                <p className="font-sans text-xs font-medium text-foreground whitespace-nowrap">
+                  {subscriptionStatus.daysRemaining === 0
+                    ? 'Trial expires today'
+                    : `${subscriptionStatus.daysRemaining}d left`}
+                </p>
+              </div>
             </div>
-          </div>
-        )}
-
-        {/* User / logout */}
-        <div className="flex items-center gap-1 flex-shrink-0" style={{ borderLeft: '1px solid #ebe7e7', paddingLeft: '1rem', marginLeft: '0.5rem' }}>
-          {session?.user && (
-            <span className="font-data text-xs text-muted-foreground truncate max-w-[160px]" title={session.user.email}>
-              {session.user.email}
-            </span>
           )}
+
           <button
-            onClick={handleLogout}
-            className="flex items-center gap-1.5 px-2 py-1.5 text-sm font-data text-muted-foreground hover:text-primary transition-colors"
-            aria-label="Sign out"
+            className="p-2 text-[#5f5e5e] hover:text-foreground transition-colors"
+            aria-label="Notifications"
           >
-            <LogOut className="h-4 w-4" aria-hidden="true" />
-            Sign out
+            <Bell className="h-4 w-4" aria-hidden="true" />
           </button>
+
+          <NavLink
+            to="/settings"
+            className="p-2 text-[#5f5e5e] hover:text-foreground transition-colors"
+            aria-label="Settings"
+          >
+            <Settings className="h-4 w-4" aria-hidden="true" />
+          </NavLink>
+
+          {session?.user ? (
+            <button
+              onClick={handleLogout}
+              className="ml-1 flex items-center justify-center w-8 h-8 font-sans text-xs font-bold text-white transition-colors"
+              style={{ background: '#610000' }}
+              aria-label={`Sign out (${session.user.email})`}
+              title={session.user.email}
+            >
+              {session.user.email?.[0]?.toUpperCase() ?? <User className="h-4 w-4" />}
+            </button>
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="p-2 text-[#5f5e5e] hover:text-primary transition-colors"
+              aria-label="Sign out"
+            >
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+            </button>
+          )}
         </div>
       </header>
 
