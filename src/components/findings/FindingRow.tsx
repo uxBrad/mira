@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
-import { Button } from '../ui/button'
+import { Pencil, Trash2 } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -59,7 +58,7 @@ function FailBadge({ status }: { status: string | null }) {
     return (
       <span
         className="inline-block font-sans text-xs font-bold tracking-widest uppercase px-2.5 py-0.5"
-        style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.1em' }}
+        style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.1em', borderRadius: '2px' }}
       >
         PASS
       </span>
@@ -69,7 +68,7 @@ function FailBadge({ status }: { status: string | null }) {
     return (
       <span
         className="inline-block font-sans text-xs font-bold tracking-widest uppercase px-2.5 py-0.5"
-        style={{ background: '#5f5e5e', color: '#fff', letterSpacing: '0.1em' }}
+        style={{ background: '#5f5e5e', color: '#fff', letterSpacing: '0.1em', borderRadius: '2px' }}
       >
         N/A
       </span>
@@ -78,7 +77,7 @@ function FailBadge({ status }: { status: string | null }) {
   return (
     <span
       className="inline-block font-sans text-xs font-bold tracking-widest uppercase px-2.5 py-0.5"
-      style={{ background: '#610000', color: '#fff', letterSpacing: '0.1em' }}
+      style={{ background: '#610000', color: '#fff', letterSpacing: '0.1em', borderRadius: '2px' }}
     >
       FAIL
     </span>
@@ -86,7 +85,6 @@ function FailBadge({ status }: { status: string | null }) {
 }
 
 export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowProps) {
-  const [expanded, setExpanded] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -109,17 +107,21 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
   return (
     <>
       <article
-        className="py-6"
-        style={{ borderBottom: '1px solid #ebe7e7' }}
+        className="mb-4 p-5"
+        style={{
+          background: '#ffffff',
+          borderRadius: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.06)'
+        }}
         aria-label={finding.title}
       >
-        {/* Meta row: FAIL badge + level + severity | criterion right */}
-        <div className="flex items-center justify-between mb-2 gap-4">
+        {/* Top row: badges left | criterion + actions right */}
+        <div className="flex items-start justify-between gap-4 mb-3">
           <div className="flex items-center gap-2 flex-wrap">
             <FailBadge status={finding.status} />
             {finding.wcagLevel && (
               <span
-                className="font-sans text-xs font-semibold tracking-widest uppercase"
+                className="font-sans text-xs font-semibold uppercase"
                 style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}
               >
                 Level {finding.wcagLevel}
@@ -142,159 +144,101 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
               </span>
             )}
 
-            {/* Actions */}
-            <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-[#5f5e5e] hover:text-foreground"
+            {/* Action buttons */}
+            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+              <button
                 onClick={onEdit}
                 aria-label={`Edit: ${finding.title}`}
+                className="flex items-center gap-1.5 px-2.5 py-1 font-sans text-xs font-medium transition-colors hover:bg-[#f6f3f2]"
+                style={{ border: '1px solid #d0cac8', color: '#5f5e5e', borderRadius: '4px' }}
               >
                 <Pencil className="h-3 w-3" aria-hidden="true" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-[#5f5e5e] hover:text-destructive"
+                Edit
+              </button>
+              <button
                 onClick={() => setDeleteOpen(true)}
                 aria-label={`Delete: ${finding.title}`}
+                className="flex items-center gap-1.5 px-2.5 py-1 font-sans text-xs font-medium transition-colors hover:bg-red-50"
+                style={{ border: '1px solid #d0cac8', color: '#c0392b', borderRadius: '4px' }}
               >
                 <Trash2 className="h-3 w-3" aria-hidden="true" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-[#5f5e5e] hover:text-foreground"
-                onClick={() => setExpanded(!expanded)}
-                aria-expanded={expanded}
-                aria-label={expanded ? 'Collapse' : 'Expand'}
-              >
-                {expanded
-                  ? <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
-                  : <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />}
-              </Button>
+                Delete
+              </button>
             </div>
           </div>
         </div>
 
         {/* Title */}
         <h3
-          className="font-serif font-bold leading-snug mb-2 cursor-pointer hover:text-primary transition-colors"
-          style={{ fontSize: '1.25rem', letterSpacing: '-0.01em' }}
-          onClick={() => setExpanded(!expanded)}
+          className="font-serif font-bold leading-snug mb-3"
+          style={{ fontSize: '1.2rem', letterSpacing: '-0.01em', color: '#1a1a1a' }}
         >
           {finding.title}
         </h3>
 
-        {/* Description preview */}
-        {finding.description && !expanded && (
-          <p
-            className="font-sans text-sm leading-relaxed line-clamp-2"
-            style={{ color: '#5f5e5e' }}
-          >
+        {/* Description */}
+        {finding.description && (
+          <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>
             {finding.description}
           </p>
         )}
 
-        {/* Page / component chips */}
-        {(finding.pageUrl || finding.component) && !expanded && (
-          <div className="flex items-center gap-2 mt-2 flex-wrap">
+        {/* Recommendation */}
+        {finding.recommendations && (
+          <div className="mb-3" style={{ borderLeft: '3px solid #610000', paddingLeft: '12px' }}>
+            <p className="font-sans text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#610000', letterSpacing: '0.1em' }}>
+              Recommendation
+            </p>
+            <p className="font-sans text-sm leading-relaxed" style={{ color: '#2b2c2c' }}>
+              {finding.recommendations}
+            </p>
+          </div>
+        )}
+
+        {/* Notes */}
+        {finding.notes && (
+          <p className="font-sans text-xs italic mb-3" style={{ color: '#5f5e5e' }}>
+            Note: {finding.notes}
+          </p>
+        )}
+
+        {/* Footer: chips + status selector */}
+        <div className="flex items-center justify-between flex-wrap gap-2 pt-3" style={{ borderTop: '1px solid #f0ede9' }}>
+          <div className="flex flex-wrap gap-1.5">
             {finding.pageUrl && (
-              <span
-                className="font-sans text-xs px-2 py-0.5"
-                style={{ background: '#f6f3f2', color: '#5f5e5e' }}
-              >
+              <span className="font-sans text-xs px-2 py-0.5" style={{ background: '#f6f3f2', color: '#5f5e5e', borderRadius: '3px' }}>
                 {finding.pageUrl}
               </span>
             )}
             {finding.component && (
-              <span
-                className="font-sans text-xs px-2 py-0.5"
-                style={{ background: '#f6f3f2', color: '#5f5e5e' }}
-              >
+              <span className="font-sans text-xs px-2 py-0.5" style={{ background: '#f6f3f2', color: '#5f5e5e', borderRadius: '3px' }}>
                 {finding.component}
               </span>
             )}
+            {finding.standards?.map((s) => (
+              <span key={s} className="font-sans text-xs px-2 py-0.5" style={{ background: '#f6f3f2', color: '#5f5e5e', borderRadius: '3px' }}>
+                {s}
+              </span>
+            ))}
           </div>
-        )}
 
-        {/* Expanded detail */}
-        {expanded && (
-          <div
-            id={`finding-detail-${finding.id}`}
-            className="mt-4 space-y-4"
-          >
-            {finding.description && (
-              <div>
-                <p className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
-                  Issue
-                </p>
-                <p className="font-sans text-sm leading-relaxed" style={{ color: '#2b2c2c' }}>
-                  {finding.description}
-                </p>
-              </div>
-            )}
-
-            {finding.recommendations && (
-              <div style={{ borderLeft: '3px solid #610000', paddingLeft: '12px' }}>
-                <p className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: '#610000', letterSpacing: '0.1em' }}>
-                  Recommendation
-                </p>
-                <p className="font-sans text-sm leading-relaxed" style={{ color: '#2b2c2c' }}>
-                  {finding.recommendations}
-                </p>
-              </div>
-            )}
-
-            {finding.notes && (
-              <p className="font-sans text-xs italic" style={{ color: '#5f5e5e' }}>
-                Note: {finding.notes}
-              </p>
-            )}
-
-            {/* Meta chips + status selector */}
-            <div className="flex items-center justify-between flex-wrap gap-3 pt-1">
-              <div className="flex flex-wrap gap-1.5">
-                {finding.pageUrl && (
-                  <span className="font-sans text-xs px-2 py-0.5" style={{ background: '#f6f3f2', color: '#5f5e5e' }}>
-                    {finding.pageUrl}
-                  </span>
-                )}
-                {finding.component && (
-                  <span className="font-sans text-xs px-2 py-0.5" style={{ background: '#f6f3f2', color: '#5f5e5e' }}>
-                    {finding.component}
-                  </span>
-                )}
-                {finding.standards?.map((s) => (
-                  <span key={s} className="font-sans text-xs px-2 py-0.5" style={{ background: '#f6f3f2', color: '#5f5e5e' }}>
-                    {s}
-                  </span>
-                ))}
-              </div>
-
-              <div onClick={(e) => e.stopPropagation()}>
-                <Select
-                  value={finding.status || 'open'}
-                  onValueChange={handleStatusChange}
-                >
-                  <SelectTrigger
-                    className="h-7 text-xs w-32 font-sans"
-                    aria-label="Finding status"
-                  >
-                    <span>{STATUS_LABELS[finding.status || 'open'] || finding.status}</span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                    <SelectItem value="wont_fix">Won&apos;t Fix</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+          <div onClick={(e) => e.stopPropagation()}>
+            <Select value={finding.status || 'open'} onValueChange={handleStatusChange}>
+              <SelectTrigger
+                className="h-7 text-xs w-32 font-sans"
+                aria-label="Finding status"
+              >
+                <span>{STATUS_LABELS[finding.status || 'open'] || finding.status}</span>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+                <SelectItem value="wont_fix">Won&apos;t Fix</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        )}
+        </div>
       </article>
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
@@ -306,12 +250,21 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
+            <button
+              onClick={() => setDeleteOpen(false)}
+              className="px-4 py-2 font-sans text-sm font-medium transition-colors hover:bg-[#f6f3f2]"
+              style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '4px' }}
+            >
               Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="px-4 py-2 font-sans text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+              style={{ background: '#610000', borderRadius: '4px' }}
+            >
               {isDeleting ? 'Deleting…' : 'Delete'}
-            </Button>
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

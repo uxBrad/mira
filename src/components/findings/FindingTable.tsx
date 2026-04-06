@@ -47,7 +47,7 @@ export function FindingTable({ findings, isLoading, onEdit, onUpdate, onDelete }
   }
 
   return (
-    <ul className="space-y-0" role="list" aria-label="Findings">
+    <ul className="space-y-0" role="list" aria-label="Findings" style={{ paddingBottom: '2rem' }}>
       {findings.map((finding) => (
         <li key={finding.id}>
           <FindingRow
