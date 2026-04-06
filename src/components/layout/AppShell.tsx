@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Settings, LogOut, Clock } from 'lucide-react'
+import { LayoutDashboard, Settings, LogOut, Clock, FileText } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { cn } from '../../lib/utils'
 import { useToast } from '../ui/use-toast'
@@ -55,6 +55,20 @@ export default function AppShell() {
           >
             <LayoutDashboard className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
             Dashboard
+          </NavLink>
+          <NavLink
+            to="/templates"
+            className={({ isActive }) =>
+              cn(
+                'flex items-center gap-2 px-3 py-1.5 text-sm font-medium font-data transition-colors',
+                isActive
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-surface-high hover:text-foreground'
+              )
+            }
+          >
+            <FileText className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+            Finding Templates
           </NavLink>
           <NavLink
             to="/settings"

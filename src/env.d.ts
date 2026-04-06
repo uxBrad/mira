@@ -37,6 +37,8 @@ interface Window {
         url: string | null
         description: string | null
         status: string
+        standards: string | null
+        auditUrls: string[]
         createdAt: number
         updatedAt: number
         findingCount: number
@@ -48,14 +50,30 @@ interface Window {
         url: string | null
         description: string | null
         status: string
+        standards: string | null
+        auditUrls: string[]
         createdAt: number
         updatedAt: number
       }>
-      create: (data: { name: string; clientName?: string; url?: string; description?: string }) => Promise<{
-        id: string; name: string; clientName: string | null; url: string | null; description: string | null; status: string; createdAt: number; updatedAt: number
+      create: (data: {
+        name: string
+        clientName?: string
+        url?: string
+        description?: string
+        standards?: string
+        auditUrls?: string[]
+      }) => Promise<{
+        id: string; name: string; clientName: string | null; url: string | null
+        description: string | null; status: string; standards: string | null
+        auditUrls: string[]; createdAt: number; updatedAt: number
       }>
-      update: (id: string, data: { name?: string; clientName?: string; url?: string; description?: string; status?: string }) => Promise<{
-        id: string; name: string; clientName: string | null; url: string | null; description: string | null; status: string; createdAt: number; updatedAt: number
+      update: (id: string, data: {
+        name?: string; clientName?: string; url?: string; description?: string
+        status?: string; standards?: string; auditUrls?: string[]
+      }) => Promise<{
+        id: string; name: string; clientName: string | null; url: string | null
+        description: string | null; status: string; standards: string | null
+        auditUrls: string[]; createdAt: number; updatedAt: number
       }>
       delete: (id: string) => Promise<{ success: boolean }>
     }
@@ -72,6 +90,7 @@ interface Window {
         severity: string | null
         status: string | null
         pageUrl: string | null
+        component: string | null
         screenshotPath: string | null
         recommendations: string | null
         notes: string | null
@@ -90,6 +109,7 @@ interface Window {
         severity?: string
         status?: string
         pageUrl?: string
+        component?: string
         screenshotPath?: string
         recommendations?: string
         notes?: string
@@ -97,6 +117,35 @@ interface Window {
       update: (id: string, data: Record<string, unknown>) => Promise<unknown>
       delete: (id: string) => Promise<{ success: boolean }>
       addScreenshot: (findingId: string, sourcePath: string) => Promise<{ path: string }>
+    }
+    templates: {
+      list: () => Promise<Array<{
+        id: string
+        title: string
+        description: string | null
+        wcagCriterion: string | null
+        wcagLevel: string | null
+        standards: string[]
+        category: string | null
+        severity: string | null
+        recommendations: string | null
+        notes: string | null
+        createdAt: number
+        updatedAt: number
+      }>>
+      create: (data: {
+        title: string
+        description?: string
+        wcagCriterion?: string
+        wcagLevel?: string
+        standards?: string[]
+        category?: string
+        severity?: string
+        recommendations?: string
+        notes?: string
+      }) => Promise<unknown>
+      update: (id: string, data: Record<string, unknown>) => Promise<unknown>
+      delete: (id: string) => Promise<{ success: boolean }>
     }
     export: {
       exportPDF: (projectId: string) => Promise<{ success?: boolean; path?: string; canceled?: boolean }>

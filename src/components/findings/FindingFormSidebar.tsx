@@ -25,6 +25,7 @@ interface FindingFormData {
   severity?: string
   status?: string
   pageUrl?: string
+  component?: string
   screenshotPath?: string
   recommendations?: string
   notes?: string
@@ -36,6 +37,7 @@ interface FindingFormSidebarProps {
   onSubmit: (data: FindingFormData) => Promise<void>
   mode: 'create' | 'edit'
   projectId: string
+  auditPages?: string[]
   initialData?: Partial<FindingFormData>
 }
 
@@ -45,6 +47,7 @@ export function FindingFormSidebar({
   onSubmit,
   mode,
   projectId,
+  auditPages = [],
   initialData
 }: FindingFormSidebarProps) {
   const [title, setTitle] = useState(initialData?.title || '')
@@ -56,6 +59,7 @@ export function FindingFormSidebar({
   const [severity, setSeverity] = useState(initialData?.severity || 'moderate')
   const [status, setStatus] = useState(initialData?.status || 'open')
   const [pageUrl, setPageUrl] = useState(initialData?.pageUrl || '')
+  const [component, setComponent] = useState(initialData?.component || '')
   const [screenshotPath, setScreenshotPath] = useState(initialData?.screenshotPath || '')
   const [recommendations, setRecommendations] = useState(initialData?.recommendations || '')
   const [notes, setNotes] = useState(initialData?.notes || '')
@@ -75,17 +79,16 @@ export function FindingFormSidebar({
       setSeverity(initialData?.severity || 'moderate')
       setStatus(initialData?.status || 'open')
       setPageUrl(initialData?.pageUrl || '')
+      setComponent(initialData?.component || '')
       setScreenshotPath(initialData?.screenshotPath || '')
       setRecommendations(initialData?.recommendations || '')
       setNotes(initialData?.notes || '')
       setError(null)
       setCriterionSearch('')
-      // Focus title on open
       setTimeout(() => titleRef.current?.focus(), 50)
     }
   }, [open])
 
-  // Close on Escape
   useEffect(() => {
     if (!open) return
     function onKey(e: KeyboardEvent) {
@@ -132,7 +135,8 @@ export function FindingFormSidebar({
         category: category || undefined,
         severity,
         status,
-        pageUrl: pageUrl.trim() || undefined,
+        pageUrl: pageUrl || undefined,
+        component: component.trim() || undefined,
         screenshotPath: screenshotPath || undefined,
         recommendations: recommendations.trim() || undefined,
         notes: notes.trim() || undefined
@@ -156,7 +160,6 @@ export function FindingFormSidebar({
 
   return (
     <>
-      {/* Backdrop */}
       {open && (
         <div
           className="fixed inset-0 z-40 bg-black/20"
@@ -165,7 +168,6 @@ export function FindingFormSidebar({
         />
       )}
 
-      {/* Slide-in panel */}
       <div
         role="dialog"
         aria-modal="true"
@@ -177,7 +179,6 @@ export function FindingFormSidebar({
           borderLeft: '1px solid #ebe7e7'
         }}
       >
-        {/* Panel header */}
         <div
           className="flex items-center justify-between px-6 py-5 flex-shrink-0"
           style={{ borderBottom: '1px solid #ebe7e7' }}
@@ -193,7 +194,6 @@ export function FindingFormSidebar({
           </button>
         </div>
 
-        {/* Scrollable form body */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
           <form onSubmit={handleSubmit} id="finding-sidebar-form" noValidate aria-label={heading}>
             {error && (
@@ -255,6 +255,47 @@ export function FindingFormSidebar({
                       <SelectItem value="wont_fix">Won&apos;t Fix</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+
+              {/* Page + Component */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="sf-page" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
+                    Page
+                  </Label>
+                  {auditPages.length > 0 ? (
+                    <Select value={pageUrl} onValueChange={setPageUrl} disabled={isLoading}>
+                      <SelectTrigger id="sf-page">
+                        <SelectValue placeholder="Select page…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {auditPages.map((p) => (
+                          <SelectItem key={p} value={p}>{p}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id="sf-page"
+                      value={pageUrl}
+                      onChange={(e) => setPageUrl(e.target.value)}
+                      placeholder="/home"
+                      disabled={isLoading}
+                    />
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="sf-component" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
+                    Component
+                  </Label>
+                  <Input
+                    id="sf-component"
+                    value={component}
+                    onChange={(e) => setComponent(e.target.value)}
+                    placeholder="Navigation"
+                    disabled={isLoading}
+                  />
                 </div>
               </div>
 
@@ -392,21 +433,6 @@ export function FindingFormSidebar({
                 />
               </div>
 
-              {/* Page URL */}
-              <div className="space-y-1.5">
-                <Label htmlFor="sf-url" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
-                  Page URL
-                </Label>
-                <Input
-                  id="sf-url"
-                  type="url"
-                  value={pageUrl}
-                  onChange={(e) => setPageUrl(e.target.value)}
-                  placeholder="https://example.com/page"
-                  disabled={isLoading}
-                />
-              </div>
-
               {/* Screenshot */}
               <div className="space-y-1.5">
                 <Label className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
@@ -459,7 +485,6 @@ export function FindingFormSidebar({
           </form>
         </div>
 
-        {/* Footer actions */}
         <div
           className="flex items-center justify-end gap-2 px-6 py-4 flex-shrink-0"
           style={{ borderTop: '1px solid #ebe7e7' }}

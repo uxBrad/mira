@@ -13,6 +13,7 @@ import DashboardPage from './pages/dashboard'
 import ProjectPage from './pages/project/ProjectPage'
 import SettingsPage from './pages/settings'
 import PaywallPage from './pages/auth/Paywall'
+import TemplatesPage from './pages/templates'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, isLoading } = useAuth()
@@ -63,6 +64,7 @@ function AppRoutes() {
       <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
         <Route path="/" element={<DashboardPage />} />
         <Route path="/project/:id" element={<ProjectPage />} />
+        <Route path="/templates" element={<TemplatesPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
     </Routes>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -7,16 +7,17 @@ import {
   FileText,
   ExternalLink,
   AlertCircle,
-  Pencil
+  Pencil,
+  ChevronDown
 } from 'lucide-react'
 import { useFindings } from '../../hooks/useFindings'
+import { useTemplates } from '../../hooks/useTemplates'
 import { Button } from '../../components/ui/button'
 import { Badge } from '../../components/ui/badge'
 import { FindingTable } from '../../components/findings/FindingTable'
 import { FindingFormSidebar } from '../../components/findings/FindingFormSidebar'
 import { ProjectFormDialog } from '../../components/projects/ProjectFormDialog'
 import { useToast } from '../../components/ui/use-toast'
-import type { Project } from '../../../db/schema'
 
 const STATUS_LABELS: Record<string, string> = {
   in_progress: 'In Progress',
@@ -40,6 +41,19 @@ const STATUS_FILTERS = [
   { key: 'wont_fix', label: "Won't Fix" }
 ]
 
+interface Project {
+  id: string
+  name: string
+  clientName: string | null
+  url: string | null
+  description: string | null
+  status: string
+  standards: string | null
+  auditUrls: string[]
+  createdAt: number
+  updatedAt: number
+}
+
 interface Finding {
   id: string
   projectId: string
@@ -52,6 +66,7 @@ interface Finding {
   severity: string | null
   status: string | null
   pageUrl: string | null
+  component: string | null
   screenshotPath: string | null
   recommendations: string | null
   notes: string | null
@@ -71,27 +86,86 @@ export default function ProjectPage() {
   const [isExporting, setIsExporting] = useState<'pdf' | 'csv' | null>(null)
   const [severityFilter, setSeverityFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [pageFilter, setPageFilter] = useState('all')
+  const [componentFilter, setComponentFilter] = useState('all')
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false)
+  const [findingInitialData, setFindingInitialData] = useState<Partial<Finding> | undefined>(undefined)
+  const templatePickerRef = useRef<HTMLDivElement>(null)
 
   const { findings, isLoading, error, createFinding, updateFinding, deleteFinding } = useFindings(id!)
+  const { templates } = useTemplates()
 
   useEffect(() => {
     if (!id) return
     window.api.projects
       .get(id)
-      .then(setProject)
+      .then((p) => setProject(p as Project))
       .catch(() => navigate('/', { replace: true }))
       .finally(() => setIsLoadingProject(false))
   }, [id, navigate])
 
+  // Close template picker when clicking outside
+  useEffect(() => {
+    if (!templatePickerOpen) return
+    function handleClick(e: MouseEvent) {
+      if (templatePickerRef.current && !templatePickerRef.current.contains(e.target as Node)) {
+        setTemplatePickerOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [templatePickerOpen])
+
+  // Derived filter options from findings
+  const uniquePages = Array.from(
+    new Set(findings.map((f) => f.pageUrl).filter((p): p is string => !!p))
+  )
+  const uniqueComponents = Array.from(
+    new Set(findings.map((f) => f.component).filter((c): c is string => !!c))
+  )
+
   const filtered = findings.filter((f) => {
     if (severityFilter !== 'all' && f.severity !== severityFilter) return false
     if (statusFilter !== 'all' && f.status !== statusFilter) return false
+    if (pageFilter !== 'all' && f.pageUrl !== pageFilter) return false
+    if (componentFilter !== 'all' && f.component !== componentFilter) return false
     return true
   })
+
+  const activeFilterCount = [
+    severityFilter !== 'all',
+    statusFilter !== 'all',
+    pageFilter !== 'all',
+    componentFilter !== 'all'
+  ].filter(Boolean).length
+
+  function openBlankFinding() {
+    setFindingInitialData(undefined)
+    setEditFinding(null)
+    setCreateOpen(true)
+  }
+
+  function applyTemplate(template: typeof templates[number]) {
+    setTemplatePickerOpen(false)
+    setFindingInitialData({
+      title: template.title,
+      description: template.description ?? undefined,
+      wcagCriterion: template.wcagCriterion ?? undefined,
+      wcagLevel: template.wcagLevel ?? undefined,
+      standards: template.standards,
+      category: template.category ?? undefined,
+      severity: template.severity ?? undefined,
+      recommendations: template.recommendations ?? undefined,
+      notes: template.notes ?? undefined
+    })
+    setEditFinding(null)
+    setCreateOpen(true)
+  }
 
   async function handleCreateFinding(data: Parameters<typeof createFinding>[0]) {
     await createFinding(data)
     setCreateOpen(false)
+    setFindingInitialData(undefined)
     toast({ title: 'Finding added' })
   }
 
@@ -108,10 +182,12 @@ export default function ProjectPage() {
     url?: string
     description?: string
     status?: string
+    standards?: string
+    auditUrls?: string[]
   }) {
     if (!id) return
     const updated = await window.api.projects.update(id, data)
-    setProject(updated)
+    setProject(updated as Project)
     setEditProjectOpen(false)
     toast({ title: 'Project updated' })
   }
@@ -171,8 +247,6 @@ export default function ProjectPage() {
     minor: findings.filter((f) => f.severity === 'minor').length
   }
 
-  const activeFilterCount = [severityFilter !== 'all', statusFilter !== 'all'].filter(Boolean).length
-
   return (
     <div className="flex flex-col h-full overflow-hidden">
 
@@ -181,7 +255,6 @@ export default function ProjectPage() {
         className="flex-shrink-0 px-8 py-5"
         style={{ borderBottom: '1px solid #ebe7e7' }}
       >
-        {/* Breadcrumb */}
         <button
           onClick={() => navigate('/')}
           className="flex items-center gap-1.5 font-data text-xs text-muted-foreground hover:text-foreground mb-3 transition-colors"
@@ -191,7 +264,6 @@ export default function ProjectPage() {
           All projects
         </button>
 
-        {/* Project name + meta */}
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2.5 flex-wrap">
@@ -223,7 +295,6 @@ export default function ProjectPage() {
             )}
           </div>
 
-          {/* Severity summary — inline in header */}
           {findings.length > 0 && (
             <div className="flex items-center gap-3 flex-shrink-0" role="region" aria-label="Finding severity summary">
               {[
@@ -242,7 +313,7 @@ export default function ProjectPage() {
         </div>
       </div>
 
-      {/* ── Body: left filters + center findings + right actions ── */}
+      {/* ── Body ── */}
       <div className="flex flex-1 overflow-hidden">
 
         {/* Left: filter panel */}
@@ -251,6 +322,7 @@ export default function ProjectPage() {
           style={{ background: '#f6f3f2', borderRight: '1px solid #ebe7e7' }}
           aria-label="Filter findings"
         >
+          {/* Severity */}
           <div className="mb-6">
             <p className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground mb-3">
               Severity
@@ -278,6 +350,7 @@ export default function ProjectPage() {
             </div>
           </div>
 
+          {/* Status */}
           <div className="mb-6">
             <p className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground mb-3">
               Status
@@ -300,9 +373,86 @@ export default function ProjectPage() {
             </div>
           </div>
 
+          {/* Page filter */}
+          {uniquePages.length > 0 && (
+            <div className="mb-6">
+              <p className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground mb-3">
+                Page
+              </p>
+              <div className="space-y-0.5" role="group" aria-label="Filter by page">
+                <button
+                  onClick={() => setPageFilter('all')}
+                  aria-pressed={pageFilter === 'all'}
+                  className={`w-full text-left px-3 py-2 font-data text-sm transition-colors ${
+                    pageFilter === 'all'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-[#ebe7e7] hover:text-foreground'
+                  }`}
+                >
+                  All pages
+                </button>
+                {uniquePages.map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setPageFilter(page)}
+                    aria-pressed={pageFilter === page}
+                    className={`w-full text-left px-3 py-2 font-data text-sm transition-colors truncate ${
+                      pageFilter === page
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-[#ebe7e7] hover:text-foreground'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Component filter */}
+          {uniqueComponents.length > 0 && (
+            <div className="mb-6">
+              <p className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground mb-3">
+                Component
+              </p>
+              <div className="space-y-0.5" role="group" aria-label="Filter by component">
+                <button
+                  onClick={() => setComponentFilter('all')}
+                  aria-pressed={componentFilter === 'all'}
+                  className={`w-full text-left px-3 py-2 font-data text-sm transition-colors ${
+                    componentFilter === 'all'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-[#ebe7e7] hover:text-foreground'
+                  }`}
+                >
+                  All components
+                </button>
+                {uniqueComponents.map((comp) => (
+                  <button
+                    key={comp}
+                    onClick={() => setComponentFilter(comp)}
+                    aria-pressed={componentFilter === comp}
+                    className={`w-full text-left px-3 py-2 font-data text-sm transition-colors truncate ${
+                      componentFilter === comp
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-[#ebe7e7] hover:text-foreground'
+                    }`}
+                  >
+                    {comp}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {activeFilterCount > 0 && (
             <button
-              onClick={() => { setSeverityFilter('all'); setStatusFilter('all') }}
+              onClick={() => {
+                setSeverityFilter('all')
+                setStatusFilter('all')
+                setPageFilter('all')
+                setComponentFilter('all')
+              }}
               className="font-data text-xs text-primary hover:underline underline-offset-4 text-left px-3"
             >
               Clear filters
@@ -311,11 +461,7 @@ export default function ProjectPage() {
         </aside>
 
         {/* Center: findings */}
-        <main
-          id="main-findings"
-          className="flex-1 overflow-y-auto px-8 py-6"
-        >
-          {/* Error */}
+        <main id="main-findings" className="flex-1 overflow-y-auto px-8 py-6">
           {error && (
             <div
               role="alert"
@@ -327,7 +473,6 @@ export default function ProjectPage() {
             </div>
           )}
 
-          {/* Count label */}
           {!isLoading && findings.length > 0 && (
             <p className="font-data text-xs text-muted-foreground mb-4">
               {filtered.length === findings.length
@@ -336,14 +481,13 @@ export default function ProjectPage() {
             </p>
           )}
 
-          {/* Empty project state */}
           {!isLoading && findings.length === 0 && !error && (
             <div className="py-20 text-center">
               <h2 className="font-semibold text-lg mb-1">No findings yet</h2>
               <p className="font-data text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
-                Click "Add finding" to log your first accessibility issue.
+                Click &ldquo;Add finding&rdquo; to log your first accessibility issue.
               </p>
-              <Button onClick={() => setCreateOpen(true)}>
+              <Button onClick={openBlankFinding}>
                 <Plus className="h-4 w-4" aria-hidden="true" />
                 Add finding
               </Button>
@@ -365,13 +509,57 @@ export default function ProjectPage() {
           style={{ background: '#f6f3f2', borderLeft: '1px solid #ebe7e7' }}
           aria-label="Project actions"
         >
-          <Button
-            className="w-full mb-2"
-            onClick={() => { setEditFinding(null); setCreateOpen(true) }}
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            Add finding
-          </Button>
+          {/* Split button: Add finding / Add from template */}
+          <div className="mb-2 relative" ref={templatePickerRef}>
+            <div className="flex w-full" style={{ borderRadius: 0 }}>
+              <Button
+                className="flex-1 justify-start"
+                style={{ borderRadius: 0 }}
+                onClick={openBlankFinding}
+              >
+                <Plus className="h-4 w-4 mr-1.5" aria-hidden="true" />
+                Add finding
+              </Button>
+              <Button
+                variant="outline"
+                className="px-2 border-l-0"
+                style={{ borderRadius: 0, borderLeft: '1px solid rgba(0,0,0,0.15)' }}
+                onClick={() => setTemplatePickerOpen((v) => !v)}
+                aria-label="Add finding from template"
+                aria-expanded={templatePickerOpen}
+                aria-haspopup="listbox"
+              >
+                <ChevronDown className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </div>
+
+            {/* Template picker dropdown */}
+            {templatePickerOpen && (
+              <div
+                className="absolute top-full left-0 right-0 z-20 border shadow-md overflow-hidden"
+                style={{ background: '#fcf9f8', borderColor: '#ebe7e7' }}
+                role="listbox"
+                aria-label="Select a finding template"
+              >
+                {templates.length === 0 ? (
+                  <p className="px-3 py-2.5 font-data text-xs text-muted-foreground">
+                    No templates yet — create them in Finding Templates.
+                  </p>
+                ) : (
+                  templates.map((t) => (
+                    <button
+                      key={t.id}
+                      className="w-full text-left px-3 py-2.5 font-data text-sm hover:bg-[#ebe7e7] transition-colors"
+                      onClick={() => applyTemplate(t)}
+                      role="option"
+                    >
+                      {t.title}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
 
           <div className="space-y-1 mt-2">
             <button
@@ -403,7 +591,6 @@ export default function ProjectPage() {
             </button>
           </div>
 
-          {/* Summary stats */}
           {findings.length > 0 && (
             <div className="mt-8 pt-6" style={{ borderTop: '1px solid #ebe7e7' }}>
               <p className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground mb-4">
@@ -435,10 +622,11 @@ export default function ProjectPage() {
       {/* ── Slide-in finding form sidebar ── */}
       <FindingFormSidebar
         open={sidebarOpen}
-        onClose={() => { setCreateOpen(false); setEditFinding(null) }}
+        onClose={() => { setCreateOpen(false); setEditFinding(null); setFindingInitialData(undefined) }}
         onSubmit={editFinding ? handleEditFinding : handleCreateFinding}
         mode={editFinding ? 'edit' : 'create'}
         projectId={id!}
+        auditPages={project.auditUrls}
         initialData={editFinding ? {
           ...editFinding,
           description: editFinding.description ?? undefined,
@@ -448,13 +636,14 @@ export default function ProjectPage() {
           severity: editFinding.severity ?? undefined,
           status: editFinding.status ?? undefined,
           pageUrl: editFinding.pageUrl ?? undefined,
+          component: editFinding.component ?? undefined,
           screenshotPath: editFinding.screenshotPath ?? undefined,
           recommendations: editFinding.recommendations ?? undefined,
           notes: editFinding.notes ?? undefined
-        } : undefined}
+        } : findingInitialData}
       />
 
-      {/* Edit project dialog */}
+      {/* Edit project sidebar */}
       <ProjectFormDialog
         open={editProjectOpen}
         onOpenChange={setEditProjectOpen}
@@ -465,7 +654,9 @@ export default function ProjectPage() {
           clientName: project.clientName ?? undefined,
           url: project.url ?? undefined,
           description: project.description ?? undefined,
-          status: project.status
+          status: project.status,
+          standards: project.standards ?? undefined,
+          auditUrls: project.auditUrls
         }}
       />
     </div>

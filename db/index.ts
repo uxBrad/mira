@@ -32,7 +32,7 @@ export function getDb(): LibSQLDatabase<typeof schema> {
 }
 
 async function runMigrations(client: Client): Promise<void> {
-  // Execute each statement individually for compatibility
+  // Core table creation (idempotent)
   const statements = [
     `CREATE TABLE IF NOT EXISTS projects (
       id TEXT PRIMARY KEY,
@@ -62,6 +62,20 @@ async function runMigrations(client: Client): Promise<void> {
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL
     )`,
+    `CREATE TABLE IF NOT EXISTS finding_templates (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT,
+      wcag_criterion TEXT,
+      wcag_level TEXT,
+      standards TEXT,
+      category TEXT,
+      severity TEXT DEFAULT 'moderate',
+      recommendations TEXT,
+      notes TEXT,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    )`,
     `CREATE INDEX IF NOT EXISTS idx_findings_project_id ON findings(project_id)`,
     `CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status)`,
     `CREATE INDEX IF NOT EXISTS idx_projects_updated_at ON projects(updated_at)`
@@ -69,5 +83,20 @@ async function runMigrations(client: Client): Promise<void> {
 
   for (const sql of statements) {
     await client.execute(sql)
+  }
+
+  // Additive migrations — columns that may not exist on older DBs
+  const alterStatements = [
+    `ALTER TABLE projects ADD COLUMN standards TEXT`,
+    `ALTER TABLE projects ADD COLUMN audit_urls TEXT`,
+    `ALTER TABLE findings ADD COLUMN component TEXT`
+  ]
+
+  for (const sql of alterStatements) {
+    try {
+      await client.execute(sql)
+    } catch {
+      // Column already exists — safe to ignore
+    }
   }
 }

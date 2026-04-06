@@ -33,10 +33,20 @@ const projectsAPI = {
     clientName?: string
     url?: string
     description?: string
+    standards?: string
+    auditUrls?: string[]
   }) => ipcRenderer.invoke('projects:create', data),
   update: (
     id: string,
-    data: { name?: string; clientName?: string; url?: string; description?: string; status?: string }
+    data: {
+      name?: string
+      clientName?: string
+      url?: string
+      description?: string
+      status?: string
+      standards?: string
+      auditUrls?: string[]
+    }
   ) => ipcRenderer.invoke('projects:update', id, data),
   delete: (id: string) => ipcRenderer.invoke('projects:delete', id)
 }
@@ -56,6 +66,7 @@ const findingsAPI = {
     severity?: string
     status?: string
     pageUrl?: string
+    component?: string
     screenshotPath?: string
     recommendations?: string
     notes?: string
@@ -65,6 +76,25 @@ const findingsAPI = {
   delete: (id: string) => ipcRenderer.invoke('findings:delete', id),
   addScreenshot: (findingId: string, sourcePath: string) =>
     ipcRenderer.invoke('findings:addScreenshot', findingId, sourcePath)
+}
+
+// Templates API
+const templatesAPI = {
+  list: () => ipcRenderer.invoke('templates:list'),
+  create: (data: {
+    title: string
+    description?: string
+    wcagCriterion?: string
+    wcagLevel?: string
+    standards?: string[]
+    category?: string
+    severity?: string
+    recommendations?: string
+    notes?: string
+  }) => ipcRenderer.invoke('templates:create', data),
+  update: (id: string, data: Record<string, unknown>) =>
+    ipcRenderer.invoke('templates:update', id, data),
+  delete: (id: string) => ipcRenderer.invoke('templates:delete', id)
 }
 
 // Update API
@@ -88,6 +118,7 @@ if (process.contextIsolated) {
       auth: authAPI,
       projects: projectsAPI,
       findings: findingsAPI,
+      templates: templatesAPI,
       export: exportAPI,
       update: updateAPI
     })
@@ -98,5 +129,12 @@ if (process.contextIsolated) {
   // @ts-ignore (define in dts)
   window.electron = electronAPI
   // @ts-ignore (define in dts)
-  window.api = { auth: authAPI, projects: projectsAPI, findings: findingsAPI, export: exportAPI, update: updateAPI }
+  window.api = {
+    auth: authAPI,
+    projects: projectsAPI,
+    findings: findingsAPI,
+    templates: templatesAPI,
+    export: exportAPI,
+    update: updateAPI
+  }
 }

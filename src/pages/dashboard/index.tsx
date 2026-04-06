@@ -29,6 +29,8 @@ export default function DashboardPage() {
     clientName?: string
     url?: string
     description?: string
+    standards?: string
+    auditUrls?: string[]
   }) {
     const project = await createProject(data)
     setIsCreateOpen(false)

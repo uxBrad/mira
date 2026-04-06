@@ -28,7 +28,7 @@ export function useProjects() {
   }, [load])
 
   const createProject = useCallback(
-    async (data: { name: string; clientName?: string; url?: string; description?: string }) => {
+    async (data: { name: string; clientName?: string; url?: string; description?: string; standards?: string; auditUrls?: string[] }) => {
       const project = await window.api.projects.create(data)
       await load()
       return project
@@ -39,7 +39,7 @@ export function useProjects() {
   const updateProject = useCallback(
     async (
       id: string,
-      data: { name?: string; clientName?: string; url?: string; description?: string; status?: string }
+      data: { name?: string; clientName?: string; url?: string; description?: string; status?: string; standards?: string; auditUrls?: string[] }
     ) => {
       const project = await window.api.projects.update(id, data)
       await load()

@@ -6,6 +6,7 @@ import { registerAuthHandlers } from './ipc/auth'
 import { registerProjectHandlers } from './ipc/projects'
 import { registerFindingHandlers } from './ipc/findings'
 import { registerExportHandlers } from './ipc/export'
+import { registerTemplateHandlers } from './ipc/templates'
 import { initDatabase } from '../db'
 
 let mainWindow: BrowserWindow | null = null
@@ -87,6 +88,7 @@ app.whenReady().then(async () => {
   registerProjectHandlers(ipcMain)
   registerFindingHandlers(ipcMain)
   registerExportHandlers(ipcMain, () => mainWindow)
+  registerTemplateHandlers(ipcMain)
 
   // Auto-updater: quit and install
   ipcMain.handle('update:install', () => {

@@ -107,7 +107,9 @@ export const STANDARDS_OPTIONS = [
   { value: 'WCAG 2.1 A', label: 'WCAG 2.1 A' },
   { value: 'WCAG 2.1 AA', label: 'WCAG 2.1 AA' },
   { value: 'WCAG 2.1 AAA', label: 'WCAG 2.1 AAA' },
-  { value: 'WCAG 2.2', label: 'WCAG 2.2' },
+  { value: 'WCAG 2.2 A', label: 'WCAG 2.2 A' },
+  { value: 'WCAG 2.2 AA', label: 'WCAG 2.2 AA' },
+  { value: 'WCAG 2.2 AAA', label: 'WCAG 2.2 AAA' },
   { value: 'ADA', label: 'ADA' },
   { value: 'Section 508', label: 'Section 508' },
   { value: 'EN 301 549', label: 'EN 301 549' }

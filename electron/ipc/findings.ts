@@ -46,6 +46,7 @@ export function registerFindingHandlers(ipcMain: IpcMain): void {
       severity: data.severity || 'moderate',
       status: data.status || 'open',
       pageUrl: data.pageUrl || null,
+      component: data.component || null,
       screenshotPath: data.screenshotPath || null,
       recommendations: data.recommendations || null,
       notes: data.notes || null,
