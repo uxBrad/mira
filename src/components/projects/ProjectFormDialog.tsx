@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '../ui/select'
+import { STANDARDS_OPTIONS } from '../../lib/utils'
 
 interface ProjectFormData {
   name: string
@@ -25,6 +26,7 @@ interface ProjectFormData {
   url?: string
   description?: string
   status?: string
+  standards?: string[]
 }
 
 interface ProjectFormDialogProps {
@@ -47,6 +49,7 @@ export function ProjectFormDialog({
   const [url, setUrl] = useState(initialData?.url || '')
   const [description, setDescription] = useState(initialData?.description || '')
   const [status, setStatus] = useState(initialData?.status || 'in_progress')
+  const [standards, setStandards] = useState<string[]>(initialData?.standards || [])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -57,6 +60,7 @@ export function ProjectFormDialog({
       setUrl(initialData?.url || '')
       setDescription(initialData?.description || '')
       setStatus(initialData?.status || 'in_progress')
+      setStandards(initialData?.standards || [])
       setError(null)
     }
   }, [open, initialData])
@@ -75,7 +79,8 @@ export function ProjectFormDialog({
         clientName: clientName.trim() || undefined,
         url: url.trim() || undefined,
         description: description.trim() || undefined,
-        status
+        status,
+        standards: standards.length > 0 ? standards : undefined
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
@@ -154,6 +159,36 @@ export function ProjectFormDialog({
                 rows={3}
                 disabled={isLoading}
               />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
+                Criteria / Standards
+              </Label>
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Select applicable standards">
+                {STANDARDS_OPTIONS.map((std) => (
+                  <button
+                    key={std.value}
+                    type="button"
+                    onClick={() =>
+                      setStandards((prev) =>
+                        prev.includes(std.value)
+                          ? prev.filter((s) => s !== std.value)
+                          : [...prev, std.value]
+                      )
+                    }
+                    aria-pressed={standards.includes(std.value)}
+                    disabled={isLoading}
+                    className={`px-2.5 py-1 text-xs font-medium border transition-colors ${
+                      standards.includes(std.value)
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'text-muted-foreground border-input hover:bg-muted hover:text-foreground'
+                    }`}
+                  >
+                    {std.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {mode === 'edit' && (

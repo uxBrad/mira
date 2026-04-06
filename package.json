@@ -60,14 +60,14 @@
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "drizzle-kit": "^0.31.10",
-    "electron": "^41.1.1",
-    "electron-builder": "^26.8.1",
-    "electron-vite": "^5.0.0",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "~2.3.0",
     "eslint": "^9.14.0",
     "postcss": "^8.4.49",
     "prettier": "^3.4.1",
     "tailwindcss": "^3.4.16",
     "typescript": "^5.6.3",
-    "vite": "^8.0.3"
+    "vite": "~5.4.11"
   }
 }

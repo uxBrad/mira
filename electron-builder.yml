@@ -56,5 +56,5 @@ nsis:
 publish:
   provider: github
   owner: uxBrad
-  repo: grounds-for-access
+  repo: echo
   releaseType: release
