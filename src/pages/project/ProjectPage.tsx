@@ -732,7 +732,6 @@ export default function ProjectPage() {
           </dl>
         </div>
       </aside>
-    </div>
 
       {/* ── Slide-in finding form sidebar ── */}
       <FindingFormSidebar
@@ -782,3 +781,4 @@ export default function ProjectPage() {
     </div>
   )
 }
+
