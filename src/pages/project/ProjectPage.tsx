@@ -335,8 +335,14 @@ export default function ProjectPage() {
   return (
     <div className="flex h-full overflow-hidden">
 
-      {/* ── Main column ── */}
-      <div className={`${stepAuditOpen ? 'w-1/2' : 'flex-1'} flex flex-col overflow-hidden ${layoutReady ? 'transition-all duration-300' : ''}`}>
+      {/* ── Main column — explicit width so it transitions cleanly with siblings ── */}
+      <div
+        className="flex-shrink-0 flex flex-col overflow-hidden"
+        style={{
+          width: stepAuditOpen ? '50%' : 'calc(100% - 18rem)',
+          transition: layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+        }}
+      >
 
         {/* Project header */}
         <div className="flex-shrink-0 px-10 pt-8 pb-0" style={{ background: '#fcf9f8' }}>
@@ -554,40 +560,44 @@ export default function ProjectPage() {
         </main>
       </div>
 
-      {/* ── Step-by-Step Audit Panel (CSS-animated, stays mounted after first open) ── */}
+      {/* ── Step-by-Step Audit Panel — width transitions in/out with the toolkit ── */}
       <div
         className="flex-shrink-0 overflow-hidden flex flex-col"
         style={{
           width: stepAuditOpen ? '50%' : '0',
-          transition: layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease' : 'none',
-          opacity: stepAuditOpen ? 1 : 0,
+          transition: layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
         }}
         aria-hidden={!stepAuditOpen}
       >
         {stepAuditMounted && (
-          <div className={stepAuditOpen ? 'animate-slide-in-right h-full' : 'h-full'}>
-            <StepAuditPanel
-              onClose={() => setStepAuditOpen(false)}
-              projectId={id!}
-              auditPages={project.auditUrls}
-              auditComponents={project.components}
-              findings={findings}
-              onAddFinding={async (data) => {
-                await createFinding(data)
-                toast({ title: 'Finding logged' })
-              }}
-            />
-          </div>
+          <StepAuditPanel
+            onClose={() => setStepAuditOpen(false)}
+            projectId={id!}
+            auditPages={project.auditUrls}
+            auditComponents={project.components}
+            findings={findings}
+            onAddFinding={async (data) => {
+              await createFinding(data)
+              toast({ title: 'Finding logged' })
+            }}
+          />
         )}
       </div>
 
-      {/* ── Right sidebar: Audit Toolkit (hidden when step audit open) ── */}
-      {!stepAuditOpen && (
+      {/* ── Right sidebar: Audit Toolkit — stays in DOM, width transitions out/in ── */}
       <aside
-        className="w-72 flex-shrink-0 flex flex-col overflow-y-auto"
-        style={{ background: '#f6f3f2', borderLeft: '1px solid #e0dbd9' }}
+        className="flex-shrink-0 overflow-hidden"
+        style={{
+          width: stepAuditOpen ? '0' : '18rem',
+          transition: layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+          background: '#f6f3f2',
+          borderLeft: '1px solid #e0dbd9',
+        }}
         aria-label="Audit toolkit"
+        aria-hidden={stepAuditOpen}
       >
+        {/* Fixed-width inner prevents content reflow during the width transition */}
+        <div className="w-72 flex flex-col h-full overflow-y-auto">
         <div className="px-6 pt-8 pb-6">
           <h2 className="font-serif font-bold text-xl mb-1" style={{ letterSpacing: '-0.01em' }}>
             Audit Toolkit
@@ -741,8 +751,8 @@ export default function ProjectPage() {
             </div>
           </dl>
         </div>
+        </div>{/* end fixed-width inner */}
       </aside>
-      )}
 
       {/* ── Add Page modal ── */}
       <Dialog open={pageModalOpen} onOpenChange={(o) => { setPageModalOpen(o); if (!o) setNewPageValue('') }}>
