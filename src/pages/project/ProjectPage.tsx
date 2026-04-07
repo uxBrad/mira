@@ -105,6 +105,7 @@ export default function ProjectPage() {
   const [findingInitialData, setFindingInitialData] = useState<Partial<Finding> | undefined>(undefined)
   const [stepAuditOpen, setStepAuditOpen] = useState(false)
   const [stepAuditMounted, setStepAuditMounted] = useState(false)
+  const [layoutReady, setLayoutReady] = useState(false)
 
   // Modal add page / component
   const [pageModalOpen, setPageModalOpen] = useState(false)
@@ -283,6 +284,13 @@ export default function ProjectPage() {
     }
   }
 
+  // Enable layout transitions only after first paint — prevents the sidebar
+  // from animating across the screen on initial page load
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setLayoutReady(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
+
   // Keep step audit mounted once opened so state is preserved and transitions work
   useEffect(() => {
     if (stepAuditOpen) setStepAuditMounted(true)
@@ -322,7 +330,7 @@ export default function ProjectPage() {
     <div className="flex h-full overflow-hidden">
 
       {/* ── Main column ── */}
-      <div className={`${stepAuditOpen ? 'w-1/2' : 'flex-1'} flex flex-col overflow-hidden transition-all duration-300`}>
+      <div className={`${stepAuditOpen ? 'w-1/2' : 'flex-1'} flex flex-col overflow-hidden ${layoutReady ? 'transition-all duration-300' : ''}`}>
 
         {/* Project header */}
         <div className="flex-shrink-0 px-10 pt-8 pb-0" style={{ background: '#fcf9f8' }}>
@@ -545,7 +553,7 @@ export default function ProjectPage() {
         className="flex-shrink-0 overflow-hidden flex flex-col"
         style={{
           width: stepAuditOpen ? '50%' : '0',
-          transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease' : 'none',
           opacity: stepAuditOpen ? 1 : 0,
         }}
         aria-hidden={!stepAuditOpen}
@@ -570,7 +578,7 @@ export default function ProjectPage() {
       {/* ── Right sidebar: Audit Toolkit (hidden when step audit open) ── */}
       {!stepAuditOpen && (
       <aside
-        className="w-72 flex-shrink-0 flex flex-col overflow-y-auto"
+        className="w-72 flex-shrink-0 flex flex-col overflow-y-auto animate-slide-in-right"
         style={{ background: '#f6f3f2', borderLeft: '1px solid #e0dbd9' }}
         aria-label="Audit toolkit"
       >
