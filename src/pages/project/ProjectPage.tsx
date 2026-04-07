@@ -284,12 +284,18 @@ export default function ProjectPage() {
     }
   }
 
-  // Enable layout transitions only after first paint — prevents the sidebar
-  // from animating across the screen on initial page load
+  // Enable layout transitions only after the project data has loaded and the
+  // full layout has painted for the first time. Using rAF on mount is too early
+  // because it fires during the loading-spinner phase — by the time the real
+  // layout renders, layoutReady is already true and transitions fire immediately.
   useEffect(() => {
-    const id = requestAnimationFrame(() => setLayoutReady(true))
-    return () => cancelAnimationFrame(id)
-  }, [])
+    if (isLoadingProject) return
+    // Project just became available — hold off transitions for one frame so the
+    // layout can render at its final resting position before we enable animation.
+    setLayoutReady(false)
+    const rafId = requestAnimationFrame(() => setLayoutReady(true))
+    return () => cancelAnimationFrame(rafId)
+  }, [isLoadingProject])
 
   // Keep step audit mounted once opened so state is preserved and transitions work
   useEffect(() => {
@@ -578,7 +584,7 @@ export default function ProjectPage() {
       {/* ── Right sidebar: Audit Toolkit (hidden when step audit open) ── */}
       {!stepAuditOpen && (
       <aside
-        className="w-72 flex-shrink-0 flex flex-col overflow-y-auto animate-slide-in-right"
+        className="w-72 flex-shrink-0 flex flex-col overflow-y-auto"
         style={{ background: '#f6f3f2', borderLeft: '1px solid #e0dbd9' }}
         aria-label="Audit toolkit"
       >
