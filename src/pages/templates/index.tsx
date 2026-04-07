@@ -385,10 +385,10 @@ const SEVERITY_LABELS: Record<string, string> = {
 }
 
 const SEVERITY_COLORS: Record<string, string> = {
-  critical: 'text-red-600',
-  serious: 'text-orange-600',
-  moderate: 'text-yellow-700',
-  minor: 'text-green-700'
+  critical: '#c0392b',
+  serious: '#c0392b',
+  moderate: '#8b6914',
+  minor: '#2d7a4f'
 }
 
 export default function TemplatesPage() {
@@ -469,45 +469,106 @@ export default function TemplatesPage() {
         )}
 
         {!isLoading && templates.length > 0 && (
-          <ul className="space-y-0" role="list" aria-label="Finding templates">
-            {templates.map((template, i) => (
-              <li
-                key={template.id}
-                className="flex items-center justify-between px-4 py-3 group"
-                style={{ background: i % 2 === 1 ? '#ebe7e7' : 'transparent' }}
-              >
-                <div className="flex-1 min-w-0 pr-4">
-                  <p className="font-data text-sm font-medium truncate">{template.title}</p>
-                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    {template.severity && (
-                      <span className={`font-data text-xs ${SEVERITY_COLORS[template.severity] || 'text-muted-foreground'}`}>
-                        {SEVERITY_LABELS[template.severity] || template.severity}
-                      </span>
-                    )}
-                    {template.wcagCriterion && (
-                      <span className="font-mono text-xs text-muted-foreground">{template.wcagCriterion}</span>
-                    )}
-                    {template.standards.length > 0 && (
-                      <span className="font-data text-xs text-muted-foreground">{template.standards.join(', ')}</span>
-                    )}
+          <ul className="space-y-0" role="list" aria-label="Finding templates" style={{ paddingBottom: '2rem' }}>
+            {templates.map((template) => (
+              <li key={template.id} className="mb-4">
+                <article
+                  className="p-5"
+                  style={{
+                    background: '#ffffff',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.06)'
+                  }}
+                  aria-label={template.title}
+                >
+                  {/* Top row: severity + level | criterion + actions */}
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {template.severity && (
+                        <span
+                          className="font-sans text-xs font-semibold"
+                          style={{ color: SEVERITY_COLORS[template.severity] ?? '#5f5e5e' }}
+                        >
+                          {SEVERITY_LABELS[template.severity] ?? template.severity}
+                        </span>
+                      )}
+                      {template.wcagLevel && (
+                        <span
+                          className="font-sans text-xs font-semibold uppercase"
+                          style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}
+                        >
+                          · Level {template.wcagLevel}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      {template.wcagCriterion && (
+                        <span className="font-serif italic text-sm" style={{ color: '#5f5e5e' }}>
+                          Criterion {template.wcagCriterion}
+                        </span>
+                      )}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setEditTemplate(template)}
+                          aria-label={`Edit: ${template.title}`}
+                          className="flex items-center gap-1.5 px-2.5 py-1 font-sans text-xs font-medium transition-colors hover:bg-[#f6f3f2]"
+                          style={{ border: '1px solid #d0cac8', color: '#5f5e5e', borderRadius: '4px' }}
+                        >
+                          <Pencil className="h-3 w-3" aria-hidden="true" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirm(template)}
+                          aria-label={`Delete: ${template.title}`}
+                          className="flex items-center gap-1.5 px-2.5 py-1 font-sans text-xs font-medium transition-colors hover:bg-red-50"
+                          style={{ border: '1px solid #d0cac8', color: '#c0392b', borderRadius: '4px' }}
+                        >
+                          <Trash2 className="h-3 w-3" aria-hidden="true" />
+                          Delete
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => setEditTemplate(template)}
-                    className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label={`Edit ${template.title}`}
+
+                  {/* Title */}
+                  <h3
+                    className="font-serif font-bold leading-snug mb-2"
+                    style={{ fontSize: '1.1rem', letterSpacing: '-0.01em', color: '#1a1a1a' }}
                   >
-                    <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-                  </button>
-                  <button
-                    onClick={() => setDeleteConfirm(template)}
-                    className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
-                    aria-label={`Delete ${template.title}`}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                  </button>
-                </div>
+                    {template.title}
+                  </h3>
+
+                  {/* Description */}
+                  {template.description && (
+                    <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>
+                      {template.description}
+                    </p>
+                  )}
+
+                  {/* Recommendation */}
+                  {template.recommendations && (
+                    <div className="mb-3" style={{ borderLeft: '3px solid #610000', paddingLeft: '12px' }}>
+                      <p className="font-sans text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#610000', letterSpacing: '0.1em' }}>
+                        Recommendation
+                      </p>
+                      <p className="font-sans text-sm leading-relaxed" style={{ color: '#2b2c2c' }}>
+                        {template.recommendations}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Footer chips */}
+                  {template.standards.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-3" style={{ borderTop: '1px solid #f0ede9' }}>
+                      {template.standards.map((s) => (
+                        <span key={s} className="font-sans text-xs px-2 py-0.5" style={{ background: '#f6f3f2', color: '#5f5e5e', borderRadius: '3px' }}>
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </article>
               </li>
             ))}
           </ul>

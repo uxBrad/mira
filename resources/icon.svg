@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Background -->
+  <rect width="256" height="256" fill="#610000" rx="40"/>
+
+  <!-- Echo waveform: 5 concentric arcs radiating outward, centred left -->
+  <!-- These represent an "echo" — sound waves expanding from a source -->
+
+  <!-- Centre dot / source pulse -->
+  <circle cx="88" cy="128" r="10" fill="#ffffff" opacity="1"/>
+
+  <!-- Arc 1 -->
+  <path d="M88 108 A20 20 0 0 1 88 148" stroke="#ffffff" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.95"/>
+
+  <!-- Arc 2 -->
+  <path d="M88 90 A38 38 0 0 1 88 166" stroke="#ffffff" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.75"/>
+
+  <!-- Arc 3 -->
+  <path d="M88 72 A56 56 0 0 1 88 184" stroke="#ffffff" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- Arc 4 -->
+  <path d="M88 54 A74 74 0 0 1 88 202" stroke="#ffffff" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.35"/>
+
+  <!-- Wordmark: "E" lettermark, right side -->
+  <rect x="162" y="80" width="18" height="96" rx="3" fill="#ffffff" opacity="0.9"/>
+  <rect x="162" y="80" width="56" height="18" rx="3" fill="#ffffff" opacity="0.9"/>
+  <rect x="162" y="119" width="44" height="18" rx="3" fill="#ffffff" opacity="0.9"/>
+  <rect x="162" y="158" width="56" height="18" rx="3" fill="#ffffff" opacity="0.9"/>
+</svg>

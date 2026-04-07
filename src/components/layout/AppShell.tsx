@@ -4,11 +4,14 @@ import { useAuth } from '../../hooks/useAuth'
 import { cn } from '../../lib/utils'
 import { useToast } from '../ui/use-toast'
 import UpdateBanner from '../UpdateBanner'
+import { useState, useEffect } from 'react'
 
 export default function AppShell() {
   const { session, subscriptionStatus, logout } = useAuth()
   const navigate = useNavigate()
   const { toast } = useToast()
+  const [ready, setReady] = useState(false)
+  useEffect(() => { const t = setTimeout(() => setReady(true), 30); return () => clearTimeout(t) }, [])
 
   if (subscriptionStatus?.access === 'expired') {
     navigate('/paywall', { replace: true })
@@ -26,7 +29,10 @@ export default function AppShell() {
     typeof subscriptionStatus.daysRemaining === 'number'
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden" style={{ background: '#fcf9f8' }}>
+    <div
+      className="flex flex-col h-screen overflow-hidden transition-opacity duration-300"
+      style={{ background: '#fcf9f8', opacity: ready ? 1 : 0 }}
+    >
 
       {/* Top navigation bar */}
       <header

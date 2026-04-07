@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, Check, X, Clock, CheckCircle2, AlertCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, X, Clock, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react'
 import { WCAG_CRITERIA, SEVERITY_OPTIONS, STANDARDS_OPTIONS } from '../../lib/utils'
 import {
   Select,
@@ -107,6 +107,17 @@ const SEVERITY_COLORS: Record<string, string> = {
   minor: '#2d7a4f'
 }
 
+// Convert a WCAG criterion name to its URL slug
+function toWcagSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[()]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+}
+
 export function StepAuditPanel({
   onClose,
   projectId,
@@ -128,6 +139,36 @@ export function StepAuditPanel({
   const [recommendations, setRecommendations] = useState('')
   const [pageUrl, setPageUrl] = useState('__none__')
   const [component, setComponent] = useState('__none__')
+
+  const storageKey = `echo-step-audit-${projectId}`
+
+  // ─── Restore position from localStorage on mount ─────────────────────────
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(storageKey)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (typeof parsed.index === 'number' && parsed.index >= 0 && parsed.index < criteria.length) {
+          setIndex(parsed.index)
+        }
+        if (parsed.criteriaStatus && typeof parsed.criteriaStatus === 'object') {
+          setCriteriaStatus(parsed.criteriaStatus)
+        }
+      }
+    } catch {
+      // Ignore malformed data
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Mount only
+
+  // ─── Persist position to localStorage whenever it changes ────────────────
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify({ index, criteriaStatus }))
+    } catch {
+      // Ignore storage errors (e.g. private browsing limits)
+    }
+  }, [index, criteriaStatus, storageKey])
 
   const criterion = criteria[index]
   const total = criteria.length
@@ -261,9 +302,32 @@ export function StepAuditPanel({
               >
                 {criterion.name}
               </h2>
-              <p className="font-sans text-sm leading-relaxed" style={{ color: '#5f5e5e' }}>
+              <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>
                 {CRITERION_DESCRIPTIONS[criterion.id] ?? 'Review this criterion against the content and interactions on the page.'}
               </p>
+              {/* WCAG reference links */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <a
+                  href={`https://www.w3.org/WAI/WCAG22/Understanding/${toWcagSlug(criterion.name)}.html`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-sans text-xs font-semibold hover:underline"
+                  style={{ color: '#610000' }}
+                >
+                  Understanding {criterion.id}
+                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                </a>
+                <a
+                  href={`https://www.w3.org/WAI/WCAG22/quickref/#${toWcagSlug(criterion.name)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-sans text-xs font-semibold hover:underline"
+                  style={{ color: '#610000' }}
+                >
+                  How to Meet
+                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                </a>
+              </div>
             </div>
 
             {/* Status badge */}
@@ -466,7 +530,7 @@ export function StepAuditPanel({
               className="w-full py-2.5 font-sans text-sm font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-40"
               style={{ background: '#610000', letterSpacing: '0.1em' }}
             >
-              {isSubmitting ? 'Logging…' : 'Log Failure'}
+              {isSubmitting ? 'Logging…' : 'Log Finding'}
             </button>
           </div>
         </div>

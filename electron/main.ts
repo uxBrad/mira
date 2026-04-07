@@ -1,5 +1,6 @@
-import { app, shell, BrowserWindow, ipcMain, globalShortcut } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, globalShortcut, nativeImage } from 'electron'
 import { join } from 'path'
+import { existsSync } from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { autoUpdater } from 'electron-updater'
 import { registerAuthHandlers } from './ipc/auth'
@@ -38,7 +39,22 @@ function setupAutoUpdater(): void {
   }, 5000)
 }
 
+function getAppIcon(): Electron.NativeImage | undefined {
+  // Check resources/ directory (relative to project root from out/main/)
+  const candidates = [
+    join(__dirname, '../../resources/icon.png'),
+    join(__dirname, '../../../resources/icon.png'),
+    join(app.getAppPath(), 'resources/icon.png'),
+  ]
+  for (const p of candidates) {
+    if (existsSync(p)) return nativeImage.createFromPath(p)
+  }
+  return undefined
+}
+
 function createWindow(): void {
+  const icon = getAppIcon()
+
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -46,6 +62,7 @@ function createWindow(): void {
     minHeight: 600,
     show: false,
     autoHideMenuBar: true,
+    ...(icon ? { icon } : {}),
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

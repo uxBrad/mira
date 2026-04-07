@@ -21,7 +21,8 @@
     "build:mac": "npm run build && electron-builder --mac",
     "build:linux": "npm run build && electron-builder --linux",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",

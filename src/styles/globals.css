@@ -85,6 +85,26 @@
   }
 }
 
+/* ── Keyframe animations ──────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in      { animation: fadeIn      0.2s ease forwards; }
+.animate-slide-in-right { animation: slideInRight 0.25s ease forwards; }
+.animate-fade-slide-in  { animation: fadeSlideIn  0.2s ease forwards; }
+
 @layer utilities {
   /* Manrope for all labels/data — uppercase tracking utility */
   .font-data {

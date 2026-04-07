@@ -12,7 +12,8 @@ import {
   Shield,
   LayoutGrid,
   Settings2,
-  ListChecks
+  ListChecks,
+  Upload
 } from 'lucide-react'
 import { useFindings } from '../../hooks/useFindings'
 import { useTemplates } from '../../hooks/useTemplates'
@@ -103,6 +104,7 @@ export default function ProjectPage() {
   const [componentFilter, setComponentFilter] = useState<string[]>([])
   const [findingInitialData, setFindingInitialData] = useState<Partial<Finding> | undefined>(undefined)
   const [stepAuditOpen, setStepAuditOpen] = useState(false)
+  const [stepAuditMounted, setStepAuditMounted] = useState(false)
 
   // Modal add page / component
   const [pageModalOpen, setPageModalOpen] = useState(false)
@@ -280,6 +282,11 @@ export default function ProjectPage() {
       setIsExporting(null)
     }
   }
+
+  // Keep step audit mounted once opened so state is preserved and transitions work
+  useEffect(() => {
+    if (stepAuditOpen) setStepAuditMounted(true)
+  }, [stepAuditOpen])
 
   const sidebarOpen = createOpen || !!editFinding
 
@@ -533,22 +540,32 @@ export default function ProjectPage() {
         </main>
       </div>
 
-      {/* ── Step-by-Step Audit Panel (replaces sidebar when open) ── */}
-      {stepAuditOpen && (
-        <div className="w-1/2 flex-shrink-0 overflow-hidden flex flex-col">
-          <StepAuditPanel
-            onClose={() => setStepAuditOpen(false)}
-            projectId={id!}
-            auditPages={project.auditUrls}
-            auditComponents={project.components}
-            findings={findings}
-            onAddFinding={async (data) => {
-              await createFinding(data)
-              toast({ title: 'Finding logged' })
-            }}
-          />
-        </div>
-      )}
+      {/* ── Step-by-Step Audit Panel (CSS-animated, stays mounted after first open) ── */}
+      <div
+        className="flex-shrink-0 overflow-hidden flex flex-col"
+        style={{
+          width: stepAuditOpen ? '50%' : '0',
+          transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          opacity: stepAuditOpen ? 1 : 0,
+        }}
+        aria-hidden={!stepAuditOpen}
+      >
+        {stepAuditMounted && (
+          <div className={stepAuditOpen ? 'animate-slide-in-right h-full' : 'h-full'}>
+            <StepAuditPanel
+              onClose={() => setStepAuditOpen(false)}
+              projectId={id!}
+              auditPages={project.auditUrls}
+              auditComponents={project.components}
+              findings={findings}
+              onAddFinding={async (data) => {
+                await createFinding(data)
+                toast({ title: 'Finding logged' })
+              }}
+            />
+          </div>
+        )}
+      </div>
 
       {/* ── Right sidebar: Audit Toolkit (hidden when step audit open) ── */}
       {!stepAuditOpen && (
@@ -620,6 +637,18 @@ export default function ProjectPage() {
                 style={{ background: '#610000', borderRadius: '9999px', minWidth: '20px', height: '20px', padding: '0 5px' }}
               >
                 {project.components.length}
+              </span>
+            </button>
+
+            {/* Import Report */}
+            <button
+              onClick={() => toast({ title: 'Import coming soon', description: 'IBM Equal Access, axe, and other tool formats will be supported.' })}
+              className="flex w-full items-center justify-between px-3 py-2.5 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
+              style={{ border: '1px solid #d0cac8', color: '#2b2c2c', background: 'transparent' }}
+            >
+              <span className="flex items-center gap-2">
+                <Upload className="h-3.5 w-3.5" aria-hidden="true" />
+                Import Report
               </span>
             </button>
 

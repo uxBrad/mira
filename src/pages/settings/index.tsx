@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
 import { useToast } from '../../components/ui/use-toast'
-import { ExternalLink, Clock, CheckCircle, AlertTriangle } from 'lucide-react'
+import { ExternalLink, Clock, CheckCircle, AlertTriangle, Upload, X } from 'lucide-react'
 
 function SubscriptionBadge({ access, daysRemaining }: { access: string; daysRemaining?: number }) {
   if (access === 'trialing') {
@@ -55,6 +55,55 @@ export default function SettingsPage() {
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [isBillingLoading, setIsBillingLoading] = useState(false)
+
+  // ─── Branding ────────────────────────────────────────────────────────────
+  const [companyLogo, setCompanyLogo] = useState<string | null>(null)
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
+  const logoInputRef = useRef<HTMLInputElement>(null)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setCompanyLogo(localStorage.getItem('echo-company-logo'))
+    setUserAvatar(localStorage.getItem('echo-user-avatar'))
+  }, [])
+
+  function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const dataUrl = reader.result as string
+      localStorage.setItem('echo-company-logo', dataUrl)
+      setCompanyLogo(dataUrl)
+      toast({ title: 'Company logo saved' })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const dataUrl = reader.result as string
+      localStorage.setItem('echo-user-avatar', dataUrl)
+      setUserAvatar(dataUrl)
+      toast({ title: 'Avatar saved' })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  function removeLogo() {
+    localStorage.removeItem('echo-company-logo')
+    setCompanyLogo(null)
+    if (logoInputRef.current) logoInputRef.current.value = ''
+  }
+
+  function removeAvatar() {
+    localStorage.removeItem('echo-user-avatar')
+    setUserAvatar(null)
+    if (avatarInputRef.current) avatarInputRef.current.value = ''
+  }
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault()
@@ -119,6 +168,129 @@ export default function SettingsPage() {
   return (
     <div className="px-6 py-6 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Settings</h1>
+
+      {/* ── Branding section ─────────────────────────────────────────────────── */}
+      <section aria-labelledby="branding-heading" className="mb-8">
+        <h2 id="branding-heading" className="font-serif font-bold text-xl mb-4" style={{ letterSpacing: '-0.01em' }}>
+          Branding
+        </h2>
+        <p className="font-sans text-sm mb-5" style={{ color: '#5f5e5e' }}>
+          Your logo and avatar appear in exported PDF reports.
+        </p>
+
+        <div className="grid grid-cols-2 gap-5">
+          {/* Company Logo */}
+          <div
+            className="p-5"
+            style={{ background: '#ffffff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.06)' }}
+          >
+            <p className="font-sans text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
+              Company Logo
+            </p>
+            {companyLogo ? (
+              <div className="mb-3">
+                <div
+                  className="flex items-center justify-center p-3 mb-2"
+                  style={{ background: '#f6f3f2', borderRadius: '4px', minHeight: '80px' }}
+                >
+                  <img src={companyLogo} alt="Company logo preview" className="max-h-16 max-w-full object-contain" />
+                </div>
+                <button
+                  onClick={removeLogo}
+                  className="flex items-center gap-1.5 font-sans text-xs font-medium transition-colors hover:bg-red-50"
+                  style={{ color: '#c0392b', border: '1px solid #d0cac8', borderRadius: '4px', padding: '4px 10px' }}
+                >
+                  <X className="h-3 w-3" aria-hidden="true" />
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div
+                className="flex flex-col items-center justify-center p-6 mb-3"
+                style={{ background: '#f6f3f2', borderRadius: '4px', border: '1px dashed #d0cac8', minHeight: '80px' }}
+              >
+                <p className="font-sans text-xs text-center" style={{ color: '#5f5e5e' }}>No logo uploaded</p>
+              </div>
+            )}
+            <input
+              ref={logoInputRef}
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              id="logo-upload"
+              aria-label="Upload company logo"
+              onChange={handleLogoUpload}
+            />
+            <button
+              onClick={() => logoInputRef.current?.click()}
+              className="flex w-full items-center justify-center gap-1.5 px-3 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors hover:bg-[#ede9e7]"
+              style={{ border: '1px solid #d0cac8', color: '#2b2c2c', background: 'transparent', letterSpacing: '0.08em', borderRadius: '4px' }}
+            >
+              <Upload className="h-3.5 w-3.5" aria-hidden="true" />
+              {companyLogo ? 'Replace Logo' : 'Upload Logo'}
+            </button>
+          </div>
+
+          {/* User Avatar */}
+          <div
+            className="p-5"
+            style={{ background: '#ffffff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.06)' }}
+          >
+            <p className="font-sans text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
+              Your Avatar
+            </p>
+            {userAvatar ? (
+              <div className="mb-3">
+                <div className="flex items-center justify-center mb-2">
+                  <img
+                    src={userAvatar}
+                    alt="User avatar preview"
+                    className="w-16 h-16 object-cover"
+                    style={{ borderRadius: '9999px' }}
+                  />
+                </div>
+                <button
+                  onClick={removeAvatar}
+                  className="flex items-center gap-1.5 font-sans text-xs font-medium transition-colors hover:bg-red-50 mx-auto"
+                  style={{ color: '#c0392b', border: '1px solid #d0cac8', borderRadius: '4px', padding: '4px 10px' }}
+                >
+                  <X className="h-3 w-3" aria-hidden="true" />
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center mb-3" style={{ minHeight: '80px' }}>
+                <div
+                  className="flex items-center justify-center w-16 h-16 font-serif font-bold text-2xl text-white"
+                  style={{ background: '#610000', borderRadius: '9999px' }}
+                >
+                  {session?.user.email?.[0]?.toUpperCase() ?? '?'}
+                </div>
+              </div>
+            )}
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              id="avatar-upload"
+              aria-label="Upload user avatar"
+              onChange={handleAvatarUpload}
+            />
+            <button
+              onClick={() => avatarInputRef.current?.click()}
+              className="flex w-full items-center justify-center gap-1.5 px-3 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors hover:bg-[#ede9e7]"
+              style={{ border: '1px solid #d0cac8', color: '#2b2c2c', background: 'transparent', letterSpacing: '0.08em', borderRadius: '4px' }}
+            >
+              <Upload className="h-3.5 w-3.5" aria-hidden="true" />
+              {userAvatar ? 'Replace Avatar' : 'Upload Avatar'}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="mb-8" style={{ height: '1px', background: '#e0dbd9' }} aria-hidden="true" />
 
       {/* Account section */}
       <section aria-labelledby="account-heading" className="mb-8">
