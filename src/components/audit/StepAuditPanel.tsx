@@ -126,8 +126,8 @@ export function StepAuditPanel({
   const [description, setDescription] = useState('')
   const [severity, setSeverity] = useState('serious')
   const [recommendations, setRecommendations] = useState('')
-  const [pageUrl, setPageUrl] = useState('')
-  const [component, setComponent] = useState('')
+  const [pageUrl, setPageUrl] = useState('__none__')
+  const [component, setComponent] = useState('__none__')
 
   const criterion = criteria[index]
   const total = criteria.length
@@ -148,8 +148,8 @@ export function StepAuditPanel({
     setDescription('')
     setSeverity('serious')
     setRecommendations('')
-    setPageUrl('')
-    setComponent('')
+    setPageUrl('__none__')
+    setComponent('__none__')
     setSubmitSuccess(false)
   }, [index])
 
@@ -173,15 +173,15 @@ export function StepAuditPanel({
         standards: matchingWcag,
         severity,
         recommendations: recommendations.trim() || undefined,
-        pageUrl: pageUrl || undefined,
-        component: component || undefined,
+        pageUrl: pageUrl && pageUrl !== '__none__' ? pageUrl : undefined,
+        component: component && component !== '__none__' ? component : undefined,
       })
       setSubmitSuccess(true)
       setTitle('')
       setDescription('')
       setRecommendations('')
-      setPageUrl('')
-      setComponent('')
+      setPageUrl('__none__')
+      setComponent('__none__')
       // Auto-mark as in_progress if not already further along
       if (!criteriaStatus[criterion.id] || criteriaStatus[criterion.id] === 'not_started') {
         setStatus('in_progress')
@@ -415,7 +415,7 @@ export function StepAuditPanel({
                       <SelectValue placeholder="Select…" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="__none__">None</SelectItem>
                       {auditPages.map((p) => (
                         <SelectItem key={p} value={p}>{p}</SelectItem>
                       ))}
@@ -441,7 +441,7 @@ export function StepAuditPanel({
                       <SelectValue placeholder="Select…" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="__none__">None</SelectItem>
                       {auditComponents.map((c) => (
                         <SelectItem key={c} value={c}>{c}</SelectItem>
                       ))}
