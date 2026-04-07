@@ -19,6 +19,7 @@ import { useTemplates } from '../../hooks/useTemplates'
 import { FindingTable } from '../../components/findings/FindingTable'
 import { FindingFormSidebar } from '../../components/findings/FindingFormSidebar'
 import { ProjectFormDialog } from '../../components/projects/ProjectFormDialog'
+import { StepAuditPanel } from '../../components/audit/StepAuditPanel'
 import { useToast } from '../../components/ui/use-toast'
 import {
   Dialog,
@@ -101,6 +102,7 @@ export default function ProjectPage() {
   const [pageFilter, setPageFilter] = useState<string[]>([])
   const [componentFilter, setComponentFilter] = useState<string[]>([])
   const [findingInitialData, setFindingInitialData] = useState<Partial<Finding> | undefined>(undefined)
+  const [stepAuditOpen, setStepAuditOpen] = useState(false)
 
   // Modal add page / component
   const [pageModalOpen, setPageModalOpen] = useState(false)
@@ -313,7 +315,7 @@ export default function ProjectPage() {
     <div className="flex h-full overflow-hidden">
 
       {/* ── Main column ── */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className={`${stepAuditOpen ? 'w-1/2' : 'flex-1'} flex flex-col overflow-hidden transition-all duration-300`}>
 
         {/* Project header */}
         <div className="flex-shrink-0 px-10 pt-8 pb-0" style={{ background: '#fcf9f8' }}>
@@ -531,7 +533,25 @@ export default function ProjectPage() {
         </main>
       </div>
 
-      {/* ── Right sidebar: Audit Toolkit ── */}
+      {/* ── Step-by-Step Audit Panel (replaces sidebar when open) ── */}
+      {stepAuditOpen && (
+        <div className="w-1/2 flex-shrink-0 overflow-hidden flex flex-col">
+          <StepAuditPanel
+            onClose={() => setStepAuditOpen(false)}
+            projectId={id!}
+            auditPages={project.auditUrls}
+            auditComponents={project.components}
+            findings={findings}
+            onAddFinding={async (data) => {
+              await createFinding(data)
+              toast({ title: 'Finding logged' })
+            }}
+          />
+        </div>
+      )}
+
+      {/* ── Right sidebar: Audit Toolkit (hidden when step audit open) ── */}
+      {!stepAuditOpen && (
       <aside
         className="w-72 flex-shrink-0 flex flex-col overflow-y-auto"
         style={{ background: '#f6f3f2', borderLeft: '1px solid #e0dbd9' }}
@@ -559,7 +579,7 @@ export default function ProjectPage() {
           <button
             className="flex w-full items-center justify-between px-4 py-3 mb-4 font-sans text-sm font-bold uppercase tracking-widest transition-colors hover:bg-[#e0dbd9]"
             style={{ background: '#e5e2e1', color: '#2b2c2c', letterSpacing: '0.1em' }}
-            onClick={openBlankFinding}
+            onClick={() => setStepAuditOpen(true)}
           >
             <span>Step-by-Step Audit</span>
             <ListChecks className="h-4 w-4" aria-hidden="true" />
@@ -679,6 +699,7 @@ export default function ProjectPage() {
           </dl>
         </div>
       </aside>
+      )}
 
       {/* ── Add Page modal ── */}
       <Dialog open={pageModalOpen} onOpenChange={(o) => { setPageModalOpen(o); if (!o) setNewPageValue('') }}>
