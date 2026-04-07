@@ -127,8 +127,34 @@ export function StepAuditPanel({
   onAddFinding
 }: StepAuditPanelProps) {
   const criteria = WCAG_CRITERIA as unknown as Array<{ id: string; name: string; level: string; category: string }>
-  const [index, setIndex] = useState(0)
-  const [criteriaStatus, setCriteriaStatus] = useState<Record<string, CriterionStatus>>({})
+
+  // Compute the storage key before any useState so the lazy initialisers can use it.
+  const storageKey = `echo-step-audit-${projectId}`
+
+  // ─── Initialise directly from localStorage (lazy initialisers run synchronously
+  //     before the first paint, so there is no flash back to criterion 0) ────────
+  const [index, setIndex] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem(storageKey)
+      if (saved) {
+        const n = JSON.parse(saved)?.index
+        if (typeof n === 'number' && n >= 0 && n < criteria.length) return n
+      }
+    } catch { /* ignore */ }
+    return 0
+  })
+
+  const [criteriaStatus, setCriteriaStatus] = useState<Record<string, CriterionStatus>>(() => {
+    try {
+      const saved = localStorage.getItem(storageKey)
+      if (saved) {
+        const status = JSON.parse(saved)?.criteriaStatus
+        if (status && typeof status === 'object') return status
+      }
+    } catch { /* ignore */ }
+    return {}
+  })
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
 
@@ -140,34 +166,11 @@ export function StepAuditPanel({
   const [pageUrl, setPageUrl] = useState('__none__')
   const [component, setComponent] = useState('__none__')
 
-  const storageKey = `echo-step-audit-${projectId}`
-
-  // ─── Restore position from localStorage on mount ─────────────────────────
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(storageKey)
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        if (typeof parsed.index === 'number' && parsed.index >= 0 && parsed.index < criteria.length) {
-          setIndex(parsed.index)
-        }
-        if (parsed.criteriaStatus && typeof parsed.criteriaStatus === 'object') {
-          setCriteriaStatus(parsed.criteriaStatus)
-        }
-      }
-    } catch {
-      // Ignore malformed data
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // Mount only
-
-  // ─── Persist position to localStorage whenever it changes ────────────────
+  // ─── Persist position whenever index or status changes ───────────────────
   useEffect(() => {
     try {
       localStorage.setItem(storageKey, JSON.stringify({ index, criteriaStatus }))
-    } catch {
-      // Ignore storage errors (e.g. private browsing limits)
-    }
+    } catch { /* ignore – private browsing may block writes */ }
   }, [index, criteriaStatus, storageKey])
 
   const criterion = criteria[index]
