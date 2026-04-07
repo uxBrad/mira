@@ -88,6 +88,7 @@ export default function SettingsPage() {
       const dataUrl = reader.result as string
       localStorage.setItem('echo-user-avatar', dataUrl)
       setUserAvatar(dataUrl)
+      window.dispatchEvent(new Event('echo-avatar-changed'))
       toast({ title: 'Avatar saved' })
     }
     reader.readAsDataURL(file)
@@ -103,6 +104,7 @@ export default function SettingsPage() {
     localStorage.removeItem('echo-user-avatar')
     setUserAvatar(null)
     if (avatarInputRef.current) avatarInputRef.current.value = ''
+    window.dispatchEvent(new Event('echo-avatar-changed'))
   }
 
   async function handleChangePassword(e: React.FormEvent) {

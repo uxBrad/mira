@@ -11,7 +11,20 @@ export default function AppShell() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [ready, setReady] = useState(false)
+  const [avatar, setAvatar] = useState<string | null>(() => localStorage.getItem('echo-user-avatar'))
+
   useEffect(() => { const t = setTimeout(() => setReady(true), 30); return () => clearTimeout(t) }, [])
+
+  // Keep avatar in sync when updated in Settings (same tab or another tab)
+  useEffect(() => {
+    function sync() { setAvatar(localStorage.getItem('echo-user-avatar')) }
+    window.addEventListener('echo-avatar-changed', sync)
+    window.addEventListener('storage', sync)
+    return () => {
+      window.removeEventListener('echo-avatar-changed', sync)
+      window.removeEventListener('storage', sync)
+    }
+  }, [])
 
   if (subscriptionStatus?.access === 'expired') {
     navigate('/paywall', { replace: true })
@@ -115,12 +128,15 @@ export default function AppShell() {
           {session?.user ? (
             <button
               onClick={handleLogout}
-              className="ml-1 flex items-center justify-center w-8 h-8 font-sans text-xs font-bold text-white transition-colors"
-              style={{ background: '#610000' }}
+              className="ml-1 flex items-center justify-center w-8 h-8 font-sans text-xs font-bold text-white overflow-hidden flex-shrink-0 transition-opacity hover:opacity-80"
+              style={{ borderRadius: '9999px', background: '#610000' }}
               aria-label={`Sign out (${session.user.email})`}
               title={session.user.email}
             >
-              {session.user.email?.[0]?.toUpperCase() ?? <User className="h-4 w-4" />}
+              {avatar
+                ? <img src={avatar} alt="" className="w-full h-full object-cover" aria-hidden="true" />
+                : (session.user.email?.[0]?.toUpperCase() ?? <User className="h-4 w-4" />)
+              }
             </button>
           ) : (
             <button
