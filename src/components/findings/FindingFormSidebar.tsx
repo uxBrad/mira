@@ -404,6 +404,7 @@ export function FindingFormSidebar({
                   <SelectContent>
                     <SelectItem value="open">Open</SelectItem>
                     <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="needs_review">Needs Review</SelectItem>
                     <SelectItem value="resolved">Resolved</SelectItem>
                     <SelectItem value="wont_fix">Won&apos;t Fix</SelectItem>
                   </SelectContent>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, Check, X, Clock, CheckCircle2, AlertCircle, ExternalLink, Maximize2, Minimize2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, X, Clock, CheckCircle2, AlertCircle, ExternalLink, Maximize2, Minimize2, XCircle } from 'lucide-react'
 import { WCAG_CRITERIA, SEVERITY_OPTIONS, STANDARDS_OPTIONS } from '../../lib/utils'
 import {
   Select,
@@ -9,6 +9,7 @@ import {
   SelectValue
 } from '../ui/select'
 import { Label } from '../ui/label'
+import type { Template } from '../../hooks/useTemplates'
 
 // ─── Brief descriptions for each WCAG criterion ──────────────────────────────
 const CRITERION_DESCRIPTIONS: Record<string, string> = {
@@ -71,7 +72,7 @@ const CRITERION_DESCRIPTIONS: Record<string, string> = {
 }
 
 // ─── Per-criterion audit status (local, session-only) ────────────────────────
-export type CriterionStatus = 'not_started' | 'in_progress' | 'audited' | 'passed'
+export type CriterionStatus = 'in_progress' | 'passed' | 'failed' | 'complete'
 
 interface Finding {
   id: string
@@ -86,6 +87,7 @@ interface StepAuditPanelProps {
   auditPages?: string[]
   auditComponents?: string[]
   findings: Finding[]
+  templates?: Template[]
   isWide?: boolean
   onToggleWide?: () => void
   onAddFinding: (data: {
@@ -126,6 +128,7 @@ export function StepAuditPanel({
   auditPages = [],
   auditComponents = [],
   findings,
+  templates = [],
   isWide = false,
   onToggleWide,
   onAddFinding
@@ -169,6 +172,7 @@ export function StepAuditPanel({
   const [recommendations, setRecommendations] = useState('')
   const [pageUrl, setPageUrl] = useState('__none__')
   const [component, setComponent] = useState('__none__')
+  const [selectedTemplateId, setSelectedTemplateId] = useState('__none__')
 
   // ─── Persist position whenever index or status changes ───────────────────
   useEffect(() => {
@@ -185,10 +189,11 @@ export function StepAuditPanel({
     (f) => f.wcagCriterion === criterion.id
   )
 
-  // Derive display status
-  const localStatus = criteriaStatus[criterion.id] ?? 'not_started'
+  // Derive display status — default is in_progress
+  const localStatus = criteriaStatus[criterion.id] ?? 'in_progress'
   const hasFail = criterionFindings.some((f) => f.status !== 'resolved')
-  const hasPass = localStatus === 'passed'
+  // Effective status: failed overrides manual status when there are active findings
+  const effectiveStatus: CriterionStatus = hasFail ? 'failed' : localStatus
 
   // Reset form when navigating
   useEffect(() => {
@@ -198,8 +203,26 @@ export function StepAuditPanel({
     setRecommendations('')
     setPageUrl('__none__')
     setComponent('__none__')
+    setSelectedTemplateId('__none__')
     setSubmitSuccess(false)
   }, [index])
+
+  function applyTemplate(templateId: string) {
+    setSelectedTemplateId(templateId)
+    if (templateId === '__none__') {
+      setTitle('')
+      setDescription('')
+      setSeverity('serious')
+      setRecommendations('')
+      return
+    }
+    const tpl = templates.find((t) => t.id === templateId)
+    if (!tpl) return
+    setTitle(tpl.title)
+    setDescription(tpl.description ?? '')
+    setSeverity(tpl.severity ?? 'serious')
+    setRecommendations(tpl.recommendations ?? '')
+  }
 
   function setStatus(status: CriterionStatus) {
     setCriteriaStatus((prev) => ({ ...prev, [criterion.id]: status }))
@@ -230,10 +253,9 @@ export function StepAuditPanel({
       setRecommendations('')
       setPageUrl('__none__')
       setComponent('__none__')
-      // Auto-mark as in_progress if not already further along
-      if (!criteriaStatus[criterion.id] || criteriaStatus[criterion.id] === 'not_started') {
-        setStatus('in_progress')
-      }
+      setSelectedTemplateId('__none__')
+      // Auto-mark as failed when a finding is logged
+      setStatus('failed')
       setTimeout(() => setSubmitSuccess(false), 2000)
     } finally {
       setIsSubmitting(false)
@@ -241,7 +263,7 @@ export function StepAuditPanel({
   }
 
   const progressPct = Math.round(
-    (Object.values(criteriaStatus).filter((s) => s === 'passed' || s === 'audited').length / total) * 100
+    (Object.values(criteriaStatus).filter((s) => s === 'passed' || s === 'complete' || s === 'failed').length / total) * 100
   )
 
   return (
@@ -347,22 +369,22 @@ export function StepAuditPanel({
 
             {/* Status badge */}
             <div className="flex-shrink-0">
-              {hasFail && (
+              {effectiveStatus === 'failed' && (
                 <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#610000', color: '#fff', letterSpacing: '0.08em' }}>
-                  <AlertCircle className="h-3 w-3" /> Fail ({criterionFindings.length})
+                  <AlertCircle className="h-3 w-3" /> Failed ({criterionFindings.length})
                 </span>
               )}
-              {!hasFail && hasPass && (
+              {effectiveStatus === 'passed' && (
                 <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.08em' }}>
                   <CheckCircle2 className="h-3 w-3" /> Passed
                 </span>
               )}
-              {!hasFail && !hasPass && localStatus === 'audited' && (
+              {effectiveStatus === 'complete' && (
                 <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#2b2c2c', color: '#fff', letterSpacing: '0.08em' }}>
-                  <Check className="h-3 w-3" /> Audited
+                  <Check className="h-3 w-3" /> Complete
                 </span>
               )}
-              {!hasFail && !hasPass && localStatus === 'in_progress' && (
+              {effectiveStatus === 'in_progress' && (
                 <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#8b6914', color: '#fff', letterSpacing: '0.08em' }}>
                   <Clock className="h-3 w-3" /> In Progress
                 </span>
@@ -413,6 +435,26 @@ export function StepAuditPanel({
           )}
 
           <div className="space-y-4">
+            {/* Template picker */}
+            {templates.length > 0 && (
+              <div>
+                <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
+                  Choose from template
+                </Label>
+                <Select value={selectedTemplateId} onValueChange={applyTemplate}>
+                  <SelectTrigger className="h-9 text-sm font-sans">
+                    <SelectValue placeholder="Select a template…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">No template</SelectItem>
+                    {templates.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {/* Title */}
             <div>
               <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
@@ -562,34 +604,58 @@ export function StepAuditPanel({
             onClick={() => setIndex((i) => Math.max(0, i - 1))}
             disabled={index === 0}
             className="flex items-center gap-1.5 px-4 py-2.5 font-sans text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-30 flex-shrink-0"
-            style={{ border: '1px solid #d0cac8', color: '#2b2c2c', letterSpacing: '0.08em' }}
+            style={{ border: '1px solid #d0cac8', color: '#2b2c2c', letterSpacing: '0.08em', borderRadius: '4px' }}
           >
             <ChevronLeft className="h-4 w-4" />
             Prev
           </button>
 
-          {/* Status buttons — centered */}
-          <div className="flex items-center gap-1.5 flex-wrap justify-center">
+          {/* Status buttons — centered: [Passed][Failed] | [In Progress][Complete] */}
+          <div className="flex items-center gap-1.5 justify-center flex-wrap">
             <button
-              onClick={() => setStatus('passed')}
+              onClick={() => !hasFail && setStatus('passed')}
               className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
               style={{
                 letterSpacing: '0.06em',
-                background: localStatus === 'passed' ? '#2d7a4f' : 'transparent',
-                color: localStatus === 'passed' ? '#fff' : '#2d7a4f',
+                borderRadius: '4px',
+                background: effectiveStatus === 'passed' ? '#2d7a4f' : 'transparent',
+                color: effectiveStatus === 'passed' ? '#fff' : '#2d7a4f',
                 border: '1px solid #2d7a4f',
+                opacity: hasFail ? 0.4 : 1,
+                cursor: hasFail ? 'not-allowed' : 'pointer',
               }}
             >
               <CheckCircle2 className="h-3 w-3" />
               Passed
             </button>
             <button
+              disabled
+              className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest"
+              style={{
+                letterSpacing: '0.06em',
+                borderRadius: '4px',
+                background: effectiveStatus === 'failed' ? '#610000' : 'transparent',
+                color: effectiveStatus === 'failed' ? '#fff' : '#610000',
+                border: '1px solid #610000',
+                cursor: 'default',
+              }}
+              title="Auto-set when a finding is logged"
+            >
+              <XCircle className="h-3 w-3" />
+              Failed
+            </button>
+
+            {/* Divider */}
+            <span style={{ width: '1px', height: '24px', background: '#d0cac8', flexShrink: 0 }} aria-hidden="true" />
+
+            <button
               onClick={() => setStatus('in_progress')}
               className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
               style={{
                 letterSpacing: '0.06em',
-                background: localStatus === 'in_progress' ? '#8b6914' : 'transparent',
-                color: localStatus === 'in_progress' ? '#fff' : '#8b6914',
+                borderRadius: '4px',
+                background: effectiveStatus === 'in_progress' ? '#8b6914' : 'transparent',
+                color: effectiveStatus === 'in_progress' ? '#fff' : '#8b6914',
                 border: '1px solid #8b6914',
               }}
             >
@@ -597,17 +663,18 @@ export function StepAuditPanel({
               In Progress
             </button>
             <button
-              onClick={() => setStatus('audited')}
+              onClick={() => setStatus('complete')}
               className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
               style={{
                 letterSpacing: '0.06em',
-                background: localStatus === 'audited' ? '#2b2c2c' : 'transparent',
-                color: localStatus === 'audited' ? '#fff' : '#2b2c2c',
+                borderRadius: '4px',
+                background: effectiveStatus === 'complete' ? '#2b2c2c' : 'transparent',
+                color: effectiveStatus === 'complete' ? '#fff' : '#2b2c2c',
                 border: '1px solid #2b2c2c',
               }}
             >
               <Check className="h-3 w-3" />
-              Audited
+              Complete
             </button>
           </div>
 
@@ -616,7 +683,7 @@ export function StepAuditPanel({
             onClick={() => setIndex((i) => Math.min(total - 1, i + 1))}
             disabled={index === total - 1}
             className="flex items-center gap-1.5 px-4 py-2.5 font-sans text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-30 flex-shrink-0"
-            style={{ background: '#610000', color: '#fff', letterSpacing: '0.08em' }}
+            style={{ background: '#610000', color: '#fff', letterSpacing: '0.08em', borderRadius: '4px' }}
           >
             Next
             <ChevronRight className="h-4 w-4" />

@@ -42,6 +42,7 @@ interface FindingRowProps {
 const STATUS_LABELS: Record<string, string> = {
   open: 'Open',
   in_progress: 'In Progress',
+  needs_review: 'Needs Review',
   resolved: 'Resolved',
   wont_fix: "Won't Fix"
 }
@@ -217,6 +218,7 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
               <SelectContent>
                 <SelectItem value="open">Open</SelectItem>
                 <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="needs_review">Needs Review</SelectItem>
                 <SelectItem value="resolved">Resolved</SelectItem>
                 <SelectItem value="wont_fix">Won&apos;t Fix</SelectItem>
               </SelectContent>
