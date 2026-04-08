@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { Bell, Settings, LogOut, Clock, User } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { cn } from '../../lib/utils'
@@ -10,6 +10,7 @@ export default function AppShell() {
   const { session, subscriptionStatus, logout } = useAuth()
   const navigate = useNavigate()
   const { toast } = useToast()
+  const location = useLocation()
   const [ready, setReady] = useState(false)
   const [avatar, setAvatar] = useState<string | null>(() => localStorage.getItem('echo-user-avatar'))
 
@@ -53,40 +54,43 @@ export default function AppShell() {
         style={{ background: '#ffffff', borderBottom: '1px solid #ebe7e7', height: '56px' }}
         aria-label="Main navigation"
       >
-        {/* Nav links — centered */}
-        <nav className="flex items-center justify-center gap-0 flex-1 titlebar-no-drag" aria-label="App sections">
-          {[
-            { to: '/', label: 'Projects', end: true },
-            { to: '/templates', label: 'Templates', end: false },
-            { to: '/settings', label: 'Settings', end: false },
-          ].map(({ to, label, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                cn(
-                  'relative px-4 py-1 font-sans text-sm font-medium transition-colors',
-                  isActive
-                    ? 'text-foreground'
-                    : 'text-[#5f5e5e] hover:text-foreground'
-                )
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  {label}
-                  {isActive && (
-                    <span
-                      className="absolute bottom-0 left-4 right-4 h-0.5"
-                      style={{ background: '#610000', bottom: '-1px' }}
-                      aria-hidden="true"
-                    />
+        {/* Nav links — centered pill switcher */}
+        <nav className="flex items-center justify-center flex-1 titlebar-no-drag" aria-label="App sections">
+          <div
+            className="flex items-center p-1 gap-0.5"
+            style={{ background: '#ede9e7', borderRadius: '9999px' }}
+          >
+            {[
+              { to: '/', label: 'Projects', matchPrefix: ['/project/'] },
+              { to: '/templates', label: 'Templates', matchPrefix: [] },
+              { to: '/settings', label: 'Settings', matchPrefix: [] },
+            ].map(({ to, label, matchPrefix }) => {
+              const isActive =
+                (to === '/' ? location.pathname === '/' : location.pathname.startsWith(to)) ||
+                matchPrefix.some((p) => location.pathname.startsWith(p))
+              return (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={to === '/'}
+                  className={cn(
+                    'px-4 py-1.5 font-sans text-sm font-medium transition-all duration-150',
+                    isActive
+                      ? 'text-foreground'
+                      : 'text-[#7a7877] hover:text-foreground'
                   )}
-                </>
-              )}
-            </NavLink>
-          ))}
+                  style={{
+                    borderRadius: '9999px',
+                    background: isActive ? '#ffffff' : 'transparent',
+                    boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04)' : 'none',
+                  }}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  {label}
+                </NavLink>
+              )
+            })}
+          </div>
         </nav>
 
         {/* Right icons */}
