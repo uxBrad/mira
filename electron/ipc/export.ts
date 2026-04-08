@@ -170,15 +170,6 @@ function severityColor(severity: string): string {
   return colors[severity] || '#6b7280'
 }
 
-function statusLabel(status: string): string {
-  const labels: Record<string, string> = {
-    open: 'Open',
-    in_progress: 'In Progress',
-    resolved: 'Resolved',
-    wont_fix: "Won't Fix"
-  }
-  return labels[status] || status
-}
 
 function buildReportHtml(
   project: typeof projects.$inferSelect,

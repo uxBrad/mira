@@ -407,7 +407,7 @@ export default function TemplatesPage() {
 
   async function handleEdit(data: TemplateFormData) {
     if (!editTemplate) return
-    await updateTemplate(editTemplate.id, data as Record<string, unknown>)
+    await updateTemplate(editTemplate.id, data as unknown as Record<string, unknown>)
     setEditTemplate(null)
     toast({ title: 'Template updated' })
   }

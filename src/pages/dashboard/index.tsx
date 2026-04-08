@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, FolderOpen, AlertCircle } from 'lucide-react'
 import { useProjects } from '../../hooks/useProjects'
-import { Button } from '../../components/ui/button'
 import { ProjectCard } from '../../components/projects/ProjectCard'
 import { ProjectFormDialog } from '../../components/projects/ProjectFormDialog'
 import { useToast } from '../../components/ui/use-toast'
@@ -82,10 +81,14 @@ export default function DashboardPage() {
                 ? 'Try a different filter or create a new project.'
                 : 'Create your first accessibility audit project to get started.'}
             </p>
-            <Button onClick={() => setIsCreateOpen(true)}>
+            <button
+              onClick={() => setIsCreateOpen(true)}
+              className="flex items-center gap-2 px-3 py-2.5 font-sans text-sm font-medium transition-opacity hover:opacity-90"
+              style={{ background: '#610000', color: '#fff', borderRadius: '2px' }}
+            >
               <Plus className="h-4 w-4" aria-hidden="true" />
               New project
-            </Button>
+            </button>
           </div>
         )}
 
@@ -112,10 +115,14 @@ export default function DashboardPage() {
         style={{ background: '#f6f3f2' }}
         aria-label="Project tools"
       >
-        <Button onClick={() => setIsCreateOpen(true)} className="w-full mb-8">
+        <button
+          onClick={() => setIsCreateOpen(true)}
+          className="flex w-full items-center justify-between px-3 py-2.5 font-sans text-sm font-medium mb-8 transition-colors hover:opacity-90"
+          style={{ background: '#610000', color: '#fff', borderRadius: '2px' }}
+        >
+          <span>New Project</span>
           <Plus className="h-4 w-4" aria-hidden="true" />
-          New project
-        </Button>
+        </button>
 
         {/* Filter controls */}
         {projects.length > 0 && (

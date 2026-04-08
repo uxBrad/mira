@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, Eye } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -104,6 +104,23 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
 
   const severityColor = SEVERITY_COLORS[finding.severity ?? ''] ?? '#5f5e5e'
 
+  // Shared button style for consistent sizing
+  const btnBase: React.CSSProperties = {
+    border: '1px solid #d0cac8',
+    borderRadius: '4px',
+    height: '32px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '0 10px',
+    fontSize: '13px',
+    fontFamily: 'inherit',
+    fontWeight: 500,
+    cursor: 'pointer',
+    transition: 'background 0.15s',
+    whiteSpace: 'nowrap' as const,
+  }
+
   return (
     <>
       <article
@@ -143,28 +160,6 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
                 Criterion {finding.wcagCriterion}
               </span>
             )}
-
-            {/* Action buttons */}
-            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-              <button
-                onClick={onEdit}
-                aria-label={`Edit: ${finding.title}`}
-                className="flex items-center gap-1.5 px-2.5 py-1 font-sans text-xs font-medium transition-colors hover:bg-[#f6f3f2]"
-                style={{ border: '1px solid #d0cac8', color: '#5f5e5e', borderRadius: '4px' }}
-              >
-                <Pencil className="h-3 w-3" aria-hidden="true" />
-                Edit
-              </button>
-              <button
-                onClick={() => setDeleteOpen(true)}
-                aria-label={`Delete: ${finding.title}`}
-                className="flex items-center gap-1.5 px-2.5 py-1 font-sans text-xs font-medium transition-colors hover:bg-red-50"
-                style={{ border: '1px solid #d0cac8', color: '#c0392b', borderRadius: '4px' }}
-              >
-                <Trash2 className="h-3 w-3" aria-hidden="true" />
-                Delete
-              </button>
-            </div>
           </div>
         </div>
 
@@ -183,18 +178,6 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
           </p>
         )}
 
-        {/* Recommendation */}
-        {finding.recommendations && (
-          <div className="mb-3" style={{ borderLeft: '3px solid #610000', paddingLeft: '12px' }}>
-            <p className="font-sans text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#610000', letterSpacing: '0.1em' }}>
-              Recommendation
-            </p>
-            <p className="font-sans text-sm leading-relaxed" style={{ color: '#2b2c2c' }}>
-              {finding.recommendations}
-            </p>
-          </div>
-        )}
-
         {/* Notes */}
         {finding.notes && (
           <p className="font-sans text-xs italic mb-3" style={{ color: '#5f5e5e' }}>
@@ -202,7 +185,7 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
           </p>
         )}
 
-        {/* Footer: chips + status selector */}
+        {/* Footer: chips + actions */}
         <div className="flex items-center justify-between flex-wrap gap-2 pt-3" style={{ borderTop: '1px solid #f0ede9' }}>
           <div className="flex flex-wrap gap-1.5">
             {finding.pageUrl && (
@@ -222,10 +205,11 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
             ))}
           </div>
 
-          <div onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            {/* Status dropdown */}
             <Select value={finding.status || 'open'} onValueChange={handleStatusChange}>
               <SelectTrigger
-                className="h-7 text-xs w-32 font-sans"
+                style={{ height: '32px', fontSize: '13px', width: '130px', fontFamily: 'inherit' }}
                 aria-label="Finding status"
               >
                 <span>{STATUS_LABELS[finding.status || 'open'] || finding.status}</span>
@@ -237,6 +221,36 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
                 <SelectItem value="wont_fix">Won&apos;t Fix</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* View Details */}
+            <button
+              onClick={onEdit}
+              aria-label={`View details: ${finding.title}`}
+              style={{ ...btnBase, color: '#2b2c2c', background: 'transparent' }}
+            >
+              <Eye style={{ width: '13px', height: '13px' }} aria-hidden="true" />
+              View Details
+            </button>
+
+            {/* Edit */}
+            <button
+              onClick={onEdit}
+              aria-label={`Edit: ${finding.title}`}
+              style={{ ...btnBase, color: '#5f5e5e', background: 'transparent' }}
+            >
+              <Pencil style={{ width: '13px', height: '13px' }} aria-hidden="true" />
+              Edit
+            </button>
+
+            {/* Delete */}
+            <button
+              onClick={() => setDeleteOpen(true)}
+              aria-label={`Delete: ${finding.title}`}
+              style={{ ...btnBase, color: '#c0392b', background: 'transparent' }}
+            >
+              <Trash2 style={{ width: '13px', height: '13px' }} aria-hidden="true" />
+              Delete
+            </button>
           </div>
         </div>
       </article>

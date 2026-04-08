@@ -53,15 +53,10 @@ export default function AppShell() {
         style={{ background: '#ffffff', borderBottom: '1px solid #ebe7e7', height: '56px' }}
         aria-label="Main navigation"
       >
-        {/* Brand */}
-        <span className="font-serif text-xl font-bold tracking-tight text-foreground mr-8 flex-shrink-0" style={{ letterSpacing: '-0.02em' }}>
-          Echo
-        </span>
-
-        {/* Nav links */}
-        <nav className="flex items-center gap-0 flex-1 titlebar-no-drag" aria-label="App sections">
+        {/* Nav links — centered */}
+        <nav className="flex items-center justify-center gap-0 flex-1 titlebar-no-drag" aria-label="App sections">
           {[
-            { to: '/', label: 'Dashboard', end: true },
+            { to: '/', label: 'Projects', end: true },
             { to: '/templates', label: 'Templates', end: false },
             { to: '/settings', label: 'Settings', end: false },
           ].map(({ to, label, end }) => (
@@ -111,40 +106,40 @@ export default function AppShell() {
           )}
 
           <button
-            className="p-2 text-[#5f5e5e] hover:text-foreground transition-colors"
+            className="flex items-center justify-center w-9 h-9 text-[#5f5e5e] hover:text-foreground transition-colors"
             aria-label="Notifications"
           >
-            <Bell className="h-4 w-4" aria-hidden="true" />
+            <Bell className="h-5 w-5" aria-hidden="true" />
           </button>
 
           <NavLink
             to="/settings"
-            className="p-2 text-[#5f5e5e] hover:text-foreground transition-colors"
+            className="flex items-center justify-center w-9 h-9 text-[#5f5e5e] hover:text-foreground transition-colors"
             aria-label="Settings"
           >
-            <Settings className="h-4 w-4" aria-hidden="true" />
+            <Settings className="h-5 w-5" aria-hidden="true" />
           </NavLink>
 
           {session?.user ? (
             <button
               onClick={handleLogout}
-              className="ml-1 flex items-center justify-center w-8 h-8 font-sans text-xs font-bold text-white overflow-hidden flex-shrink-0 transition-opacity hover:opacity-80"
+              className="ml-1 flex items-center justify-center w-9 h-9 font-sans text-xs font-bold text-white overflow-hidden flex-shrink-0 transition-opacity hover:opacity-80"
               style={{ borderRadius: '9999px', background: '#610000' }}
               aria-label={`Sign out (${session.user.email})`}
               title={session.user.email}
             >
               {avatar
                 ? <img src={avatar} alt="" className="w-full h-full object-cover" aria-hidden="true" />
-                : (session.user.email?.[0]?.toUpperCase() ?? <User className="h-4 w-4" />)
+                : (session.user.email?.[0]?.toUpperCase() ?? <User className="h-5 w-5" />)
               }
             </button>
           ) : (
             <button
               onClick={handleLogout}
-              className="p-2 text-[#5f5e5e] hover:text-primary transition-colors"
+              className="flex items-center justify-center w-9 h-9 text-[#5f5e5e] hover:text-primary transition-colors"
               aria-label="Sign out"
             >
-              <LogOut className="h-4 w-4" aria-hidden="true" />
+              <LogOut className="h-5 w-5" aria-hidden="true" />
             </button>
           )}
         </div>

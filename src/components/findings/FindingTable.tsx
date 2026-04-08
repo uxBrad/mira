@@ -12,6 +12,7 @@ interface Finding {
   severity: string | null
   status: string | null
   pageUrl: string | null
+  component: string | null
   screenshotPath: string | null
   recommendations: string | null
   notes: string | null

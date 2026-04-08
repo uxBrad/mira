@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft,
   Plus,
   Download,
   ExternalLink,
@@ -16,8 +15,6 @@ import {
   Upload,
   ChevronDown,
   Check,
-  Maximize2,
-  Minimize2
 } from 'lucide-react'
 import { useFindings } from '../../hooks/useFindings'
 import { useTemplates } from '../../hooks/useTemplates'
@@ -35,27 +32,6 @@ import {
   DialogDescription
 } from '../../components/ui/dialog'
 
-const STATUS_LABELS: Record<string, string> = {
-  in_progress: 'In Progress',
-  complete: 'Complete',
-  archived: 'Archived'
-}
-
-const SEVERITY_FILTERS = [
-  { key: 'all', label: 'All severities' },
-  { key: 'critical', label: 'Critical' },
-  { key: 'serious', label: 'Serious' },
-  { key: 'moderate', label: 'Moderate' },
-  { key: 'minor', label: 'Minor' }
-]
-
-const STATUS_FILTERS = [
-  { key: 'all', label: 'All statuses' },
-  { key: 'open', label: 'Open' },
-  { key: 'in_progress', label: 'In Progress' },
-  { key: 'resolved', label: 'Resolved' },
-  { key: 'wont_fix', label: "Won't Fix" }
-]
 
 interface Project {
   id: string
@@ -202,17 +178,21 @@ export default function ProjectPage() {
   const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [pageFilter, setPageFilter] = useState<string[]>([])
   const [componentFilter, setComponentFilter] = useState<string[]>([])
-  const [findingInitialData, setFindingInitialData] = useState<Partial<Finding> | undefined>(undefined)
+  const [findingInitialData, setFindingInitialData] = useState<Partial<{title:string;description:string;wcagCriterion:string;wcagLevel:string;standards:string[];category:string;severity:string;status:string;pageUrl:string;component:string;screenshotPath:string;recommendations:string;notes:string}> | undefined>(undefined)
   const [stepAuditOpen, setStepAuditOpen] = useState(false)
   const [stepAuditMounted, setStepAuditMounted] = useState(false)
   const [stepAuditWide, setStepAuditWide] = useState(false)
   const [layoutReady, setLayoutReady] = useState(false)
 
-  // Modal add page / component
+  // Modal manage pages / components
   const [pageModalOpen, setPageModalOpen] = useState(false)
   const [componentModalOpen, setComponentModalOpen] = useState(false)
   const [newPageValue, setNewPageValue] = useState('')
   const [newComponentValue, setNewComponentValue] = useState('')
+  const [renamingPage, setRenamingPage] = useState<string | null>(null)
+  const [renamePageValue, setRenamePageValue] = useState('')
+  const [renamingComponent, setRenamingComponent] = useState<string | null>(null)
+  const [renameComponentValue, setRenameComponentValue] = useState('')
 
   const { findings, isLoading, error, createFinding, updateFinding, deleteFinding } = useFindings(id!)
   const { templates } = useTemplates()
@@ -265,22 +245,6 @@ export default function ProjectPage() {
     setCreateOpen(true)
   }
 
-  function applyTemplate(template: typeof templates[number]) {
-    setTemplatePickerOpen(false)
-    setFindingInitialData({
-      title: template.title,
-      description: template.description ?? undefined,
-      wcagCriterion: template.wcagCriterion ?? undefined,
-      wcagLevel: template.wcagLevel ?? undefined,
-      standards: template.standards,
-      category: template.category ?? undefined,
-      severity: template.severity ?? undefined,
-      recommendations: template.recommendations ?? undefined,
-      notes: template.notes ?? undefined
-    })
-    setEditFinding(null)
-    setCreateOpen(true)
-  }
 
   async function handleCreateFinding(data: Parameters<typeof createFinding>[0]) {
     await createFinding(data)
@@ -335,7 +299,6 @@ export default function ProjectPage() {
     if (!project.auditUrls.includes(trimmed)) {
       await handleAddPage(trimmed)
     }
-    setPageModalOpen(false)
     setNewPageValue('')
   }
 
@@ -345,8 +308,45 @@ export default function ProjectPage() {
     if (!project.components.includes(trimmed)) {
       await handleAddComponent(trimmed)
     }
-    setComponentModalOpen(false)
     setNewComponentValue('')
+  }
+
+  async function handleDeletePage(page: string) {
+    if (!project || !id) return
+    const updated = await window.api.projects.update(id, {
+      auditUrls: project.auditUrls.filter((p) => p !== page)
+    })
+    setProject(updated as Project)
+  }
+
+  async function handleRenamePage(oldPage: string, newPage: string) {
+    const trimmed = newPage.trim()
+    if (!trimmed || !project || !id) return
+    const updated = await window.api.projects.update(id, {
+      auditUrls: project.auditUrls.map((p) => (p === oldPage ? trimmed : p))
+    })
+    setProject(updated as Project)
+    setRenamingPage(null)
+    setRenamePageValue('')
+  }
+
+  async function handleDeleteComponent(component: string) {
+    if (!project || !id) return
+    const updated = await window.api.projects.update(id, {
+      components: project.components.filter((c) => c !== component)
+    })
+    setProject(updated as Project)
+  }
+
+  async function handleRenameComponent(oldComp: string, newComp: string) {
+    const trimmed = newComp.trim()
+    if (!trimmed || !project || !id) return
+    const updated = await window.api.projects.update(id, {
+      components: project.components.map((c) => (c === oldComp ? trimmed : c))
+    })
+    setProject(updated as Project)
+    setRenamingComponent(null)
+    setRenameComponentValue('')
   }
 
   async function handleExportPDF() {
@@ -415,13 +415,6 @@ export default function ProjectPage() {
 
   if (!project) return null
 
-  const severityCounts = {
-    critical: findings.filter((f) => f.severity === 'critical').length,
-    serious: findings.filter((f) => f.severity === 'serious').length,
-    moderate: findings.filter((f) => f.severity === 'moderate').length,
-    minor: findings.filter((f) => f.severity === 'minor').length
-  }
-
   const resolvedCount = findings.filter((f) => f.status === 'resolved').length
   const complianceScore = findings.length > 0 ? Math.round((resolvedCount / findings.length) * 100) : 0
 
@@ -440,22 +433,13 @@ export default function ProjectPage() {
       <div
         className="flex-shrink-0 flex flex-col overflow-hidden"
         style={{
-          width: stepAuditOpen ? (stepAuditWide ? '0%' : '50%') : 'calc(100% - 18rem)',
+          width: stepAuditOpen ? (stepAuditWide ? '0%' : '50%') : 'calc(100% - 18rem - 100px)',
           transition: layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
         }}
       >
 
         {/* Project header */}
         <div className="flex-shrink-0 px-10 pt-8 pb-0" style={{ background: '#fcf9f8' }}>
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-1.5 font-sans text-xs font-medium text-[#5f5e5e] hover:text-foreground mb-5 transition-colors"
-            aria-label="Back to dashboard"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-            All projects
-          </button>
-
           {/* Standards label */}
           {project.standards && (
             <p
@@ -624,7 +608,7 @@ export default function ProjectPage() {
           <FindingTable
             findings={filtered}
             isLoading={isLoading}
-            onEdit={setEditFinding}
+            onEdit={(f) => setEditFinding(f as Finding)}
             onUpdate={updateFinding}
             onDelete={deleteFinding}
           />
@@ -661,7 +645,7 @@ export default function ProjectPage() {
       <aside
         className="flex-shrink-0 overflow-hidden"
         style={{
-          width: stepAuditOpen ? '0' : '18rem',
+          width: stepAuditOpen ? '0' : 'calc(18rem + 100px)',
           transition: layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
           background: '#f6f3f2',
           borderLeft: '1px solid #e0dbd9',
@@ -670,7 +654,7 @@ export default function ProjectPage() {
         aria-hidden={stepAuditOpen}
       >
         {/* Fixed-width inner prevents content reflow during the width transition */}
-        <div className="w-72 flex flex-col h-full overflow-y-auto">
+        <div className="flex flex-col h-full overflow-y-auto" style={{ width: 'calc(18rem + 100px)' }}>
         <div className="px-6 pt-8 pb-6">
           <h2 className="font-serif font-bold text-xl mb-1" style={{ letterSpacing: '-0.01em' }}>
             Audit Toolkit
@@ -827,73 +811,197 @@ export default function ProjectPage() {
         </div>{/* end fixed-width inner */}
       </aside>
 
-      {/* ── Add Page modal ── */}
-      <Dialog open={pageModalOpen} onOpenChange={(o) => { setPageModalOpen(o); if (!o) setNewPageValue('') }}>
-        <DialogContent className="max-w-sm">
+      {/* ── Manage Pages modal ── */}
+      <Dialog open={pageModalOpen} onOpenChange={(o) => { setPageModalOpen(o); if (!o) { setNewPageValue(''); setRenamingPage(null); setRenamePageValue('') } }}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Page</DialogTitle>
-            <DialogDescription>Enter a URL or page name to track in this audit.</DialogDescription>
+            <DialogTitle>Manage Pages</DialogTitle>
+            <DialogDescription>Add, rename, or remove pages tracked in this audit.</DialogDescription>
           </DialogHeader>
-          <input
-            autoFocus
-            value={newPageValue}
-            onChange={(e) => setNewPageValue(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') confirmAddPage() }}
-            placeholder="/about or Home"
-            className="w-full h-9 px-3 font-sans text-sm border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-            style={{ borderColor: '#d0cac8' }}
-          />
-          <DialogFooter>
-            <button
-              onClick={() => { setPageModalOpen(false); setNewPageValue('') }}
-              className="px-4 py-2 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
-              style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}
-            >
-              Cancel
-            </button>
+
+          {/* Existing pages list */}
+          {project.auditUrls.length > 0 && (
+            <div className="space-y-1 max-h-60 overflow-y-auto">
+              {project.auditUrls.map((page) => (
+                <div key={page} className="flex items-center gap-2 px-3 py-2" style={{ background: '#f6f3f2', borderRadius: '4px' }}>
+                  {renamingPage === page ? (
+                    <>
+                      <input
+                        autoFocus
+                        value={renamePageValue}
+                        onChange={(e) => setRenamePageValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleRenamePage(page, renamePageValue)
+                          if (e.key === 'Escape') { setRenamingPage(null); setRenamePageValue('') }
+                        }}
+                        className="flex-1 h-8 px-2 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                        style={{ borderColor: '#d0cac8' }}
+                      />
+                      <button
+                        onClick={() => handleRenamePage(page, renamePageValue)}
+                        disabled={!renamePageValue.trim()}
+                        className="px-2.5 py-1 font-sans text-xs font-bold text-white disabled:opacity-40"
+                        style={{ background: '#610000', borderRadius: '3px' }}
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => { setRenamingPage(null); setRenamePageValue('') }}
+                        className="px-2.5 py-1 font-sans text-xs font-medium"
+                        style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '3px' }}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="flex-1 font-sans text-sm truncate" style={{ color: '#2b2c2c' }}>{page}</span>
+                      <button
+                        onClick={() => { setRenamingPage(page); setRenamePageValue(page) }}
+                        className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-[#ede9e7] transition-colors"
+                        style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '3px' }}
+                      >
+                        Rename
+                      </button>
+                      <button
+                        onClick={() => handleDeletePage(page)}
+                        className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-red-50 transition-colors"
+                        style={{ border: '1px solid #d0cac8', color: '#c0392b', borderRadius: '3px' }}
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add new page */}
+          <div className="flex gap-2 mt-2">
+            <input
+              value={newPageValue}
+              onChange={(e) => setNewPageValue(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') confirmAddPage() }}
+              placeholder="/about or Home"
+              className="flex-1 h-9 px-3 font-sans text-sm border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+              style={{ borderColor: '#d0cac8' }}
+            />
             <button
               onClick={confirmAddPage}
               disabled={!newPageValue.trim()}
               className="px-4 py-2 font-sans text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-              style={{ background: '#610000' }}
+              style={{ background: '#610000', borderRadius: '4px' }}
             >
-              Add Page
+              Add
+            </button>
+          </div>
+
+          <DialogFooter>
+            <button
+              onClick={() => setPageModalOpen(false)}
+              className="px-4 py-2 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
+              style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}
+            >
+              Done
             </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* ── Add Component modal ── */}
-      <Dialog open={componentModalOpen} onOpenChange={(o) => { setComponentModalOpen(o); if (!o) setNewComponentValue('') }}>
-        <DialogContent className="max-w-sm">
+      {/* ── Manage Components modal ── */}
+      <Dialog open={componentModalOpen} onOpenChange={(o) => { setComponentModalOpen(o); if (!o) { setNewComponentValue(''); setRenamingComponent(null); setRenameComponentValue('') } }}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Component</DialogTitle>
-            <DialogDescription>Enter a component name to track in this audit.</DialogDescription>
+            <DialogTitle>Manage Components</DialogTitle>
+            <DialogDescription>Add, rename, or remove components tracked in this audit.</DialogDescription>
           </DialogHeader>
-          <input
-            autoFocus
-            value={newComponentValue}
-            onChange={(e) => setNewComponentValue(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') confirmAddComponent() }}
-            placeholder="Navigation, Hero, Footer…"
-            className="w-full h-9 px-3 font-sans text-sm border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-            style={{ borderColor: '#d0cac8' }}
-          />
-          <DialogFooter>
-            <button
-              onClick={() => { setComponentModalOpen(false); setNewComponentValue('') }}
-              className="px-4 py-2 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
-              style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}
-            >
-              Cancel
-            </button>
+
+          {/* Existing components list */}
+          {project.components.length > 0 && (
+            <div className="space-y-1 max-h-60 overflow-y-auto">
+              {project.components.map((comp) => (
+                <div key={comp} className="flex items-center gap-2 px-3 py-2" style={{ background: '#f6f3f2', borderRadius: '4px' }}>
+                  {renamingComponent === comp ? (
+                    <>
+                      <input
+                        autoFocus
+                        value={renameComponentValue}
+                        onChange={(e) => setRenameComponentValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleRenameComponent(comp, renameComponentValue)
+                          if (e.key === 'Escape') { setRenamingComponent(null); setRenameComponentValue('') }
+                        }}
+                        className="flex-1 h-8 px-2 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                        style={{ borderColor: '#d0cac8' }}
+                      />
+                      <button
+                        onClick={() => handleRenameComponent(comp, renameComponentValue)}
+                        disabled={!renameComponentValue.trim()}
+                        className="px-2.5 py-1 font-sans text-xs font-bold text-white disabled:opacity-40"
+                        style={{ background: '#610000', borderRadius: '3px' }}
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => { setRenamingComponent(null); setRenameComponentValue('') }}
+                        className="px-2.5 py-1 font-sans text-xs font-medium"
+                        style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '3px' }}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="flex-1 font-sans text-sm truncate" style={{ color: '#2b2c2c' }}>{comp}</span>
+                      <button
+                        onClick={() => { setRenamingComponent(comp); setRenameComponentValue(comp) }}
+                        className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-[#ede9e7] transition-colors"
+                        style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '3px' }}
+                      >
+                        Rename
+                      </button>
+                      <button
+                        onClick={() => handleDeleteComponent(comp)}
+                        className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-red-50 transition-colors"
+                        style={{ border: '1px solid #d0cac8', color: '#c0392b', borderRadius: '3px' }}
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add new component */}
+          <div className="flex gap-2 mt-2">
+            <input
+              value={newComponentValue}
+              onChange={(e) => setNewComponentValue(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') confirmAddComponent() }}
+              placeholder="Navigation, Hero, Footer…"
+              className="flex-1 h-9 px-3 font-sans text-sm border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+              style={{ borderColor: '#d0cac8' }}
+            />
             <button
               onClick={confirmAddComponent}
               disabled={!newComponentValue.trim()}
               className="px-4 py-2 font-sans text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-              style={{ background: '#610000' }}
+              style={{ background: '#610000', borderRadius: '4px' }}
             >
-              Add Component
+              Add
+            </button>
+          </div>
+
+          <DialogFooter>
+            <button
+              onClick={() => setComponentModalOpen(false)}
+              className="px-4 py-2 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
+              style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}
+            >
+              Done
             </button>
           </DialogFooter>
         </DialogContent>
@@ -912,10 +1020,11 @@ export default function ProjectPage() {
         onAddComponent={handleAddComponent}
         templates={templates}
         initialData={editFinding ? {
-          ...editFinding,
+          title: editFinding.title,
           description: editFinding.description ?? undefined,
           wcagCriterion: editFinding.wcagCriterion ?? undefined,
           wcagLevel: editFinding.wcagLevel ?? undefined,
+          standards: editFinding.standards,
           category: editFinding.category ?? undefined,
           severity: editFinding.severity ?? undefined,
           status: editFinding.status ?? undefined,
@@ -941,7 +1050,6 @@ export default function ProjectPage() {
           status: project.status,
           standards: project.standards ?? undefined,
           auditUrls: project.auditUrls,
-          components: project.components
         }}
       />
     </div>

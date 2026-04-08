@@ -251,20 +251,20 @@ export function StepAuditPanel({
     >
       {/* ── Header ── */}
       <div
-        className="flex-shrink-0 flex items-center justify-between px-6 py-4"
-        style={{ borderBottom: '1px solid #e0dbd9', background: '#f6f3f2' }}
+        className="flex-shrink-0 flex items-center justify-between px-6"
+        style={{ borderBottom: '1px solid #e0dbd9', background: '#f6f3f2', minHeight: '60px' }}
       >
         <div className="flex items-center gap-3">
-          <span className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.12em' }}>
+          <span className="font-sans text-sm font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.12em' }}>
             Step-by-Step Audit
           </span>
-          <span className="font-sans text-xs" style={{ color: '#3a3a3a' }}>
+          <span className="font-sans text-sm font-semibold" style={{ color: '#3a3a3a' }}>
             {index + 1} / {total}
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Progress bar */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mr-2">
             <div className="w-24 h-1.5" style={{ background: '#e0dbd9' }}>
               <div
                 className="h-full transition-all"
@@ -275,19 +275,19 @@ export function StepAuditPanel({
           </div>
           <button
             onClick={onToggleWide}
-            className="p-1 transition-colors hover:text-foreground"
-            style={{ color: '#5f5e5e' }}
+            className="flex items-center justify-center transition-colors hover:text-foreground"
+            style={{ color: '#5f5e5e', width: '40px', height: '40px', borderRadius: '4px' }}
             aria-label={isWide ? 'Exit wide mode' : 'Enter wide mode'}
           >
-            {isWide ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            {isWide ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
           </button>
           <button
             onClick={onClose}
-            className="p-1 transition-colors hover:text-foreground"
-            style={{ color: '#5f5e5e' }}
+            className="flex items-center justify-center transition-colors hover:text-foreground"
+            style={{ color: '#5f5e5e', width: '40px', height: '40px', borderRadius: '4px' }}
             aria-label="Close step audit"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         </div>
       </div>

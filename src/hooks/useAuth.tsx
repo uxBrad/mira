@@ -78,8 +78,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSubscriptionStatus(status)
   }, [])
 
-  const register = useCallback(async (name: string, email: string, password: string) => {
-    return window.api.auth.register({ name, email, password })
+  const register = useCallback(async (name: string, email: string, password: string): Promise<void> => {
+    await window.api.auth.register({ name, email, password })
   }, [])
 
   const logout = useCallback(async () => {

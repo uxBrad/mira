@@ -37,7 +37,7 @@ export default function RegisterPage() {
     setIsLoading(true)
     try {
       const result = await register(name, email, password)
-      if ((result as { devAutoVerified?: boolean })?.devAutoVerified) {
+      if ((result as unknown as { devAutoVerified?: boolean })?.devAutoVerified) {
         await login(email, password)
         navigate('/')
       } else {

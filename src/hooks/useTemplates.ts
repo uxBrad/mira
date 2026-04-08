@@ -39,7 +39,7 @@ export function useTemplates() {
 
   const createTemplate = useCallback(
     async (data: Omit<Template, 'id' | 'createdAt' | 'updatedAt'>) => {
-      const template = await window.api.templates.create(data)
+      const template = await window.api.templates.create(data as Parameters<typeof window.api.templates.create>[0])
       await load()
       return template as Template
     },

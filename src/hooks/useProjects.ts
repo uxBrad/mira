@@ -15,7 +15,7 @@ export function useProjects() {
     setError(null)
     try {
       const data = await window.api.projects.list()
-      setProjects(data)
+      setProjects(data as unknown as ProjectWithCount[])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load projects')
     } finally {
