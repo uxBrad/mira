@@ -182,6 +182,8 @@ export default function ProjectPage() {
   const [stepAuditOpen, setStepAuditOpen] = useState(false)
   const [stepAuditMounted, setStepAuditMounted] = useState(false)
   const [stepAuditWide, setStepAuditWide] = useState(false)
+  const [findingSidebarMounted, setFindingSidebarMounted] = useState(false)
+  const [findingSidebarWide, setFindingSidebarWide] = useState(false)
   const [layoutReady, setLayoutReady] = useState(false)
 
   // Modal manage pages / components
@@ -405,6 +407,11 @@ export default function ProjectPage() {
 
   const sidebarOpen = createOpen || !!editFinding
 
+  // Keep finding sidebar mounted once opened (state + transitions)
+  useEffect(() => {
+    if (sidebarOpen) setFindingSidebarMounted(true)
+  }, [sidebarOpen])
+
   if (isLoadingProject) {
     return (
       <div className="flex items-center justify-center h-full" role="status" aria-label="Loading project">
@@ -426,15 +433,35 @@ export default function ProjectPage() {
     { key: '4', label: 'Robust', icon: Shield },
   ]
 
-  return (
-    <div className="flex h-full overflow-hidden">
+  const anySidebarOpen = sidebarOpen || stepAuditOpen
+  const tr = layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none'
+  const toolkitWidth = `calc(18rem + 100px)`
 
-      {/* ── Main column — explicit width so it transitions cleanly with siblings ── */}
+  // Main column width
+  const mainWidth = sidebarOpen
+    ? (findingSidebarWide ? '0%' : '50%')
+    : stepAuditOpen
+      ? (stepAuditWide ? '0%' : '50%')
+      : `calc(100% - ${toolkitWidth})`
+
+  // Right-side inner radius when a panel is open beside main
+  const mainInnerRadius = anySidebarOpen ? '0 10px 10px 0' : '0'
+
+  return (
+    <div
+      className="flex h-full overflow-hidden"
+      style={{ gap: anySidebarOpen ? '4px' : '0', background: '#d8d3d1', transition: tr, padding: anySidebarOpen ? '4px' : '0' }}
+    >
+
+      {/* ── Main column ── */}
       <div
         className="flex-shrink-0 flex flex-col overflow-hidden"
         style={{
-          width: stepAuditOpen ? (stepAuditWide ? '0%' : '50%') : 'calc(100% - 18rem - 100px)',
-          transition: layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+          width: mainWidth,
+          transition: tr,
+          borderRadius: mainInnerRadius,
+          background: '#fcf9f8',
+          overflow: 'hidden',
         }}
       >
 
@@ -615,12 +642,58 @@ export default function ProjectPage() {
         </main>
       </div>
 
-      {/* ── Step-by-Step Audit Panel — width transitions in/out with the toolkit ── */}
+      {/* ── Finding Form Sidebar — in-layout, same pattern as StepAuditPanel ── */}
+      <div
+        className="flex-shrink-0 overflow-hidden flex flex-col"
+        style={{
+          width: sidebarOpen ? (findingSidebarWide ? '100%' : '50%') : '0',
+          transition: tr,
+          borderRadius: sidebarOpen ? '10px 0 0 10px' : '0',
+          overflow: 'hidden',
+        }}
+        aria-hidden={!sidebarOpen}
+      >
+        {findingSidebarMounted && (
+          <FindingFormSidebar
+            open={sidebarOpen}
+            onClose={() => { setCreateOpen(false); setEditFinding(null); setFindingInitialData(undefined); setFindingSidebarWide(false) }}
+            onSubmit={editFinding ? handleEditFinding : handleCreateFinding}
+            mode={editFinding ? 'edit' : 'create'}
+            projectId={id!}
+            auditPages={project.auditUrls}
+            auditComponents={project.components}
+            onAddPage={handleAddPage}
+            onAddComponent={handleAddComponent}
+            templates={templates}
+            initialData={editFinding ? {
+              title: editFinding.title,
+              description: editFinding.description ?? undefined,
+              wcagCriterion: editFinding.wcagCriterion ?? undefined,
+              wcagLevel: editFinding.wcagLevel ?? undefined,
+              standards: editFinding.standards,
+              category: editFinding.category ?? undefined,
+              severity: editFinding.severity ?? undefined,
+              status: editFinding.status ?? undefined,
+              pageUrl: editFinding.pageUrl ?? undefined,
+              component: editFinding.component ?? undefined,
+              screenshotPath: editFinding.screenshotPath ?? undefined,
+              recommendations: editFinding.recommendations ?? undefined,
+              notes: editFinding.notes ?? undefined
+            } : findingInitialData}
+            isWide={findingSidebarWide}
+            onToggleWide={() => setFindingSidebarWide(w => !w)}
+          />
+        )}
+      </div>
+
+      {/* ── Step-by-Step Audit Panel ── */}
       <div
         className="flex-shrink-0 overflow-hidden flex flex-col"
         style={{
           width: stepAuditOpen ? (stepAuditWide ? '100%' : '50%') : '0',
-          transition: layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+          transition: tr,
+          borderRadius: stepAuditOpen ? '10px 0 0 10px' : '0',
+          overflow: 'hidden',
         }}
         aria-hidden={!stepAuditOpen}
       >
@@ -641,20 +714,20 @@ export default function ProjectPage() {
         )}
       </div>
 
-      {/* ── Right sidebar: Audit Toolkit — stays in DOM, width transitions out/in ── */}
+      {/* ── Right sidebar: Audit Toolkit ── */}
       <aside
         className="flex-shrink-0 overflow-hidden"
         style={{
-          width: stepAuditOpen ? '0' : 'calc(18rem + 100px)',
-          transition: layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+          width: anySidebarOpen ? '0' : toolkitWidth,
+          transition: tr,
           background: '#f6f3f2',
           borderLeft: '1px solid #e0dbd9',
         }}
         aria-label="Audit toolkit"
-        aria-hidden={stepAuditOpen}
+        aria-hidden={anySidebarOpen}
       >
         {/* Fixed-width inner prevents content reflow during the width transition */}
-        <div className="flex flex-col h-full overflow-y-auto" style={{ width: 'calc(18rem + 100px)' }}>
+        <div className="flex flex-col h-full overflow-y-auto" style={{ width: toolkitWidth }}>
         <div className="px-6 pt-8 pb-6">
           <h2 className="font-serif font-bold text-xl mb-1" style={{ letterSpacing: '-0.01em' }}>
             Audit Toolkit
@@ -1006,35 +1079,6 @@ export default function ProjectPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* ── Slide-in finding form sidebar ── */}
-      <FindingFormSidebar
-        open={sidebarOpen}
-        onClose={() => { setCreateOpen(false); setEditFinding(null); setFindingInitialData(undefined) }}
-        onSubmit={editFinding ? handleEditFinding : handleCreateFinding}
-        mode={editFinding ? 'edit' : 'create'}
-        projectId={id!}
-        auditPages={project.auditUrls}
-        auditComponents={project.components}
-        onAddPage={handleAddPage}
-        onAddComponent={handleAddComponent}
-        templates={templates}
-        initialData={editFinding ? {
-          title: editFinding.title,
-          description: editFinding.description ?? undefined,
-          wcagCriterion: editFinding.wcagCriterion ?? undefined,
-          wcagLevel: editFinding.wcagLevel ?? undefined,
-          standards: editFinding.standards,
-          category: editFinding.category ?? undefined,
-          severity: editFinding.severity ?? undefined,
-          status: editFinding.status ?? undefined,
-          pageUrl: editFinding.pageUrl ?? undefined,
-          component: editFinding.component ?? undefined,
-          screenshotPath: editFinding.screenshotPath ?? undefined,
-          recommendations: editFinding.recommendations ?? undefined,
-          notes: editFinding.notes ?? undefined
-        } : findingInitialData}
-      />
 
       {/* Edit project sidebar */}
       <ProjectFormDialog

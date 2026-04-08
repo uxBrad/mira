@@ -551,74 +551,71 @@ export function StepAuditPanel({
         </div>
       </div>
 
-      {/* ── Footer: status controls + navigation ── */}
+      {/* ── Footer: navigation + status controls centered ── */}
       <div
         className="flex-shrink-0 px-6 py-4"
         style={{ borderTop: '1px solid #e0dbd9', background: '#f6f3f2' }}
       >
-        {/* Criterion status buttons */}
-        <div className="flex gap-2 mb-4 flex-wrap">
-          <button
-            onClick={() => setStatus('passed')}
-            className="flex items-center gap-1.5 px-3 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
-            style={{
-              letterSpacing: '0.08em',
-              background: localStatus === 'passed' ? '#2d7a4f' : 'transparent',
-              color: localStatus === 'passed' ? '#fff' : '#2d7a4f',
-              border: '1px solid #2d7a4f',
-            }}
-          >
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            Mark Passed
-          </button>
-          <button
-            onClick={() => setStatus('in_progress')}
-            className="flex items-center gap-1.5 px-3 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
-            style={{
-              letterSpacing: '0.08em',
-              background: localStatus === 'in_progress' ? '#8b6914' : 'transparent',
-              color: localStatus === 'in_progress' ? '#fff' : '#8b6914',
-              border: '1px solid #8b6914',
-            }}
-          >
-            <Clock className="h-3.5 w-3.5" />
-            In Progress
-          </button>
-          <button
-            onClick={() => setStatus('audited')}
-            className="flex items-center gap-1.5 px-3 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
-            style={{
-              letterSpacing: '0.08em',
-              background: localStatus === 'audited' ? '#2b2c2c' : 'transparent',
-              color: localStatus === 'audited' ? '#fff' : '#2b2c2c',
-              border: '1px solid #2b2c2c',
-            }}
-          >
-            <Check className="h-3.5 w-3.5" />
-            Audited
-          </button>
-        </div>
-
-        {/* Prev / Next */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
+          {/* Previous */}
           <button
             onClick={() => setIndex((i) => Math.max(0, i - 1))}
             disabled={index === 0}
-            className="flex items-center gap-1.5 px-4 py-2.5 font-sans text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-30"
+            className="flex items-center gap-1.5 px-4 py-2.5 font-sans text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-30 flex-shrink-0"
             style={{ border: '1px solid #d0cac8', color: '#2b2c2c', letterSpacing: '0.08em' }}
           >
             <ChevronLeft className="h-4 w-4" />
-            Previous
+            Prev
           </button>
 
-          <span className="font-sans text-xs" style={{ color: '#3a3a3a' }}>
-            {criterion.id}
-          </span>
+          {/* Status buttons — centered */}
+          <div className="flex items-center gap-1.5 flex-wrap justify-center">
+            <button
+              onClick={() => setStatus('passed')}
+              className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
+              style={{
+                letterSpacing: '0.06em',
+                background: localStatus === 'passed' ? '#2d7a4f' : 'transparent',
+                color: localStatus === 'passed' ? '#fff' : '#2d7a4f',
+                border: '1px solid #2d7a4f',
+              }}
+            >
+              <CheckCircle2 className="h-3 w-3" />
+              Passed
+            </button>
+            <button
+              onClick={() => setStatus('in_progress')}
+              className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
+              style={{
+                letterSpacing: '0.06em',
+                background: localStatus === 'in_progress' ? '#8b6914' : 'transparent',
+                color: localStatus === 'in_progress' ? '#fff' : '#8b6914',
+                border: '1px solid #8b6914',
+              }}
+            >
+              <Clock className="h-3 w-3" />
+              In Progress
+            </button>
+            <button
+              onClick={() => setStatus('audited')}
+              className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
+              style={{
+                letterSpacing: '0.06em',
+                background: localStatus === 'audited' ? '#2b2c2c' : 'transparent',
+                color: localStatus === 'audited' ? '#fff' : '#2b2c2c',
+                border: '1px solid #2b2c2c',
+              }}
+            >
+              <Check className="h-3 w-3" />
+              Audited
+            </button>
+          </div>
 
+          {/* Next */}
           <button
             onClick={() => setIndex((i) => Math.min(total - 1, i + 1))}
             disabled={index === total - 1}
-            className="flex items-center gap-1.5 px-4 py-2.5 font-sans text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-30"
+            className="flex items-center gap-1.5 px-4 py-2.5 font-sans text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-30 flex-shrink-0"
             style={{ background: '#610000', color: '#fff', letterSpacing: '0.08em' }}
           >
             Next
