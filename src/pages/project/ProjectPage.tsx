@@ -184,6 +184,8 @@ export default function ProjectPage() {
   const [stepAuditWide, setStepAuditWide] = useState(false)
   const [findingSidebarMounted, setFindingSidebarMounted] = useState(false)
   const [findingSidebarWide, setFindingSidebarWide] = useState(false)
+  const [editProjectMounted, setEditProjectMounted] = useState(false)
+  const [editProjectWide, setEditProjectWide] = useState(false)
   const [layoutReady, setLayoutReady] = useState(false)
 
   // Modal manage pages / components
@@ -412,6 +414,11 @@ export default function ProjectPage() {
     if (sidebarOpen) setFindingSidebarMounted(true)
   }, [sidebarOpen])
 
+  // Keep edit project panel mounted once opened
+  useEffect(() => {
+    if (editProjectOpen) setEditProjectMounted(true)
+  }, [editProjectOpen])
+
   if (isLoadingProject) {
     return (
       <div className="flex items-center justify-center h-full" role="status" aria-label="Loading project">
@@ -433,7 +440,7 @@ export default function ProjectPage() {
     { key: '4', label: 'Robust', icon: Shield },
   ]
 
-  const anySidebarOpen = sidebarOpen || stepAuditOpen
+  const anySidebarOpen = sidebarOpen || stepAuditOpen || editProjectOpen
   const tr = layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none'
   const toolkitWidth = `calc(18rem + 100px)`
 
@@ -442,7 +449,9 @@ export default function ProjectPage() {
     ? (findingSidebarWide ? '0%' : '50%')
     : stepAuditOpen
       ? (stepAuditWide ? '0%' : '50%')
-      : `calc(100% - ${toolkitWidth})`
+      : editProjectOpen
+        ? (editProjectWide ? '0%' : '50%')
+        : `calc(100% - ${toolkitWidth})`
 
   // Right-side inner radius when a panel is open beside main
   const mainInnerRadius = anySidebarOpen ? '0 10px 10px 0' : '0'
@@ -450,7 +459,15 @@ export default function ProjectPage() {
   return (
     <div
       className="flex h-full overflow-hidden"
-      style={{ gap: anySidebarOpen ? '4px' : '0', background: '#d8d3d1', transition: tr, padding: anySidebarOpen ? '4px' : '0' }}
+      style={{
+        gap: anySidebarOpen ? '10px' : '0',
+        background: '#d8d3d1',
+        transition: tr,
+        paddingTop: anySidebarOpen ? '10px' : '0',
+        paddingBottom: anySidebarOpen ? '10px' : '0',
+        paddingLeft: '0',
+        paddingRight: anySidebarOpen ? '10px' : '0',
+      }}
     >
 
       {/* ── Main column ── */}
@@ -1080,22 +1097,37 @@ export default function ProjectPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit project sidebar */}
-      <ProjectFormDialog
-        open={editProjectOpen}
-        onOpenChange={setEditProjectOpen}
-        onSubmit={handleUpdateProject}
-        mode="edit"
-        initialData={{
-          name: project.name,
-          clientName: project.clientName ?? undefined,
-          url: project.url ?? undefined,
-          description: project.description ?? undefined,
-          status: project.status,
-          standards: project.standards ?? undefined,
-          auditUrls: project.auditUrls,
+      {/* ── Edit Project panel — in-layout split-screen ── */}
+      <div
+        className="flex-shrink-0 overflow-hidden flex flex-col"
+        style={{
+          width: editProjectOpen ? (editProjectWide ? '100%' : '50%') : '0',
+          transition: tr,
+          borderRadius: editProjectOpen ? '10px 0 0 10px' : '0',
+          overflow: 'hidden',
         }}
-      />
+        aria-hidden={!editProjectOpen}
+      >
+        {editProjectMounted && (
+          <ProjectFormDialog
+            open={editProjectOpen}
+            onOpenChange={(o) => { if (!o) { setEditProjectOpen(false); setEditProjectWide(false) } }}
+            onSubmit={handleUpdateProject}
+            mode="edit"
+            initialData={{
+              name: project.name,
+              clientName: project.clientName ?? undefined,
+              url: project.url ?? undefined,
+              description: project.description ?? undefined,
+              status: project.status,
+              standards: project.standards ?? undefined,
+              auditUrls: project.auditUrls,
+            }}
+            isWide={editProjectWide}
+            onToggleWide={() => setEditProjectWide(w => !w)}
+          />
+        )}
+      </div>
     </div>
   )
 }
