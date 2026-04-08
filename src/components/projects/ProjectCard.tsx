@@ -175,19 +175,25 @@ export function ProjectCard({ project, onClick, onUpdate, onDelete }: ProjectCar
       </Dialog>
 
       {/* Edit dialog */}
-      <ProjectFormDialog
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        onSubmit={handleUpdate}
-        mode="edit"
-        initialData={{
-          name: project.name,
-          clientName: project.clientName ?? undefined,
-          url: project.url ?? undefined,
-          description: project.description ?? undefined,
-          status: project.status
-        }}
-      />
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-lg p-0 overflow-hidden" style={{ maxHeight: '90vh' }}>
+          <div style={{ height: '80vh', display: 'flex', flexDirection: 'column' }}>
+            <ProjectFormDialog
+              open={editOpen}
+              onOpenChange={setEditOpen}
+              onSubmit={handleUpdate}
+              mode="edit"
+              initialData={{
+                name: project.name,
+                clientName: project.clientName ?? undefined,
+                url: project.url ?? undefined,
+                description: project.description ?? undefined,
+                status: project.status
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete confirmation */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
