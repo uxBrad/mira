@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Image, Plus, Check } from 'lucide-react'
+import { X, Image, Plus, Check, Maximize2, Minimize2 } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
@@ -96,6 +96,7 @@ export function FindingFormSidebar({
   const [localPages, setLocalPages] = useState<string[]>(auditPages)
   const [localComponents, setLocalComponents] = useState<string[]>(auditComponents)
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
+  const [isWide, setIsWide] = useState(false)
 
   const titleRef = useRef<HTMLInputElement>(null)
   const newPageRef = useRef<HTMLInputElement>(null)
@@ -131,6 +132,7 @@ export function FindingFormSidebar({
       setAddingComponent(false)
       setNewComponentValue('')
       setSelectedTemplateId('')
+      setIsWide(false)
       setTimeout(() => titleRef.current?.focus(), 50)
     }
   }, [open])
@@ -276,10 +278,12 @@ export function FindingFormSidebar({
         role="dialog"
         aria-modal="true"
         aria-label={heading}
-        className="fixed top-0 right-0 z-50 h-full w-[420px] flex flex-col overflow-hidden transition-transform duration-200"
+        className="fixed top-0 right-0 z-50 h-full flex flex-col overflow-hidden"
         style={{
           background: '#fcf9f8',
+          width: isWide ? '100%' : '50%',
           transform: open ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.2s ease, width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           borderLeft: '1px solid #ebe7e7'
         }}
       >
@@ -288,14 +292,24 @@ export function FindingFormSidebar({
           style={{ borderBottom: '1px solid #ebe7e7' }}
         >
           <h2 className="font-semibold text-base tracking-tight">{heading}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Close panel"
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setIsWide(w => !w)}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={isWide ? 'Exit wide mode' : 'Enter wide mode'}
+            >
+              {isWide ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Close panel"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5">

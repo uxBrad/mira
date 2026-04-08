@@ -8,16 +8,16 @@ import { ProjectFormDialog } from '../../components/projects/ProjectFormDialog'
 import { useToast } from '../../components/ui/use-toast'
 
 const FILTERS = [
-  { key: 'all', label: 'All' },
   { key: 'in_progress', label: 'In Progress' },
   { key: 'complete', label: 'Complete' },
-  { key: 'archived', label: 'Archived' }
+  { key: 'archived', label: 'Archived' },
+  { key: 'all', label: 'All' },
 ]
 
 export default function DashboardPage() {
   const { projects, isLoading, error, createProject, updateProject, deleteProject } = useProjects()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('in_progress')
   const navigate = useNavigate()
   const { toast } = useToast()
 
@@ -92,8 +92,8 @@ export default function DashboardPage() {
         {/* Project list — no dividers, use spacing */}
         {!isLoading && filtered.length > 0 && (
           <ul className="space-y-0" role="list" aria-label="Audit projects">
-            {filtered.map((project, i) => (
-              <li key={project.id} style={{ background: i % 2 === 1 ? '#ebe7e7' : 'transparent' }}>
+            {filtered.map((project) => (
+              <li key={project.id} className="mb-4">
                 <ProjectCard
                   project={project}
                   onClick={() => navigate(`/project/${project.id}`)}

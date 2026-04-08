@@ -4,6 +4,11 @@ module.exports = {
   content: ['./index.html', './src/**/*.{ts,tsx,js,jsx}'],
   theme: {
     extend: {
+      fontSize: {
+        xs: ['14px', { lineHeight: '1.5' }],
+        sm: ['15px', { lineHeight: '1.5' }],
+        base: ['16px', { lineHeight: '1.6' }],
+      },
       fontFamily: {
         sans: ['Manrope', 'system-ui', 'sans-serif'],
         serif: ['Newsreader', 'Georgia', 'serif'],

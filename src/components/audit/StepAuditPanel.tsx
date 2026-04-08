@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, Check, X, Clock, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, X, Clock, CheckCircle2, AlertCircle, ExternalLink, Maximize2, Minimize2 } from 'lucide-react'
 import { WCAG_CRITERIA, SEVERITY_OPTIONS, STANDARDS_OPTIONS } from '../../lib/utils'
 import {
   Select,
@@ -86,6 +86,8 @@ interface StepAuditPanelProps {
   auditPages?: string[]
   auditComponents?: string[]
   findings: Finding[]
+  isWide?: boolean
+  onToggleWide?: () => void
   onAddFinding: (data: {
     projectId: string
     title: string
@@ -124,6 +126,8 @@ export function StepAuditPanel({
   auditPages = [],
   auditComponents = [],
   findings,
+  isWide = false,
+  onToggleWide,
   onAddFinding
 }: StepAuditPanelProps) {
   const criteria = WCAG_CRITERIA as unknown as Array<{ id: string; name: string; level: string; category: string }>
@@ -254,7 +258,7 @@ export function StepAuditPanel({
           <span className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.12em' }}>
             Step-by-Step Audit
           </span>
-          <span className="font-sans text-xs" style={{ color: '#5f5e5e' }}>
+          <span className="font-sans text-xs" style={{ color: '#3a3a3a' }}>
             {index + 1} / {total}
           </span>
         </div>
@@ -267,8 +271,16 @@ export function StepAuditPanel({
                 style={{ width: `${progressPct}%`, background: '#2d7a4f' }}
               />
             </div>
-            <span className="font-sans text-xs" style={{ color: '#5f5e5e' }}>{progressPct}%</span>
+            <span className="font-sans text-xs" style={{ color: '#3a3a3a' }}>{progressPct}%</span>
           </div>
+          <button
+            onClick={onToggleWide}
+            className="p-1 transition-colors hover:text-foreground"
+            style={{ color: '#5f5e5e' }}
+            aria-label={isWide ? 'Exit wide mode' : 'Enter wide mode'}
+          >
+            {isWide ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </button>
           <button
             onClick={onClose}
             className="p-1 transition-colors hover:text-foreground"
@@ -288,13 +300,13 @@ export function StepAuditPanel({
               <div className="flex items-center gap-2 mb-2">
                 <span
                   className="font-sans text-xs font-bold uppercase tracking-widest"
-                  style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}
+                  style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}
                 >
                   Criteria {criterion.id}
                 </span>
                 <span
                   className="font-sans text-xs font-bold px-1.5 py-0.5 uppercase"
-                  style={{ background: '#f0ede9', color: '#5f5e5e', letterSpacing: '0.06em' }}
+                  style={{ background: '#f0ede9', color: '#3a3a3a', letterSpacing: '0.06em' }}
                 >
                   Level {criterion.level}
                 </span>
@@ -305,7 +317,7 @@ export function StepAuditPanel({
               >
                 {criterion.name}
               </h2>
-              <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>
+              <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#3a3a3a' }}>
                 {CRITERION_DESCRIPTIONS[criterion.id] ?? 'Review this criterion against the content and interactions on the page.'}
               </p>
               {/* WCAG reference links */}
@@ -361,7 +373,7 @@ export function StepAuditPanel({
           {/* Existing findings for this criterion */}
           {criterionFindings.length > 0 && (
             <div className="mt-4 space-y-1.5">
-              <p className="font-sans text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
+              <p className="font-sans text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Logged Findings
               </p>
               {criterionFindings.map((f) => (
@@ -389,7 +401,7 @@ export function StepAuditPanel({
 
         {/* ── Log a Finding form ── */}
         <div className="px-6 py-5">
-          <p className="font-sans text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
+          <p className="font-sans text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
             Log a Finding
           </p>
 
@@ -403,7 +415,7 @@ export function StepAuditPanel({
           <div className="space-y-4">
             {/* Title */}
             <div>
-              <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
+              <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Issue Title
               </Label>
               <input
@@ -417,7 +429,7 @@ export function StepAuditPanel({
 
             {/* Description */}
             <div>
-              <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
+              <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Description
               </Label>
               <textarea
@@ -432,7 +444,7 @@ export function StepAuditPanel({
 
             {/* Severity */}
             <div>
-              <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
+              <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Severity
               </Label>
               <div className="flex gap-2 flex-wrap">
@@ -457,7 +469,7 @@ export function StepAuditPanel({
 
             {/* Recommendations */}
             <div>
-              <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
+              <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Recommendation
               </Label>
               <textarea
@@ -473,7 +485,7 @@ export function StepAuditPanel({
             {/* Page + Component */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
+                <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                   Page
                 </Label>
                 {auditPages.length > 0 ? (
@@ -499,7 +511,7 @@ export function StepAuditPanel({
                 )}
               </div>
               <div>
-                <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
+                <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                   Component
                 </Label>
                 {auditComponents.length > 0 ? (
@@ -599,7 +611,7 @@ export function StepAuditPanel({
             Previous
           </button>
 
-          <span className="font-sans text-xs" style={{ color: '#5f5e5e' }}>
+          <span className="font-sans text-xs" style={{ color: '#3a3a3a' }}>
             {criterion.id}
           </span>
 

@@ -75,25 +75,32 @@ export function ProjectCard({ project, onClick, onUpdate, onDelete }: ProjectCar
   return (
     <>
       <article
-        className="border rounded-xl p-4 hover:border-primary/50 hover:shadow-sm transition-all cursor-pointer bg-card group"
+        className="p-5 cursor-pointer group transition-shadow hover:shadow-md"
+        style={{
+          background: '#ffffff',
+          borderRadius: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.06)'
+        }}
         onClick={onClick}
         aria-label={`${project.name}${project.clientName ? `, client: ${project.clientName}` : ''}, ${project.findingCount} findings`}
       >
-        <div className="flex items-start justify-between mb-2">
+        <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-sm truncate">{project.name}</h2>
+            <h2
+              className="font-serif font-bold leading-tight mb-1"
+              style={{ fontSize: '1.75rem', letterSpacing: '-0.02em', color: '#1a1a1a' }}
+            >
+              {project.name}
+            </h2>
             {project.clientName && (
-              <p className="text-xs text-muted-foreground truncate">{project.clientName}</p>
+              <p className="font-sans text-sm mb-0" style={{ color: '#5f5e5e' }}>{project.clientName}</p>
             )}
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 ml-1 opacity-0 group-hover:opacity-100 focus:opacity-100 flex-shrink-0"
-            onClick={(e) => {
-              e.stopPropagation()
-              setMenuOpen(true)
-            }}
+            className="flex-shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100"
+            onClick={(e) => { e.stopPropagation(); setMenuOpen(true) }}
             aria-label={`Options for ${project.name}`}
             aria-haspopup="dialog"
           >
@@ -102,19 +109,19 @@ export function ProjectCard({ project, onClick, onUpdate, onDelete }: ProjectCar
         </div>
 
         {project.description && (
-          <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{project.description}</p>
+          <p className="font-sans text-sm leading-relaxed mt-2 mb-3" style={{ color: '#5f5e5e' }}>{project.description}</p>
         )}
 
-        <div className="flex items-center justify-between mt-auto pt-2">
+        <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid #f0ede9' }}>
           <Badge variant={STATUS_VARIANTS[project.status] || 'outline'} className="text-xs">
             {STATUS_LABELS[project.status] || project.status}
           </Badge>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">
+            <span className="font-sans text-xs" style={{ color: '#5f5e5e' }}>
               {project.findingCount} issue{project.findingCount !== 1 ? 's' : ''}
             </span>
-            <span className="text-xs text-muted-foreground">·</span>
-            <span className="text-xs text-muted-foreground">
+            <span className="font-sans text-xs" style={{ color: '#5f5e5e' }}>·</span>
+            <span className="font-sans text-xs" style={{ color: '#5f5e5e' }}>
               {formatRelativeDate(project.updatedAt)}
             </span>
           </div>

@@ -13,7 +13,11 @@ import {
   LayoutGrid,
   Settings2,
   ListChecks,
-  Upload
+  Upload,
+  ChevronDown,
+  Check,
+  Maximize2,
+  Minimize2
 } from 'lucide-react'
 import { useFindings } from '../../hooks/useFindings'
 import { useTemplates } from '../../hooks/useTemplates'
@@ -87,6 +91,102 @@ interface Finding {
   updatedAt: number
 }
 
+function MultiSelectFilter({
+  label,
+  options,
+  selected,
+  onToggle,
+  onClear,
+}: {
+  label: string
+  options: { key: string; label: string }[]
+  selected: string[]
+  onToggle: (key: string) => void
+  onClear: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const selectedLabels = options.filter(o => selected.includes(o.key)).map(o => o.label)
+  const active = selected.length > 0
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(p => !p)}
+        className="flex items-center gap-1.5 font-sans text-xs font-semibold px-3 py-1.5 whitespace-nowrap transition-colors"
+        style={{
+          border: `1px solid ${active ? '#610000' : '#d0cac8'}`,
+          background: active ? '#610000' : 'transparent',
+          color: active ? '#fff' : '#2b2c2c',
+        }}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span>
+          {label}
+          {active && `: ${selectedLabels.slice(0, 2).join(', ')}${selectedLabels.length > 2 ? ` +${selectedLabels.length - 2}` : ''}`}
+        </span>
+        {active && (
+          <span
+            role="button"
+            aria-label={`Clear ${label} filter`}
+            onClick={e => { e.stopPropagation(); onClear() }}
+            className="ml-0.5 leading-none hover:opacity-80"
+          >
+            ×
+          </span>
+        )}
+        <ChevronDown className="h-3 w-3 opacity-60 flex-shrink-0" />
+      </button>
+
+      {open && (
+        <div
+          className="absolute top-full left-0 mt-1 z-50 min-w-[180px] py-1"
+          style={{ background: '#fff', border: '1px solid #e0dbd9', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', borderRadius: '4px' }}
+          role="listbox"
+          aria-multiselectable="true"
+        >
+          {options.map(o => {
+            const checked = selected.includes(o.key)
+            return (
+              <button
+                key={o.key}
+                onClick={() => onToggle(o.key)}
+                className="flex items-center gap-2.5 w-full px-3 py-2 font-sans text-sm text-left transition-colors hover:bg-[#f6f3f2]"
+                style={{ color: '#2b2c2c' }}
+                role="option"
+                aria-selected={checked}
+              >
+                <span
+                  className="flex-shrink-0 w-4 h-4 flex items-center justify-center"
+                  style={{
+                    border: `1.5px solid ${checked ? '#610000' : '#d0cac8'}`,
+                    background: checked ? '#610000' : 'transparent',
+                    borderRadius: '2px',
+                  }}
+                >
+                  {checked && <Check className="h-2.5 w-2.5 text-white" />}
+                </span>
+                {o.label}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function ProjectPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -105,6 +205,7 @@ export default function ProjectPage() {
   const [findingInitialData, setFindingInitialData] = useState<Partial<Finding> | undefined>(undefined)
   const [stepAuditOpen, setStepAuditOpen] = useState(false)
   const [stepAuditMounted, setStepAuditMounted] = useState(false)
+  const [stepAuditWide, setStepAuditWide] = useState(false)
   const [layoutReady, setLayoutReady] = useState(false)
 
   // Modal add page / component
@@ -339,7 +440,7 @@ export default function ProjectPage() {
       <div
         className="flex-shrink-0 flex flex-col overflow-hidden"
         style={{
-          width: stepAuditOpen ? '50%' : 'calc(100% - 18rem)',
+          width: stepAuditOpen ? (stepAuditWide ? '0%' : '50%') : 'calc(100% - 18rem)',
           transition: layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
         }}
       >
@@ -429,81 +530,51 @@ export default function ProjectPage() {
         {/* Findings list */}
         <main id="main-findings" className="flex-1 overflow-y-auto px-10 py-6">
 
-          {/* Secondary filters row */}
+          {/* Secondary filters row — Jira-style multiselect */}
           {findings.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap mb-4">
-              {SEVERITY_FILTERS.filter((f) => f.key !== 'all').map((f) => {
-                const active = severityFilter.includes(f.key)
-                return (
-                  <button
-                    key={f.key}
-                    onClick={() => toggleFilter(f.key, severityFilter, setSeverityFilter)}
-                    aria-pressed={active}
-                    className="font-sans text-xs font-semibold px-2.5 py-1 transition-colors"
-                    style={{
-                      letterSpacing: '0.06em',
-                      background: active ? '#2b2c2c' : '#f0ede9',
-                      color: active ? '#ffffff' : '#5f5e5e',
-                    }}
-                  >
-                    {f.label}
-                    <span className="ml-1 opacity-60">
-                      ({severityCounts[f.key as keyof typeof severityCounts] ?? 0})
-                    </span>
-                  </button>
-                )
-              })}
-              {STATUS_FILTERS.filter((f) => f.key !== 'all').map((f) => {
-                const active = statusFilter.includes(f.key)
-                return (
-                  <button
-                    key={f.key}
-                    onClick={() => toggleFilter(f.key, statusFilter, setStatusFilter)}
-                    aria-pressed={active}
-                    className="font-sans text-xs font-semibold px-2.5 py-1 transition-colors"
-                    style={{
-                      background: active ? '#2b2c2c' : '#f0ede9',
-                      color: active ? '#ffffff' : '#5f5e5e',
-                    }}
-                  >
-                    {f.label}
-                  </button>
-                )
-              })}
-              {uniquePages.map((page) => {
-                const active = pageFilter.includes(page)
-                return (
-                  <button
-                    key={page}
-                    onClick={() => toggleFilter(page, pageFilter, setPageFilter)}
-                    aria-pressed={active}
-                    className="font-sans text-xs px-2.5 py-1 transition-colors truncate max-w-[160px]"
-                    style={{
-                      background: active ? '#2b2c2c' : '#f0ede9',
-                      color: active ? '#ffffff' : '#5f5e5e',
-                    }}
-                  >
-                    {page}
-                  </button>
-                )
-              })}
-              {uniqueComponents.map((comp) => {
-                const active = componentFilter.includes(comp)
-                return (
-                  <button
-                    key={comp}
-                    onClick={() => toggleFilter(comp, componentFilter, setComponentFilter)}
-                    aria-pressed={active}
-                    className="font-sans text-xs px-2.5 py-1 transition-colors truncate max-w-[160px]"
-                    style={{
-                      background: active ? '#2b2c2c' : '#f0ede9',
-                      color: active ? '#ffffff' : '#5f5e5e',
-                    }}
-                  >
-                    {comp}
-                  </button>
-                )
-              })}
+            <div className="flex items-center gap-2 flex-wrap mb-5">
+              <MultiSelectFilter
+                label="Severity"
+                options={[
+                  { key: 'critical', label: 'Critical' },
+                  { key: 'serious', label: 'Serious' },
+                  { key: 'moderate', label: 'Moderate' },
+                  { key: 'minor', label: 'Minor' },
+                ]}
+                selected={severityFilter}
+                onToggle={v => toggleFilter(v, severityFilter, setSeverityFilter)}
+                onClear={() => setSeverityFilter([])}
+              />
+              <MultiSelectFilter
+                label="Status"
+                options={[
+                  { key: 'open', label: 'Open' },
+                  { key: 'in_progress', label: 'In Progress' },
+                  { key: 'resolved', label: 'Resolved' },
+                  { key: 'wont_fix', label: "Won't Fix" },
+                ]}
+                selected={statusFilter}
+                onToggle={v => toggleFilter(v, statusFilter, setStatusFilter)}
+                onClear={() => setStatusFilter([])}
+              />
+              {uniquePages.length > 0 && (
+                <MultiSelectFilter
+                  label="Pages"
+                  options={uniquePages.map(p => ({ key: p, label: p }))}
+                  selected={pageFilter}
+                  onToggle={v => toggleFilter(v, pageFilter, setPageFilter)}
+                  onClear={() => setPageFilter([])}
+                />
+              )}
+              {uniqueComponents.length > 0 && (
+                <MultiSelectFilter
+                  label="Components"
+                  options={uniqueComponents.map(c => ({ key: c, label: c }))}
+                  selected={componentFilter}
+                  onToggle={v => toggleFilter(v, componentFilter, setComponentFilter)}
+                  onClear={() => setComponentFilter([])}
+                />
+              )}
               {activeFilterCount > 0 && (
                 <button
                   onClick={() => {
@@ -513,7 +584,7 @@ export default function ProjectPage() {
                     setPageFilter([])
                     setComponentFilter([])
                   }}
-                  className="font-sans text-xs underline underline-offset-2 transition-colors"
+                  className="font-sans text-xs underline underline-offset-2"
                   style={{ color: '#610000' }}
                 >
                   Clear all
@@ -564,14 +635,16 @@ export default function ProjectPage() {
       <div
         className="flex-shrink-0 overflow-hidden flex flex-col"
         style={{
-          width: stepAuditOpen ? '50%' : '0',
+          width: stepAuditOpen ? (stepAuditWide ? '100%' : '50%') : '0',
           transition: layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
         }}
         aria-hidden={!stepAuditOpen}
       >
         {stepAuditMounted && (
           <StepAuditPanel
-            onClose={() => setStepAuditOpen(false)}
+            onClose={() => { setStepAuditOpen(false); setStepAuditWide(false) }}
+            isWide={stepAuditWide}
+            onToggleWide={() => setStepAuditWide(w => !w)}
             projectId={id!}
             auditPages={project.auditUrls}
             auditComponents={project.components}
