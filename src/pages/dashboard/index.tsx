@@ -56,7 +56,7 @@ export default function DashboardPage() {
     <div
       className="flex h-full overflow-hidden"
       style={{
-        gap: isCreateOpen ? '10px' : '0',
+        gap: isCreateOpen ? '4px' : '0',
         background: '#d8d3d1',
         paddingTop: isCreateOpen ? '10px' : '0',
         paddingBottom: isCreateOpen ? '10px' : '0',
