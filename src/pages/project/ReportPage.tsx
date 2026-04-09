@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AlertCircle, CheckCircle2, Clock, Check, ChevronDown, ChevronRight } from 'lucide-react'
 import { WCAG_CRITERIA } from '../../lib/utils'
-import type { CriterionStatus } from '../../components/audit/StepAuditPanel'
+import type { CriterionVerdict, CriterionProgress } from '../../components/audit/StepAuditPanel'
 
 interface Project {
   id: string
@@ -72,39 +72,49 @@ export default function ReportPage() {
 
   if (!project) return null
 
-  // Read criterion statuses from localStorage
+  // Read two-dimensional criterion statuses from localStorage
   const storageKey = `echo-step-audit-${id}`
-  let criteriaStatus: Record<string, CriterionStatus> = {}
+  let criteriaVerdict: Record<string, CriterionVerdict> = {}
+  let criteriaProgress: Record<string, CriterionProgress> = {}
   try {
     const saved = localStorage.getItem(storageKey)
     if (saved) {
-      const parsed = JSON.parse(saved)?.criteriaStatus
-      if (parsed && typeof parsed === 'object') criteriaStatus = parsed
+      const parsed = JSON.parse(saved)
+      if (parsed?.criteriaVerdict && typeof parsed.criteriaVerdict === 'object') criteriaVerdict = parsed.criteriaVerdict
+      if (parsed?.criteriaProgress && typeof parsed.criteriaProgress === 'object') criteriaProgress = parsed.criteriaProgress
     }
   } catch { /* ignore */ }
 
   const wcagCriteria = WCAG_CRITERIA as unknown as Criterion[]
 
-  // Derive effective status for each criterion
-  function getEffectiveStatus(c: Criterion): CriterionStatus {
+  function getVerdict(c: Criterion): CriterionVerdict {
     const criterionFindings = findings.filter((f) => f.wcagCriterion === c.id)
     const hasFail = criterionFindings.some((f) => f.status !== 'resolved')
-    return hasFail ? 'failed' : (criteriaStatus[c.id] ?? 'in_progress')
+    return hasFail ? 'fail' : (criteriaVerdict[c.id] ?? null)
   }
 
-  // Summary counts
-  const counts = wcagCriteria.reduce(
-    (acc, c) => {
-      const s = getEffectiveStatus(c)
-      acc[s] = (acc[s] ?? 0) + 1
-      return acc
-    },
-    {} as Record<string, number>
-  )
+  function getProgress(c: Criterion): CriterionProgress {
+    return criteriaProgress[c.id] ?? 'in_progress'
+  }
+
+  // Summary counts — verdict dimension
+  const verdictCounts = wcagCriteria.reduce((acc, c) => {
+    const v = getVerdict(c)
+    if (v) acc[v] = (acc[v] ?? 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  // Summary counts — progress dimension
+  const progressCounts = wcagCriteria.reduce((acc, c) => {
+    const p = getProgress(c)
+    acc[p] = (acc[p] ?? 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
   const total = wcagCriteria.length
-  const reviewed = (counts.passed ?? 0) + (counts.failed ?? 0) + (counts.complete ?? 0)
-  const passRate = reviewed > 0
-    ? Math.round(((counts.passed ?? 0) / reviewed) * 100)
+  const withVerdict = (verdictCounts.pass ?? 0) + (verdictCounts.fail ?? 0)
+  const passRate = withVerdict > 0
+    ? Math.round(((verdictCounts.pass ?? 0) / withVerdict) * 100)
     : 0
 
   // Group by category
@@ -121,13 +131,6 @@ export default function ReportPage() {
       else next.add(criterionId)
       return next
     })
-  }
-
-  const statusConfig: Record<CriterionStatus, { label: string; bg: string; text: string; icon: React.ReactNode }> = {
-    passed: { label: 'Passed', bg: '#2d7a4f', text: '#fff', icon: <CheckCircle2 className="h-3 w-3" /> },
-    failed: { label: 'Failed', bg: '#610000', text: '#fff', icon: <AlertCircle className="h-3 w-3" /> },
-    complete: { label: 'Complete', bg: '#2b2c2c', text: '#fff', icon: <Check className="h-3 w-3" /> },
-    in_progress: { label: 'In Progress', bg: '#e5e2e1', text: '#5f5e5e', icon: <Clock className="h-3 w-3" /> },
   }
 
   return (
@@ -157,44 +160,63 @@ export default function ReportPage() {
             )}
           </div>
 
-          {/* Summary stats */}
-          <div className="flex items-stretch gap-0 flex-shrink-0" style={{ border: '1px solid #e0dbd9', borderRadius: '6px', overflow: 'hidden' }}>
-            {[
-              { label: 'Total', value: total, color: '#1a1a1a' },
-              { label: 'Passed', value: counts.passed ?? 0, color: '#2d7a4f' },
-              { label: 'Failed', value: counts.failed ?? 0, color: '#610000' },
-              { label: 'Complete', value: counts.complete ?? 0, color: '#2b2c2c' },
-              { label: 'In Progress', value: counts.in_progress ?? total, color: '#8b6914' },
-              { label: 'Pass Rate', value: `${passRate}%`, color: passRate >= 80 ? '#2d7a4f' : passRate >= 50 ? '#8b6914' : '#610000' },
-            ].map(({ label, value, color }, i) => (
-              <div
-                key={label}
-                className="flex flex-col items-center justify-center px-5 py-3"
-                style={{
-                  background: '#fff',
-                  borderLeft: i > 0 ? '1px solid #e0dbd9' : 'none',
-                  minWidth: '72px',
-                }}
-              >
-                <span className="font-serif font-bold" style={{ fontSize: '1.6rem', color, lineHeight: 1 }}>{value}</span>
-                <span className="font-sans text-xs mt-1 whitespace-nowrap" style={{ color: '#5f5e5e' }}>{label}</span>
-              </div>
-            ))}
+          {/* Summary stats — two sections: verdict + progress */}
+          <div className="flex flex-col gap-2 flex-shrink-0">
+            {/* Verdict stats */}
+            <div className="flex items-stretch gap-0" style={{ border: '1px solid #e0dbd9', borderRadius: '6px', overflow: 'hidden' }}>
+              {[
+                { label: 'Total', value: total, color: '#1a1a1a' },
+                { label: 'Pass', value: verdictCounts.pass ?? 0, color: '#2d7a4f' },
+                { label: 'Fail', value: verdictCounts.fail ?? 0, color: '#610000' },
+                { label: 'No Verdict', value: total - withVerdict, color: '#5f5e5e' },
+                { label: 'Pass Rate', value: `${passRate}%`, color: passRate >= 80 ? '#2d7a4f' : passRate >= 50 ? '#8b6914' : '#610000' },
+              ].map(({ label, value, color }, i) => (
+                <div key={label} className="flex flex-col items-center justify-center px-4 py-2.5"
+                  style={{ background: '#fff', borderLeft: i > 0 ? '1px solid #e0dbd9' : 'none', minWidth: '66px' }}>
+                  <span className="font-serif font-bold" style={{ fontSize: '1.4rem', color, lineHeight: 1 }}>{value}</span>
+                  <span className="font-sans text-xs mt-0.5 whitespace-nowrap" style={{ color: '#5f5e5e' }}>{label}</span>
+                </div>
+              ))}
+            </div>
+            {/* Progress stats */}
+            <div className="flex items-stretch gap-0" style={{ border: '1px solid #e0dbd9', borderRadius: '6px', overflow: 'hidden' }}>
+              {[
+                { label: 'Complete', value: progressCounts.complete ?? 0, color: '#2b2c2c' },
+                { label: 'In Progress', value: progressCounts.in_progress ?? total, color: '#8b6914' },
+              ].map(({ label, value, color }, i) => (
+                <div key={label} className="flex flex-col items-center justify-center px-4 py-2.5"
+                  style={{ background: '#fff', borderLeft: i > 0 ? '1px solid #e0dbd9' : 'none', minWidth: '80px' }}>
+                  <span className="font-serif font-bold" style={{ fontSize: '1.4rem', color, lineHeight: 1 }}>{value}</span>
+                  <span className="font-sans text-xs mt-0.5 whitespace-nowrap" style={{ color: '#5f5e5e' }}>{label}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Progress bar */}
-        <div className="mt-5 flex items-center gap-3">
-          <div className="flex-1 h-2" style={{ background: '#e0dbd9', borderRadius: '2px', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', height: '100%' }}>
-              <div style={{ width: `${((counts.passed ?? 0) / total) * 100}%`, background: '#2d7a4f', transition: 'width 0.3s' }} />
-              <div style={{ width: `${((counts.failed ?? 0) / total) * 100}%`, background: '#610000', transition: 'width 0.3s' }} />
-              <div style={{ width: `${((counts.complete ?? 0) / total) * 100}%`, background: '#2b2c2c', transition: 'width 0.3s' }} />
+        {/* Progress bars — verdict (top) and completion (bottom) */}
+        <div className="mt-5 space-y-2">
+          <div className="flex items-center gap-3">
+            <span className="font-sans text-xs w-20 flex-shrink-0" style={{ color: '#5f5e5e' }}>Verdict</span>
+            <div className="flex-1 h-2" style={{ background: '#e0dbd9', borderRadius: '2px', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', height: '100%' }}>
+                <div style={{ width: `${((verdictCounts.pass ?? 0) / total) * 100}%`, background: '#2d7a4f', transition: 'width 0.3s' }} />
+                <div style={{ width: `${((verdictCounts.fail ?? 0) / total) * 100}%`, background: '#610000', transition: 'width 0.3s' }} />
+              </div>
             </div>
+            <span className="font-sans text-xs flex-shrink-0 w-24 text-right" style={{ color: '#5f5e5e' }}>
+              {withVerdict} of {total} criteria
+            </span>
           </div>
-          <span className="font-sans text-xs flex-shrink-0" style={{ color: '#5f5e5e' }}>
-            {reviewed} of {total} criteria reviewed
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="font-sans text-xs w-20 flex-shrink-0" style={{ color: '#5f5e5e' }}>Progress</span>
+            <div className="flex-1 h-2" style={{ background: '#e0dbd9', borderRadius: '2px', overflow: 'hidden' }}>
+              <div style={{ width: `${((progressCounts.complete ?? 0) / total) * 100}%`, background: '#2b2c2c', transition: 'width 0.3s', height: '100%' }} />
+            </div>
+            <span className="font-sans text-xs flex-shrink-0 w-24 text-right" style={{ color: '#5f5e5e' }}>
+              {progressCounts.complete ?? 0} complete
+            </span>
+          </div>
         </div>
       </div>
 
@@ -202,11 +224,8 @@ export default function ReportPage() {
       <div className="flex-1 overflow-y-auto px-10 py-8">
         {categories.map((cat) => {
           const items = groupedByCategory[cat] ?? []
-          const catCounts = items.reduce((acc, c) => {
-            const s = getEffectiveStatus(c)
-            acc[s] = (acc[s] ?? 0) + 1
-            return acc
-          }, {} as Record<string, number>)
+          const catVerdicts = items.reduce((acc, c) => { const v = getVerdict(c); if (v) acc[v] = (acc[v] ?? 0) + 1; return acc }, {} as Record<string, number>)
+          const catComplete = items.filter(c => getProgress(c) === 'complete').length
 
           return (
             <div key={cat} className="mb-10">
@@ -219,24 +238,16 @@ export default function ReportPage() {
                   <span className="font-sans text-xs" style={{ color: '#5f5e5e' }}>{items.length} criteria</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  {(['passed', 'failed', 'complete', 'in_progress'] as CriterionStatus[]).map((s) =>
-                    catCounts[s] ? (
-                      <span
-                        key={s}
-                        className="font-sans text-xs font-bold px-2 py-0.5"
-                        style={{ background: statusConfig[s].bg, color: statusConfig[s].text, borderRadius: '3px' }}
-                      >
-                        {catCounts[s]} {statusConfig[s].label}
-                      </span>
-                    ) : null
-                  )}
+                  {catVerdicts.pass ? <span className="font-sans text-xs font-bold px-2 py-0.5" style={{ background: '#2d7a4f', color: '#fff', borderRadius: '3px' }}>{catVerdicts.pass} Pass</span> : null}
+                  {catVerdicts.fail ? <span className="font-sans text-xs font-bold px-2 py-0.5" style={{ background: '#610000', color: '#fff', borderRadius: '3px' }}>{catVerdicts.fail} Fail</span> : null}
+                  {catComplete > 0 ? <span className="font-sans text-xs font-bold px-2 py-0.5" style={{ background: '#2b2c2c', color: '#fff', borderRadius: '3px' }}>{catComplete} Complete</span> : null}
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 {items.map((c) => {
-                  const effectiveStatus = getEffectiveStatus(c)
-                  const { label, bg, text, icon } = statusConfig[effectiveStatus]
+                  const v = getVerdict(c)
+                  const p = getProgress(c)
                   const criterionFindings = findings.filter((f) => f.wcagCriterion === c.id)
                   const isExpanded = expandedCriteria.has(c.id)
                   const hasFindings = criterionFindings.length > 0
@@ -271,13 +282,17 @@ export default function ReportPage() {
                             </span>
                           )}
                         </div>
-                        <span
-                          className="flex-shrink-0 flex items-center gap-1 font-sans text-xs font-bold uppercase px-2.5 py-1"
-                          style={{ background: bg, color: text, letterSpacing: '0.08em', borderRadius: '3px', whiteSpace: 'nowrap' }}
-                        >
-                          {icon}
-                          {label}
-                        </span>
+                        {/* Two independent status badges */}
+                        <div className="flex-shrink-0 flex items-center gap-1.5">
+                          {v === 'pass' && <span className="flex items-center gap-1 font-sans text-xs font-bold uppercase px-2.5 py-1" style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.08em', borderRadius: '3px' }}><CheckCircle2 className="h-3 w-3" />Pass</span>}
+                          {v === 'fail' && <span className="flex items-center gap-1 font-sans text-xs font-bold uppercase px-2.5 py-1" style={{ background: '#610000', color: '#fff', letterSpacing: '0.08em', borderRadius: '3px' }}><AlertCircle className="h-3 w-3" />Fail</span>}
+                          {!v && <span className="font-sans text-xs px-2.5 py-1" style={{ background: '#f0ede9', color: '#5f5e5e', borderRadius: '3px' }}>No Verdict</span>}
+                          {p === 'complete' ? (
+                            <span className="flex items-center gap-1 font-sans text-xs font-bold uppercase px-2.5 py-1" style={{ background: '#2b2c2c', color: '#fff', letterSpacing: '0.08em', borderRadius: '3px' }}><Check className="h-3 w-3" />Complete</span>
+                          ) : (
+                            <span className="flex items-center gap-1 font-sans text-xs font-bold uppercase px-2.5 py-1" style={{ background: '#e5e2e1', color: '#5f5e5e', letterSpacing: '0.08em', borderRadius: '3px' }}><Clock className="h-3 w-3" />In Progress</span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Expanded findings */}

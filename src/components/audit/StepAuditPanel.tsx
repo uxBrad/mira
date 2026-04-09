@@ -71,8 +71,13 @@ const CRITERION_DESCRIPTIONS: Record<string, string> = {
   '4.1.3': 'In content implemented using markup languages, status messages can be programmatically determined through role or property so they can be announced without receiving focus.',
 }
 
-// ─── Per-criterion audit status (local, session-only) ────────────────────────
-export type CriterionStatus = 'in_progress' | 'passed' | 'failed' | 'complete'
+// ─── Per-criterion audit status — two independent dimensions ────────────────
+// Verdict: did this criterion pass or fail? (null = no verdict yet)
+export type CriterionVerdict = 'pass' | 'fail' | null
+// Progress: where is the audit work? (default: in_progress)
+export type CriterionProgress = 'in_progress' | 'complete'
+// Legacy alias kept for ReportPage compat
+export type CriterionStatus = CriterionVerdict | CriterionProgress
 
 interface Finding {
   id: string
@@ -151,12 +156,25 @@ export function StepAuditPanel({
     return 0
   })
 
-  const [criteriaStatus, setCriteriaStatus] = useState<Record<string, CriterionStatus>>(() => {
+  // verdict: 'pass' | 'fail' | absent=null
+  const [criteriaVerdict, setCriteriaVerdict] = useState<Record<string, 'pass' | 'fail'>>(() => {
     try {
       const saved = localStorage.getItem(storageKey)
       if (saved) {
-        const status = JSON.parse(saved)?.criteriaStatus
-        if (status && typeof status === 'object') return status
+        const v = JSON.parse(saved)?.criteriaVerdict
+        if (v && typeof v === 'object') return v
+      }
+    } catch { /* ignore */ }
+    return {}
+  })
+
+  // progress: 'complete' | absent='in_progress'
+  const [criteriaProgress, setCriteriaProgress] = useState<Partial<Record<string, 'complete'>>>(() => {
+    try {
+      const saved = localStorage.getItem(storageKey)
+      if (saved) {
+        const p = JSON.parse(saved)?.criteriaProgress
+        if (p && typeof p === 'object') return p
       }
     } catch { /* ignore */ }
     return {}
@@ -174,12 +192,12 @@ export function StepAuditPanel({
   const [component, setComponent] = useState('__none__')
   const [selectedTemplateId, setSelectedTemplateId] = useState('__none__')
 
-  // ─── Persist position whenever index or status changes ───────────────────
+  // ─── Persist position + status whenever anything changes ────────────────
   useEffect(() => {
     try {
-      localStorage.setItem(storageKey, JSON.stringify({ index, criteriaStatus }))
+      localStorage.setItem(storageKey, JSON.stringify({ index, criteriaVerdict, criteriaProgress }))
     } catch { /* ignore – private browsing may block writes */ }
-  }, [index, criteriaStatus, storageKey])
+  }, [index, criteriaVerdict, criteriaProgress, storageKey])
 
   const criterion = criteria[index]
   const total = criteria.length
@@ -189,11 +207,12 @@ export function StepAuditPanel({
     (f) => f.wcagCriterion === criterion.id
   )
 
-  // Derive display status — default is in_progress
-  const localStatus = criteriaStatus[criterion.id] ?? 'in_progress'
+  // Derive current two-dimensional status
   const hasFail = criterionFindings.some((f) => f.status !== 'resolved')
-  // Effective status: failed overrides manual status when there are active findings
-  const effectiveStatus: CriterionStatus = hasFail ? 'failed' : localStatus
+  // Verdict: auto-fail if active findings, otherwise use stored value
+  const verdict: CriterionVerdict = hasFail ? 'fail' : (criteriaVerdict[criterion.id] ?? null)
+  // Progress: stored value, default in_progress
+  const progress: CriterionProgress = criteriaProgress[criterion.id] ?? 'in_progress'
 
   // Reset form when navigating
   useEffect(() => {
@@ -224,8 +243,27 @@ export function StepAuditPanel({
     setRecommendations(tpl.recommendations ?? '')
   }
 
-  function setStatus(status: CriterionStatus) {
-    setCriteriaStatus((prev) => ({ ...prev, [criterion.id]: status }))
+  function setVerdict(v: 'pass' | 'fail') {
+    setCriteriaVerdict((prev) => {
+      // Toggle off if already selected (except when hasFail forces fail)
+      if (prev[criterion.id] === v && !hasFail) {
+        const next = { ...prev }
+        delete next[criterion.id]
+        return next
+      }
+      return { ...prev, [criterion.id]: v }
+    })
+  }
+
+  function setProgress(p: CriterionProgress) {
+    setCriteriaProgress((prev) => {
+      if (p === 'in_progress') {
+        const next = { ...prev }
+        delete next[criterion.id]
+        return next
+      }
+      return { ...prev, [criterion.id]: 'complete' }
+    })
   }
 
   async function handleLogFinding() {
@@ -254,8 +292,8 @@ export function StepAuditPanel({
       setPageUrl('__none__')
       setComponent('__none__')
       setSelectedTemplateId('__none__')
-      // Auto-mark as failed when a finding is logged
-      setStatus('failed')
+      // Auto-mark verdict as fail when a finding is logged
+      setCriteriaVerdict((prev) => ({ ...prev, [criterion.id]: 'fail' }))
       setTimeout(() => setSubmitSuccess(false), 2000)
     } finally {
       setIsSubmitting(false)
@@ -263,7 +301,7 @@ export function StepAuditPanel({
   }
 
   const progressPct = Math.round(
-    (Object.values(criteriaStatus).filter((s) => s === 'passed' || s === 'complete' || s === 'failed').length / total) * 100
+    (Object.values(criteriaProgress).filter((p) => p === 'complete').length / total) * 100
   )
 
   return (
@@ -367,25 +405,24 @@ export function StepAuditPanel({
               </div>
             </div>
 
-            {/* Status badge */}
-            <div className="flex-shrink-0">
-              {effectiveStatus === 'failed' && (
-                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#610000', color: '#fff', letterSpacing: '0.08em' }}>
-                  <AlertCircle className="h-3 w-3" /> Failed ({criterionFindings.length})
+            {/* Status badges — two independent dimensions */}
+            <div className="flex-shrink-0 flex items-center gap-1.5">
+              {verdict === 'pass' && (
+                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.08em', borderRadius: '3px' }}>
+                  <CheckCircle2 className="h-3 w-3" /> Pass
                 </span>
               )}
-              {effectiveStatus === 'passed' && (
-                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.08em' }}>
-                  <CheckCircle2 className="h-3 w-3" /> Passed
+              {verdict === 'fail' && (
+                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#610000', color: '#fff', letterSpacing: '0.08em', borderRadius: '3px' }}>
+                  <AlertCircle className="h-3 w-3" /> Fail {criterionFindings.length > 0 && `(${criterionFindings.length})`}
                 </span>
               )}
-              {effectiveStatus === 'complete' && (
-                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#2b2c2c', color: '#fff', letterSpacing: '0.08em' }}>
+              {progress === 'complete' ? (
+                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#2b2c2c', color: '#fff', letterSpacing: '0.08em', borderRadius: '3px' }}>
                   <Check className="h-3 w-3" /> Complete
                 </span>
-              )}
-              {effectiveStatus === 'in_progress' && (
-                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#8b6914', color: '#fff', letterSpacing: '0.08em' }}>
+              ) : (
+                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#e5e2e1', color: '#5f5e5e', letterSpacing: '0.08em', borderRadius: '3px' }}>
                   <Clock className="h-3 w-3" /> In Progress
                 </span>
               )}
@@ -610,48 +647,50 @@ export function StepAuditPanel({
             Prev
           </button>
 
-          {/* Status buttons — centered: [Passed][Failed] | [In Progress][Complete] */}
-          <div className="flex items-center gap-1.5 justify-center flex-wrap">
+          {/* Status buttons — two independent groups */}
+          <div className="flex items-center gap-1.5 justify-center">
+            {/* Verdict group */}
             <button
-              onClick={() => setStatus('passed')}
+              onClick={() => setVerdict('pass')}
               className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
               style={{
                 letterSpacing: '0.06em',
                 borderRadius: '4px',
-                background: effectiveStatus === 'passed' ? '#2d7a4f' : 'transparent',
-                color: effectiveStatus === 'passed' ? '#fff' : '#2d7a4f',
+                background: verdict === 'pass' ? '#2d7a4f' : 'transparent',
+                color: verdict === 'pass' ? '#fff' : '#2d7a4f',
                 border: '1px solid #2d7a4f',
               }}
             >
               <CheckCircle2 className="h-3 w-3" />
-              Passed
+              Pass
             </button>
             <button
-              onClick={() => setStatus('failed')}
+              onClick={() => setVerdict('fail')}
               className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
               style={{
                 letterSpacing: '0.06em',
                 borderRadius: '4px',
-                background: effectiveStatus === 'failed' ? '#610000' : 'transparent',
-                color: effectiveStatus === 'failed' ? '#fff' : '#610000',
+                background: verdict === 'fail' ? '#610000' : 'transparent',
+                color: verdict === 'fail' ? '#fff' : '#610000',
                 border: '1px solid #610000',
               }}
             >
               <XCircle className="h-3 w-3" />
-              Failed
+              Fail
             </button>
 
             {/* Divider */}
             <span style={{ width: '1px', height: '24px', background: '#d0cac8', flexShrink: 0 }} aria-hidden="true" />
 
+            {/* Progress group */}
             <button
-              onClick={() => setStatus('in_progress')}
+              onClick={() => setProgress('in_progress')}
               className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
               style={{
                 letterSpacing: '0.06em',
                 borderRadius: '4px',
-                background: effectiveStatus === 'in_progress' ? '#8b6914' : 'transparent',
-                color: effectiveStatus === 'in_progress' ? '#fff' : '#8b6914',
+                background: progress === 'in_progress' ? '#8b6914' : 'transparent',
+                color: progress === 'in_progress' ? '#fff' : '#8b6914',
                 border: '1px solid #8b6914',
               }}
             >
@@ -659,13 +698,13 @@ export function StepAuditPanel({
               In Progress
             </button>
             <button
-              onClick={() => setStatus('complete')}
+              onClick={() => setProgress('complete')}
               className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
               style={{
                 letterSpacing: '0.06em',
                 borderRadius: '4px',
-                background: effectiveStatus === 'complete' ? '#2b2c2c' : 'transparent',
-                color: effectiveStatus === 'complete' ? '#fff' : '#2b2c2c',
+                background: progress === 'complete' ? '#2b2c2c' : 'transparent',
+                color: progress === 'complete' ? '#fff' : '#2b2c2c',
                 border: '1px solid #2b2c2c',
               }}
             >
