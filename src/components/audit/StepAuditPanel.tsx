@@ -613,7 +613,7 @@ export function StepAuditPanel({
           {/* Status buttons — centered: [Passed][Failed] | [In Progress][Complete] */}
           <div className="flex items-center gap-1.5 justify-center flex-wrap">
             <button
-              onClick={() => !hasFail && setStatus('passed')}
+              onClick={() => setStatus('passed')}
               className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
               style={{
                 letterSpacing: '0.06em',
@@ -621,25 +621,21 @@ export function StepAuditPanel({
                 background: effectiveStatus === 'passed' ? '#2d7a4f' : 'transparent',
                 color: effectiveStatus === 'passed' ? '#fff' : '#2d7a4f',
                 border: '1px solid #2d7a4f',
-                opacity: hasFail ? 0.4 : 1,
-                cursor: hasFail ? 'not-allowed' : 'pointer',
               }}
             >
               <CheckCircle2 className="h-3 w-3" />
               Passed
             </button>
             <button
-              disabled
-              className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest"
+              onClick={() => setStatus('failed')}
+              className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
               style={{
                 letterSpacing: '0.06em',
                 borderRadius: '4px',
                 background: effectiveStatus === 'failed' ? '#610000' : 'transparent',
                 color: effectiveStatus === 'failed' ? '#fff' : '#610000',
                 border: '1px solid #610000',
-                cursor: 'default',
               }}
-              title="Auto-set when a finding is logged"
             >
               <XCircle className="h-3 w-3" />
               Failed

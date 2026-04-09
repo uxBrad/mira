@@ -18,8 +18,6 @@ import {
 } from 'lucide-react'
 import { useFindings } from '../../hooks/useFindings'
 import { useTemplates } from '../../hooks/useTemplates'
-import { WCAG_CRITERIA } from '../../lib/utils'
-import type { CriterionStatus } from '../../components/audit/StepAuditPanel'
 import { FindingTable } from '../../components/findings/FindingTable'
 import { FindingFormSidebar } from '../../components/findings/FindingFormSidebar'
 import { ProjectFormDialog } from '../../components/projects/ProjectFormDialog'
@@ -186,7 +184,6 @@ export default function ProjectPage() {
   const [stepAuditWide, setStepAuditWide] = useState(false)
   const [findingSidebarMounted, setFindingSidebarMounted] = useState(false)
   const [findingSidebarWide, setFindingSidebarWide] = useState(false)
-  const [reportOpen, setReportOpen] = useState(false)
   const [layoutReady, setLayoutReady] = useState(false)
 
   // Modal manage pages / components
@@ -772,7 +769,7 @@ export default function ProjectPage() {
           <button
             className="flex w-full items-center justify-between px-4 py-3 mb-4 font-sans text-sm font-bold uppercase tracking-widest transition-colors hover:bg-[#e0dbd9]"
             style={{ background: '#e5e2e1', color: '#2b2c2c', letterSpacing: '0.1em' }}
-            onClick={() => setReportOpen(true)}
+            onClick={() => navigate(`/project/${id}/report`)}
           >
             <span>View Report</span>
             <Eye className="h-4 w-4" aria-hidden="true" />
@@ -1099,102 +1096,6 @@ export default function ProjectPage() {
               Done
             </button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── Audit Report modal ── */}
-      <Dialog open={reportOpen} onOpenChange={setReportOpen}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden" style={{ maxHeight: '90vh' }}>
-          <div className="flex flex-col" style={{ height: '85vh' }}>
-            {/* Header */}
-            <div className="flex-shrink-0 flex items-center justify-between px-8 py-5" style={{ borderBottom: '1px solid #e0dbd9', background: '#f6f3f2' }}>
-              <div>
-                <p className="font-sans text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color: '#610000', letterSpacing: '0.12em' }}>Audit Report</p>
-                <h2 className="font-serif font-bold text-xl" style={{ color: '#1a1a1a' }}>{project.name}</h2>
-              </div>
-            </div>
-
-            {/* Criteria list */}
-            <div className="flex-1 overflow-y-auto px-8 py-6">
-              {(() => {
-                const storageKey = `echo-step-audit-${id}`
-                let criteriaStatus: Record<string, CriterionStatus> = {}
-                try {
-                  const saved = localStorage.getItem(storageKey)
-                  if (saved) {
-                    const parsed = JSON.parse(saved)?.criteriaStatus
-                    if (parsed && typeof parsed === 'object') criteriaStatus = parsed
-                  }
-                } catch { /* ignore */ }
-
-                const wcagCriteria = WCAG_CRITERIA as unknown as Array<{ id: string; name: string; level: string; category: string }>
-
-                const groupedByCategory = wcagCriteria.reduce<Record<string, typeof wcagCriteria>>((acc, c) => {
-                  const cat = c.category ?? 'Other'
-                  if (!acc[cat]) acc[cat] = []
-                  acc[cat].push(c)
-                  return acc
-                }, {})
-
-                return Object.entries(groupedByCategory).map(([category, items]) => (
-                  <div key={category} className="mb-8">
-                    <p className="font-sans text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#610000', letterSpacing: '0.12em' }}>
-                      {category}
-                    </p>
-                    <div className="space-y-1">
-                      {items.map((c) => {
-                        const criterionFindings = findings.filter((f) => f.wcagCriterion === c.id)
-                        const hasFail = criterionFindings.some((f) => f.status !== 'resolved')
-                        const localStatus = criteriaStatus[c.id] ?? 'in_progress'
-                        const effectiveStatus: CriterionStatus = hasFail ? 'failed' : localStatus
-
-                        const statusColors: Record<CriterionStatus, { bg: string; text: string; label: string }> = {
-                          passed: { bg: '#2d7a4f', text: '#fff', label: 'Passed' },
-                          failed: { bg: '#610000', text: '#fff', label: `Failed (${criterionFindings.length})` },
-                          complete: { bg: '#2b2c2c', text: '#fff', label: 'Complete' },
-                          in_progress: { bg: '#e5e2e1', text: '#5f5e5e', label: 'In Progress' },
-                        }
-                        const { bg, text, label } = statusColors[effectiveStatus]
-
-                        return (
-                          <div
-                            key={c.id}
-                            className="flex items-center justify-between gap-4 px-4 py-3"
-                            style={{ background: '#f6f3f2', borderRadius: '4px' }}
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <span className="font-sans text-xs font-bold flex-shrink-0" style={{ color: '#610000', minWidth: '3rem' }}>{c.id}</span>
-                              <span className="font-sans text-sm truncate" style={{ color: '#2b2c2c' }}>{c.name}</span>
-                              <span className="font-sans text-xs flex-shrink-0" style={{ color: '#5f5e5e', background: '#e5e2e1', padding: '1px 6px', borderRadius: '2px' }}>
-                                {c.level}
-                              </span>
-                            </div>
-                            <span
-                              className="flex-shrink-0 font-sans text-xs font-bold uppercase px-2.5 py-1"
-                              style={{ background: bg, color: text, letterSpacing: '0.08em', borderRadius: '3px', whiteSpace: 'nowrap' }}
-                            >
-                              {label}
-                            </span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                ))
-              })()}
-            </div>
-
-            {/* Footer */}
-            <div className="flex-shrink-0 flex items-center justify-end px-8 py-4" style={{ borderTop: '1px solid #e0dbd9', background: '#f6f3f2' }}>
-              <button
-                onClick={() => setReportOpen(false)}
-                className="px-4 py-2 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
-                style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '4px' }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
         </DialogContent>
       </Dialog>
 

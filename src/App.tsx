@@ -11,6 +11,7 @@ import ForgotPasswordPage from './pages/auth/ForgotPassword'
 // App pages
 import DashboardPage from './pages/dashboard'
 import ProjectPage from './pages/project/ProjectPage'
+import ReportPage from './pages/project/ReportPage'
 import SettingsPage from './pages/settings'
 import PaywallPage from './pages/auth/Paywall'
 import TemplatesPage from './pages/templates'
@@ -64,6 +65,7 @@ function AppRoutes() {
       <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
         <Route path="/" element={<DashboardPage />} />
         <Route path="/project/:id" element={<ProjectPage />} />
+        <Route path="/project/:id/report" element={<ReportPage />} />
         <Route path="/templates" element={<TemplatesPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
