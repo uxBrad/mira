@@ -160,5 +160,30 @@ interface Window {
       onReady: (cb: () => void) => void
       install: () => Promise<void>
     }
+    import: {
+      chooseFile: () => Promise<string | null>
+      parseFile: (filePath: string) => Promise<{
+        pageTitle: string
+        pageUrl: string
+        findings: Array<{
+          previewId: string
+          issueType: 'Violation' | 'Needs review' | 'Recommendation'
+          title: string
+          wcagCriterion: string
+          wcagCriterionName: string
+          wcagLevel: string
+          category: string
+          severity: 'critical' | 'serious' | 'moderate' | 'minor'
+          status: 'open' | 'needs_review'
+          pageUrl: string
+          pageTitle: string
+          description: string
+          instanceCount: number
+          elements: string[]
+        }>
+        skipped: number
+      }>
+      importFindings: (projectId: string, findings: unknown[]) => Promise<{ imported: number }>
+    }
   }
 }

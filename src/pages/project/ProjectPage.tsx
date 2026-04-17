@@ -22,6 +22,7 @@ import { FindingTable } from '../../components/findings/FindingTable'
 import { FindingFormSidebar } from '../../components/findings/FindingFormSidebar'
 import { ProjectFormDialog } from '../../components/projects/ProjectFormDialog'
 import { StepAuditPanel } from '../../components/audit/StepAuditPanel'
+import { ImportFindingsDialog } from '../../components/findings/ImportFindingsDialog'
 import { useToast } from '../../components/ui/use-toast'
 import {
   Dialog,
@@ -172,6 +173,7 @@ export default function ProjectPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [editFinding, setEditFinding] = useState<Finding | null>(null)
   const [editProjectOpen, setEditProjectOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const [isExporting, setIsExporting] = useState<'pdf' | 'csv' | null>(null)
   const [principleFilter, setPrincipleFilter] = useState<string>('all')
   const [severityFilter, setSeverityFilter] = useState<string[]>([])
@@ -196,7 +198,7 @@ export default function ProjectPage() {
   const [renamingComponent, setRenamingComponent] = useState<string | null>(null)
   const [renameComponentValue, setRenameComponentValue] = useState('')
 
-  const { findings, isLoading, error, createFinding, updateFinding, deleteFinding } = useFindings(id!)
+  const { findings, isLoading, error, reload, createFinding, updateFinding, deleteFinding } = useFindings(id!)
   const { templates } = useTemplates()
 
   useEffect(() => {
@@ -815,7 +817,7 @@ export default function ProjectPage() {
 
             {/* Import Report */}
             <button
-              onClick={() => toast({ title: 'Import coming soon', description: 'IBM Equal Access, axe, and other tool formats will be supported.' })}
+              onClick={() => setImportOpen(true)}
               className="flex w-full items-center justify-between px-3 py-2.5 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
               style={{ border: '1px solid #d0cac8', color: '#2b2c2c', background: 'transparent' }}
             >
@@ -1121,6 +1123,19 @@ export default function ProjectPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* ── Import Findings modal ── */}
+      {id && (
+        <ImportFindingsDialog
+          open={importOpen}
+          onOpenChange={setImportOpen}
+          projectId={id}
+          onImported={() => {
+            reload()
+            toast({ title: 'Findings imported', description: 'The findings have been added to your project.' })
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -99,6 +99,14 @@ const templatesAPI = {
   delete: (id: string) => ipcRenderer.invoke('templates:delete', id)
 }
 
+// Import API
+const importAPI = {
+  chooseFile: () => ipcRenderer.invoke('import:chooseFile'),
+  parseFile: (filePath: string) => ipcRenderer.invoke('import:parseFile', filePath),
+  importFindings: (projectId: string, findings: unknown[]) =>
+    ipcRenderer.invoke('import:importFindings', projectId, findings)
+}
+
 // Update API
 const updateAPI = {
   onAvailable: (cb: () => void) => ipcRenderer.on('update:available', cb),
@@ -122,7 +130,8 @@ if (process.contextIsolated) {
       findings: findingsAPI,
       templates: templatesAPI,
       export: exportAPI,
-      update: updateAPI
+      update: updateAPI,
+      import: importAPI
     })
   } catch (error) {
     console.error(error)
@@ -137,6 +146,7 @@ if (process.contextIsolated) {
     findings: findingsAPI,
     templates: templatesAPI,
     export: exportAPI,
-    update: updateAPI
+    update: updateAPI,
+    import: importAPI
   }
 }
