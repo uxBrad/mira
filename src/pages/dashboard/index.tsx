@@ -49,7 +49,7 @@ export default function DashboardPage() {
     navigate(`/project/${project.id}`)
   }
 
-  const toolkitWidth = '18rem'
+  const toolkitWidth = '24.25rem'
   const tr = 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
 
   return (
@@ -199,19 +199,19 @@ export default function DashboardPage() {
                   <p className="font-sans text-xs font-bold tracking-widest uppercase mb-4" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
                     Summary
                   </p>
-                  <dl className="space-y-3">
+                  <dl className="flex flex-wrap gap-x-8 gap-y-4">
                     <div>
-                      <dt className="font-sans text-xs" style={{ color: '#5f5e5e' }}>Total projects</dt>
+                      <dt className="font-sans text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>Projects</dt>
                       <dd className="font-serif font-bold text-2xl" style={{ color: '#1a1a1a' }}>{projects.length}</dd>
                     </div>
                     <div>
-                      <dt className="font-sans text-xs" style={{ color: '#5f5e5e' }}>In progress</dt>
+                      <dt className="font-sans text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>In progress</dt>
                       <dd className="font-serif font-bold text-2xl" style={{ color: '#1a1a1a' }}>
                         {projects.filter((p) => p.status === 'in_progress').length}
                       </dd>
                     </div>
                     <div>
-                      <dt className="font-sans text-xs" style={{ color: '#5f5e5e' }}>Total findings</dt>
+                      <dt className="font-sans text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>Findings</dt>
                       <dd className="font-serif font-bold text-2xl" style={{ color: '#610000' }}>
                         {projects.reduce((sum, p) => sum + (p.findingCount ?? 0), 0)}
                       </dd>
@@ -221,6 +221,7 @@ export default function DashboardPage() {
               )}
             </div>
           </aside>
+
         </div>
       </div>
 

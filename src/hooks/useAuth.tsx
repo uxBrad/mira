@@ -23,7 +23,7 @@ interface AuthContextValue {
   subscriptionStatus: SubscriptionStatus | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
-  register: (name: string, email: string, password: string) => Promise<void>
+  register: (name: string, email: string, password: string) => Promise<{ devAutoVerified?: boolean }>
   logout: () => Promise<void>
   refreshSubscriptionStatus: () => Promise<void>
 }
@@ -78,8 +78,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSubscriptionStatus(status)
   }, [])
 
-  const register = useCallback(async (name: string, email: string, password: string): Promise<void> => {
-    await window.api.auth.register({ name, email, password })
+  const register = useCallback(async (name: string, email: string, password: string) => {
+    return await window.api.auth.register({ name, email, password })
   }, [])
 
   const logout = useCallback(async () => {

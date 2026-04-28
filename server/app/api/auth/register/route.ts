@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
     })
 
     const isDev = process.env.NODE_ENV === 'development'
+    console.log('[REGISTER] NODE_ENV:', process.env.NODE_ENV, '| isDev:', isDev)
 
     if (isDev) {
       // Auto-verify in development so you don't need email/Resend configured
