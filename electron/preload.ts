@@ -116,8 +116,8 @@ const updateAPI = {
 
 // Export API
 const exportAPI = {
-  exportPDF: (projectId: string) => ipcRenderer.invoke('export:pdf', projectId),
-  exportCSV: (projectId: string) => ipcRenderer.invoke('export:csv', projectId),
+  pdf: (projectId: string) => ipcRenderer.invoke('export:pdf', projectId),
+  csv: (projectId: string) => ipcRenderer.invoke('export:csv', projectId),
   chooseScreenshot: () => ipcRenderer.invoke('export:chooseScreenshot')
 }
 

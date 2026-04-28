@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { AlertCircle, CheckCircle2, Clock, Check, ChevronDown, ChevronRight } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Clock, Check, ChevronDown, ChevronRight, Download } from 'lucide-react'
 import { WCAG_CRITERIA } from '../../lib/utils'
 import type { CriterionVerdict, CriterionProgress } from '../../components/audit/StepAuditPanel'
+import { useToast } from '../../components/ui/use-toast'
 
 interface Project {
   id: string
@@ -43,10 +44,13 @@ const SEVERITY_COLORS: Record<string, string> = {
 export default function ReportPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [project, setProject] = useState<Project | null>(null)
   const [findings, setFindings] = useState<Finding[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [expandedCriteria, setExpandedCriteria] = useState<Set<string>>(new Set())
+  const [isExportingPdf, setIsExportingPdf] = useState(false)
+  const [isExportingCsv, setIsExportingCsv] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -61,6 +65,44 @@ export default function ReportPage() {
       .catch(() => navigate('/', { replace: true }))
       .finally(() => setIsLoading(false))
   }, [id, navigate])
+
+  const handleExportPdf = async () => {
+    if (!id) return
+    setIsExportingPdf(true)
+    try {
+      const result = await window.api.export.pdf(id)
+      if (result.canceled) {
+        // User canceled the save dialog
+        return
+      }
+      toast({ title: 'PDF exported', description: `Report saved to ${result.path}` })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to export PDF'
+      toast({ variant: 'destructive', title: 'Export failed', description: message })
+      console.error('PDF export error:', error)
+    } finally {
+      setIsExportingPdf(false)
+    }
+  }
+
+  const handleExportCsv = async () => {
+    if (!id) return
+    setIsExportingCsv(true)
+    try {
+      const result = await window.api.export.csv(id)
+      if (result.canceled) {
+        // User canceled the save dialog
+        return
+      }
+      toast({ title: 'CSV exported', description: `Report saved to ${result.path}` })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to export CSV'
+      toast({ variant: 'destructive', title: 'Export failed', description: message })
+      console.error('CSV export error:', error)
+    } finally {
+      setIsExportingCsv(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -137,13 +179,37 @@ export default function ReportPage() {
     <div className="flex flex-col h-full overflow-hidden" style={{ background: '#fcf9f8' }}>
       {/* Page header */}
       <div className="flex-shrink-0 px-10 pt-8 pb-6" style={{ borderBottom: '1px solid #e0dbd9', background: '#fcf9f8' }}>
-        <button
-          onClick={() => navigate(`/project/${id}`)}
-          className="font-sans text-xs font-bold uppercase tracking-widest mb-4 inline-flex items-center gap-1.5 hover:opacity-70 transition-opacity"
-          style={{ color: '#610000', letterSpacing: '0.12em' }}
-        >
-          ← Back to Project
-        </button>
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={() => navigate(`/project/${id}`)}
+            className="font-sans text-xs font-bold uppercase tracking-widest inline-flex items-center gap-1.5 hover:opacity-70 transition-opacity"
+            style={{ color: '#610000', letterSpacing: '0.12em' }}
+          >
+            ← Back to Project
+          </button>
+
+          {/* Export buttons */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportPdf}
+              disabled={isExportingPdf || isExportingCsv}
+              className="font-sans text-xs font-bold uppercase tracking-widest inline-flex items-center gap-1.5 px-3 py-2 rounded hover:opacity-70 transition-opacity disabled:opacity-50"
+              style={{ color: '#fff', background: '#610000', letterSpacing: '0.12em' }}
+            >
+              <Download size={14} />
+              {isExportingPdf ? 'Exporting...' : 'PDF'}
+            </button>
+            <button
+              onClick={handleExportCsv}
+              disabled={isExportingPdf || isExportingCsv}
+              className="font-sans text-xs font-bold uppercase tracking-widest inline-flex items-center gap-1.5 px-3 py-2 rounded hover:opacity-70 transition-opacity disabled:opacity-50"
+              style={{ color: '#fff', background: '#610000', letterSpacing: '0.12em' }}
+            >
+              <Download size={14} />
+              {isExportingCsv ? 'Exporting...' : 'CSV'}
+            </button>
+          </div>
+        </div>
 
         <div className="flex items-end justify-between gap-8">
           <div>
