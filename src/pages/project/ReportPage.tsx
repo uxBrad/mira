@@ -68,8 +68,11 @@ export default function ReportPage() {
 
   const handleExportPdf = async () => {
     if (!id) return
+    console.log('[PDF Export] Handler called, id:', id)
+    console.log('[PDF Export] window.api.export:', window.api.export)
     setIsExportingPdf(true)
     try {
+      console.log('[PDF Export] Calling pdf()...')
       const result = await window.api.export.pdf(id)
       if (result.canceled) {
         // User canceled the save dialog
