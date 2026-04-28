@@ -4,6 +4,13 @@ import { AlertCircle, CheckCircle2, Clock, Check, ChevronDown, ChevronRight, Dow
 import { WCAG_CRITERIA } from '../../lib/utils'
 import type { CriterionVerdict, CriterionProgress } from '../../components/audit/StepAuditPanel'
 import { useToast } from '../../components/ui/use-toast'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
+} from '../../components/ui/dialog'
 
 interface Project {
   id: string
