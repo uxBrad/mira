@@ -151,7 +151,7 @@ interface Window {
       delete: (id: string) => Promise<{ success: boolean }>
     }
     export: {
-      pdf: (projectId: string) => Promise<{ success?: boolean; path?: string; canceled?: boolean }>
+      pdf: (projectId: string, format?: 'summary' | 'vpat') => Promise<{ success?: boolean; path?: string; canceled?: boolean }>
       csv: (projectId: string) => Promise<{ success?: boolean; path?: string; canceled?: boolean }>
       chooseScreenshot: () => Promise<string | null>
     }

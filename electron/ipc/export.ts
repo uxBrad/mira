@@ -87,7 +87,7 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
     return { success: true, path: filePath }
   })
 
-  ipcMain.handle('export:pdf', async (_, projectId: string) => {
+  ipcMain.handle('export:pdf', async (_, projectId: string, format: 'summary' | 'vpat' = 'summary') => {
     try {
       const db = getDb()
       const [project] = await db.select().from(projects).where(eq(projects.id, projectId))
@@ -134,9 +134,11 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
         }
       })
 
-      // Build HTML report
-      const html = buildReportHtml(project, findingsData, severityCounts)
-      console.log('[PDF Export] HTML generated, length:', html.length)
+      // Build HTML report based on format
+      const html = format === 'vpat'
+        ? buildVpatHtml(project, findingsData)
+        : buildReportHtml(project, findingsData, severityCounts)
+      console.log(`[PDF Export] ${format} HTML generated, length:`, html.length)
 
       // Load HTML content
       await pdfWindow.loadURL(
@@ -349,11 +351,123 @@ function buildReportHtml(
 <!-- ══════════════════════════════════════
      FINDINGS PAGES
 ══════════════════════════════════════ -->
-<div style="padding: 64px 80px; background:white; page-break-before:always;">
+<div style="padding: 80px 80px 64px 80px; background:white; page-break-before:always;">
   ${project.clientName ? `<p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:${RED}; margin-bottom:16px;">${escapeHtml(project.clientName)}</p>` : ''}
   <h2 style="font-family:Georgia,serif; font-size:32px; font-weight:700; color:#1a1a1a; margin-bottom:12px;">Detailed Findings</h2>
   <div style="width:40px; height:4px; background:${RED}; margin-bottom:40px;"></div>
   ${findingsHtml || '<p style="font-family:-apple-system,sans-serif; font-size:14px; color:#aaa; font-style:italic;">No findings recorded for this project.</p>'}
+</div>
+
+</body>
+</html>`
+}
+
+function buildVpatHtml(
+  project: typeof projects.$inferSelect,
+  findingsData: Array<typeof findings.$inferSelect & { standards: string[] }>
+): string {
+  const date = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+
+  const RED = '#c0392b'
+  const BG = '#f5f0ef'
+
+  // Group findings by WCAG criterion
+  const findingsByCriterion = new Map<string, typeof findingsData>()
+  findingsData.forEach((f) => {
+    if (f.wcagCriterion) {
+      if (!findingsByCriterion.has(f.wcagCriterion)) {
+        findingsByCriterion.set(f.wcagCriterion, [])
+      }
+      findingsByCriterion.get(f.wcagCriterion)!.push(f)
+    }
+  })
+
+  // WCAG 2.2 Criteria (subset for brevity in VPAT)
+  const wcagCriteria = [
+    { id: '1.1.1', name: 'Non-text Content', level: 'A' },
+    { id: '1.2.1', name: 'Audio-only and Video-only (Prerecorded)', level: 'A' },
+    { id: '1.3.1', name: 'Info and Relationships', level: 'A' },
+    { id: '1.4.1', name: 'Use of Color', level: 'A' },
+    { id: '2.1.1', name: 'Keyboard', level: 'A' },
+    { id: '2.4.1', name: 'Bypass Blocks', level: 'A' },
+    { id: '3.1.1', name: 'Language of Page', level: 'A' },
+    { id: '3.2.1', name: 'On Focus', level: 'A' },
+    { id: '4.1.1', name: 'Parsing', level: 'A' }
+  ]
+
+  function getAssessment(criterion: string): string {
+    const issues = findingsByCriterion.get(criterion) || []
+    if (issues.length === 0) return 'Supports'
+    const hasOpen = issues.some((f) => f.status !== 'resolved' && f.status !== 'wont_fix')
+    return hasOpen ? 'Does Not Support' : 'Supports'
+  }
+
+  const rows = wcagCriteria.map((c) => {
+    const assessment = getAssessment(c.id)
+    const issues = findingsByCriterion.get(c.id) || []
+    const remarks = issues.length > 0 ? `${issues.length} issue${issues.length !== 1 ? 's' : ''} found` : ''
+
+    return `
+      <tr style="border-bottom: 1px solid #e0dbd9;">
+        <td style="padding: 12px 16px; font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 600;">${escapeHtml(c.id)}</td>
+        <td style="padding: 12px 16px; font-family: -apple-system, sans-serif; font-size: 14px;">${escapeHtml(c.name)}</td>
+        <td style="padding: 12px 16px; font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 600; color: ${assessment === 'Supports' ? '#2d7a4f' : '#c0392b'};">${assessment}</td>
+        <td style="padding: 12px 16px; font-family: -apple-system, sans-serif; font-size: 12px; color: #666;">${remarks}</td>
+      </tr>
+    `
+  }).join('')
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VPAT — ${escapeHtml(project.name)}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: white; color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  @page { margin: 0; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+  table { width: 100%; border-collapse: collapse; }
+</style>
+</head>
+<body>
+
+<div style="padding: 80px; background:${BG}; min-height:100vh; display:flex; flex-direction:column; justify-content:space-between;">
+  <div>
+    <h1 style="font-family:Georgia,'Times New Roman',serif; font-size:48px; font-weight:700; color:#1a1a1a; margin-bottom:20px;">VPAT®</h1>
+    <p style="font-family:-apple-system,sans-serif; font-size:13px; color:#666; margin-bottom:40px;">Voluntary Product Accessibility Template</p>
+
+    <div style="background:white; padding:30px; border-radius:8px; margin-bottom:40px;">
+      <p style="font-family:-apple-system,sans-serif; font-size:11px; color:#666; margin-bottom:8px;"><strong>Product Name:</strong> ${escapeHtml(project.name)}</p>
+      ${project.clientName ? `<p style="font-family:-apple-system,sans-serif; font-size:11px; color:#666; margin-bottom:8px;"><strong>Organization:</strong> ${escapeHtml(project.clientName)}</p>` : ''}
+      ${project.url ? `<p style="font-family:-apple-system,sans-serif; font-size:11px; color:#666; margin-bottom:8px;"><strong>Product URL:</strong> ${escapeHtml(project.url)}</p>` : ''}
+      <p style="font-family:-apple-system,sans-serif; font-size:11px; color:#666;"><strong>Report Date:</strong> ${date}</p>
+    </div>
+  </div>
+</div>
+
+<div style="padding: 80px; background:white; page-break-before:always;">
+  <h2 style="font-family:Georgia,serif; font-size:32px; font-weight:700; color:#1a1a1a; margin-bottom:30px;">WCAG 2.2 Level A Conformance</h2>
+
+  <table style="border: 1px solid #e0dbd9;">
+    <thead>
+      <tr style="background:#f9f6f5; border-bottom: 2px solid #e0dbd9;">
+        <th style="padding: 12px 16px; text-align: left; font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666;">Criterion</th>
+        <th style="padding: 12px 16px; text-align: left; font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666;">Name</th>
+        <th style="padding: 12px 16px; text-align: left; font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666;">Assessment</th>
+        <th style="padding: 12px 16px; text-align: left; font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666;">Remarks</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table>
+
+  <p style="font-family:-apple-system,sans-serif; font-size:11px; color:#aaa; margin-top:40px;">Generated ${date} · Echo Accessibility Audit Tool</p>
 </div>
 
 </body>
