@@ -356,7 +356,7 @@ export default function ProjectPage() {
   async function handleExportPDF() {
     setIsExporting('pdf')
     try {
-      const result = await window.api.export.exportPDF(id!)
+      const result = await window.api.export.pdf(id!)
       if (!result.canceled) {
         toast({ title: 'PDF exported', description: `Saved to ${result.path}` })
       }
@@ -374,7 +374,7 @@ export default function ProjectPage() {
   async function handleExportCSV() {
     setIsExporting('csv')
     try {
-      const result = await window.api.export.exportCSV(id!)
+      const result = await window.api.export.csv(id!)
       if (!result.canceled) {
         toast({ title: 'CSV exported', description: `Saved to ${result.path}` })
       }
