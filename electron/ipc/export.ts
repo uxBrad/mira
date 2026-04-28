@@ -88,75 +88,91 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
   })
 
   ipcMain.handle('export:pdf', async (_, projectId: string) => {
-    const db = getDb()
-    const [project] = await db.select().from(projects).where(eq(projects.id, projectId))
-    if (!project) throw new Error('Project not found')
+    try {
+      const db = getDb()
+      const [project] = await db.select().from(projects).where(eq(projects.id, projectId))
+      if (!project) throw new Error('Project not found')
 
-    const findingRows = await db
-      .select()
-      .from(findings)
-      .where(eq(findings.projectId, projectId))
-      .orderBy(desc(findings.createdAt))
+      const findingRows = await db
+        .select()
+        .from(findings)
+        .where(eq(findings.projectId, projectId))
+        .orderBy(desc(findings.createdAt))
 
-    // Build findings data for the PDF template
-    const findingsData = findingRows.map((f) => ({
-      ...f,
-      standards: f.standards ? JSON.parse(f.standards as string) : []
-    }))
+      // Build findings data for the PDF template
+      const findingsData = findingRows.map((f) => ({
+        ...f,
+        standards: f.standards ? JSON.parse(f.standards as string) : []
+      }))
 
-    // Calculate severity counts for summary
-    const severityCounts = {
-      critical: findingsData.filter((f) => f.severity === 'critical').length,
-      serious: findingsData.filter((f) => f.severity === 'serious').length,
-      moderate: findingsData.filter((f) => f.severity === 'moderate').length,
-      minor: findingsData.filter((f) => f.severity === 'minor').length
-    }
-
-    const { filePath, canceled } = await dialog.showSaveDialog({
-      title: 'Export Report as PDF',
-      defaultPath: `${project.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-accessibility-report.pdf`,
-      filters: [{ name: 'PDF', extensions: ['pdf'] }]
-    })
-
-    if (canceled || !filePath) return { canceled: true }
-
-    // Create a hidden window to render the PDF
-    const pdfWindow = new BrowserWindow({
-      width: 1200,
-      height: 900,
-      show: false,
-      webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true
+      // Calculate severity counts for summary
+      const severityCounts = {
+        critical: findingsData.filter((f) => f.severity === 'critical').length,
+        serious: findingsData.filter((f) => f.severity === 'serious').length,
+        moderate: findingsData.filter((f) => f.severity === 'moderate').length,
+        minor: findingsData.filter((f) => f.severity === 'minor').length
       }
-    })
 
-    // Build HTML report
-    const html = buildReportHtml(project, findingsData, severityCounts)
+      const { filePath, canceled } = await dialog.showSaveDialog({
+        title: 'Export Report as PDF',
+        defaultPath: `${project.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-accessibility-report.pdf`,
+        filters: [{ name: 'PDF', extensions: ['pdf'] }]
+      })
 
-    // Load HTML content
-    await pdfWindow.loadURL(
-      `data:text/html;charset=utf-8,${encodeURIComponent(html)}`
-    )
+      if (canceled || !filePath) return { canceled: true }
 
-    // Wait for load
-    await new Promise<void>((resolve) => {
-      pdfWindow.webContents.once('did-finish-load', () => resolve())
-    })
+      console.log('[PDF Export] Starting export to:', filePath)
 
-    // Small delay to ensure charts render
-    await new Promise((resolve) => setTimeout(resolve, 500))
+      // Create a hidden window to render the PDF
+      const pdfWindow = new BrowserWindow({
+        width: 1200,
+        height: 900,
+        show: false,
+        webPreferences: {
+          nodeIntegration: false,
+          contextIsolation: true
+        }
+      })
 
-    const pdfData = await pdfWindow.webContents.printToPDF({
-      pageSize: 'A4',
-      printBackground: true,
-      margins: { marginType: 'none' }
-    })
+      // Build HTML report
+      const html = buildReportHtml(project, findingsData, severityCounts)
+      console.log('[PDF Export] HTML generated, length:', html.length)
 
-    pdfWindow.close()
-    writeFileSync(filePath, pdfData)
+      // Load HTML content
+      await pdfWindow.loadURL(
+        `data:text/html;charset=utf-8,${encodeURIComponent(html)}`
+      )
+      console.log('[PDF Export] HTML loaded into window')
 
-    return { success: true, path: filePath }
+      // Wait for load
+      await new Promise<void>((resolve) => {
+        pdfWindow.webContents.once('did-finish-load', () => {
+          console.log('[PDF Export] Page finished loading')
+          resolve()
+        })
+      })
+
+      // Small delay to ensure charts render
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
+      console.log('[PDF Export] Generating PDF...')
+      const pdfData = await pdfWindow.webContents.printToPDF({
+        pageSize: 'A4',
+        printBackground: true,
+        margins: { marginType: 'none' }
+      })
+
+      console.log('[PDF Export] PDF generated, size:', pdfData.length, 'bytes')
+      pdfWindow.close()
+      writeFileSync(filePath, pdfData)
+      console.log('[PDF Export] File written successfully')
+
+      return { success: true, path: filePath }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      console.error('[PDF Export] Error:', message, error)
+      throw error
+    }
   })
 }
 
