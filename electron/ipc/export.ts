@@ -144,16 +144,23 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
       )
       console.log('[PDF Export] HTML loaded into window')
 
-      // Wait for load
+      // Wait for load with timeout (data: URLs may not fire did-finish-load reliably)
       await new Promise<void>((resolve) => {
+        const timeout = setTimeout(() => {
+          console.log('[PDF Export] Load timeout, proceeding anyway')
+          resolve()
+        }, 2000)
+
         pdfWindow.webContents.once('did-finish-load', () => {
+          clearTimeout(timeout)
           console.log('[PDF Export] Page finished loading')
           resolve()
         })
       })
 
-      // Small delay to ensure charts render
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      // Small delay to ensure content renders
+      console.log('[PDF Export] Waiting for render...')
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
       console.log('[PDF Export] Generating PDF...')
       const pdfData = await pdfWindow.webContents.printToPDF({
