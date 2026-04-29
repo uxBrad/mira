@@ -175,6 +175,7 @@ export default function ProjectPage() {
   const [editProjectOpen, setEditProjectOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [isExporting, setIsExporting] = useState<'pdf' | 'csv' | null>(null)
+  const [showFormatDialog, setShowFormatDialog] = useState(false)
   const [principleFilter, setPrincipleFilter] = useState<string>('all')
   const [severityFilter, setSeverityFilter] = useState<string[]>([])
   const [statusFilter, setStatusFilter] = useState<string[]>([])
@@ -353,12 +354,13 @@ export default function ProjectPage() {
     setRenameComponentValue('')
   }
 
-  async function handleExportPDF() {
+  async function handleExportPDF(format: 'summary' | 'vpat' = 'summary') {
     setIsExporting('pdf')
+    setShowFormatDialog(false)
     try {
-      const result = await window.api.export.pdf(id!)
+      const result = await window.api.export.pdf(id!, format)
       if (!result.canceled) {
-        toast({ title: 'PDF exported', description: `Saved to ${result.path}` })
+        toast({ title: 'PDF exported', description: `${format === 'vpat' ? 'VPAT' : 'Summary'} report saved to ${result.path}` })
       }
     } catch (err) {
       toast({
@@ -369,6 +371,10 @@ export default function ProjectPage() {
     } finally {
       setIsExporting(null)
     }
+  }
+
+  function handleClickExportPDF() {
+    setShowFormatDialog(true)
   }
 
   async function handleExportCSV() {
@@ -842,7 +848,7 @@ export default function ProjectPage() {
 
           {/* Export PDF */}
           <button
-            onClick={handleExportPDF}
+            onClick={handleClickExportPDF}
             disabled={!!isExporting}
             aria-busy={isExporting === 'pdf'}
             className="flex w-full items-center justify-between px-4 py-3 mt-4 font-sans text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-40 hover:bg-[#d8d4d2]"
@@ -1135,6 +1141,38 @@ export default function ProjectPage() {
             toast({ title: 'Findings imported', description: 'The findings have been added to your project.' })
           }}
         />
+
+        {/* Format selection dialog */}
+        <Dialog open={showFormatDialog} onOpenChange={setShowFormatDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Choose Report Format</DialogTitle>
+              <DialogDescription>
+                Select the format for your accessibility report export.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 py-4">
+              <button
+                onClick={() => handleExportPDF('summary')}
+                disabled={!!isExporting}
+                className="w-full flex flex-col items-start p-4 border rounded-lg hover:bg-slate-50 transition-colors text-left"
+                style={{ borderColor: '#e0dbd9' }}
+              >
+                <span className="font-semibold" style={{ color: '#610000' }}>Summary Report</span>
+                <span className="text-xs text-gray-600 mt-1">Executive overview with findings grouped by severity</span>
+              </button>
+              <button
+                onClick={() => handleExportPDF('vpat')}
+                disabled={!!isExporting}
+                className="w-full flex flex-col items-start p-4 border rounded-lg hover:bg-slate-50 transition-colors text-left"
+                style={{ borderColor: '#e0dbd9' }}
+              >
+                <span className="font-semibold" style={{ color: '#610000' }}>VPAT Report</span>
+                <span className="text-xs text-gray-600 mt-1">Voluntary Product Accessibility Template with criterion-by-criterion assessment</span>
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   )

@@ -60,6 +60,9 @@ export default function ReportPage() {
   const [isExportingCsv, setIsExportingCsv] = useState(false)
   const [showFormatDialog, setShowFormatDialog] = useState(false)
 
+  // Debug: log component load
+  console.log('[ReportPage] Component rendered, showFormatDialog:', showFormatDialog)
+
   useEffect(() => {
     if (!id) return
     Promise.all([
@@ -94,7 +97,10 @@ export default function ReportPage() {
   }
 
   const handleClickExportPdf = () => {
+    console.log('[Export] PDF button clicked, opening format dialog')
+    console.log('[Export] Current showFormatDialog:', showFormatDialog)
     setShowFormatDialog(true)
+    console.log('[Export] Set showFormatDialog to true')
   }
 
   const handleExportCsv = async () => {
