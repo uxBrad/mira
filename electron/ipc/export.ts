@@ -372,7 +372,6 @@ function buildVpatHtml(
     day: 'numeric'
   })
 
-  const RED = '#c0392b'
   const BG = '#f5f0ef'
 
   // Group findings by WCAG criterion
