@@ -362,6 +362,66 @@ function buildReportHtml(
 </html>`
 }
 
+// WCAG criterion descriptions for VPAT report
+const CRITERION_DESCRIPTIONS: Record<string, string> = {
+  '1.1.1': 'All non-text content that is presented to the user has a text alternative that serves the equivalent purpose.',
+  '1.2.1': 'For prerecorded audio-only and prerecorded video-only media, an alternative for time-based media is provided.',
+  '1.2.2': 'Captions are provided for all prerecorded audio content in synchronized media.',
+  '1.2.3': 'An alternative for time-based media or audio track is provided for prerecorded video-only content.',
+  '1.2.4': 'Captions are provided for all live audio content in synchronized media.',
+  '1.2.5': 'Audio description is provided for all prerecorded video content in synchronized media.',
+  '1.3.1': 'Information, structure, and relationships conveyed through presentation can be programmatically determined or are available in text.',
+  '1.3.2': 'When the sequence in which content is presented affects its meaning, a correct reading sequence can be programmatically determined.',
+  '1.3.3': 'Instructions provided for understanding and operating content do not rely solely on shape, size, visual location, orientation, or sound.',
+  '1.3.4': 'Content does not restrict its view and operation to a single display orientation.',
+  '1.3.5': 'The purpose of each input field collecting information about the user can be programmatically determined when the input serves a known purpose.',
+  '1.4.1': 'Color is not used as the only visual means of conveying information, indicating an action, or prompting a response.',
+  '1.4.2': 'If audio plays automatically for more than 3 seconds, a mechanism is available to pause or stop the audio, or control audio volume.',
+  '1.4.3': 'The visual presentation of text and images of text has a contrast ratio of at least 4.5:1 for normal text and 3:1 for large text.',
+  '1.4.4': 'Except for captions and images of text, text can be resized without loss of content or functionality up to 200 percent.',
+  '1.4.5': 'Images of text are not used except where a particular visual presentation of text is essential.',
+  '1.4.10': 'Content can be presented without loss of information or functionality at a width of 320 CSS pixels.',
+  '1.4.11': 'The visual presentation of the following has a contrast ratio of at least 3:1 against adjacent color(s): user interface components and graphical elements.',
+  '1.4.12': 'No loss of content or functionality occurs when line height is set to 1.5 or letter spacing is set to 0.12 times the font size.',
+  '1.4.13': 'For content that appears on hover or focus, a mechanism is available to dismiss it without moving pointer or keyboard focus.',
+  '2.1.1': 'All functionality of the content is operable through a keyboard interface.',
+  '2.1.2': 'If keyboard focus can be moved to a component using a keyboard interface, then focus can be moved away from that component using only a keyboard interface.',
+  '2.1.4': 'If a keyboard shortcut is implemented in content using printable characters, then a mechanism is available to turn off the shortcut.',
+  '2.2.1': 'For each time limit that is set by the content, at least one of the following is true: the user is allowed to turn off the time limit, adjust it, or extend it.',
+  '2.2.2': 'For moving, blinking, scrolling, or auto-updating information, a mechanism is available to pause, stop, hide, or control the frequency of the update.',
+  '2.3.1': 'Web pages do not contain anything that flashes more than three times in any one second period.',
+  '2.4.1': 'A mechanism is available to bypass blocks of content that are repeated on multiple Web pages.',
+  '2.4.2': 'Web pages have titles that describe topic or purpose.',
+  '2.4.3': 'If a Web page can be navigated sequentially and the navigation sequences affect the meaning or operation, focus order follows relationships in the content.',
+  '2.4.4': 'The purpose of each link can be determined from the link text alone or from the link text together with its programmatically determined link context.',
+  '2.4.5': 'More than one way is available to locate a Web page within a set of Web pages except where the Web Page is the result of, or a step in, a process.',
+  '2.4.6': 'Headings and labels describe topic or purpose.',
+  '2.4.7': 'Any keyboard operable user interface has a mode of operation where the keyboard focus indicator is visible.',
+  '2.4.11': 'For user interface components with a visible focus indicator, when the component receives keyboard focus, the focus indicator is visible.',
+  '2.5.1': 'All functionality that uses multipoint or path-based gestures for operation can be operated with a single pointer without a path-based gesture.',
+  '2.5.2': 'For functionality that can be operated using a single pointer, at least one of the following is true regarding the down-event.',
+  '2.5.3': 'For user interface components with labels that include text or images of text, the name contains the text that is presented visually.',
+  '2.5.4': 'Functionality that can be operated by device motion or user motion can also be operated by user interface components.',
+  '2.5.7': 'Dragging movements can be accomplished by single pointer activation without relying on simultaneous multi-point contact or a specific speed of movement.',
+  '2.5.8': 'The target size for pointer inputs is at least 24 by 24 CSS pixels except where a smaller target is available and the larger target is adjacent.',
+  '3.1.1': 'The default human language of each Web page can be programmatically determined.',
+  '3.1.2': 'The human language of each passage or phrase in the content can be programmatically determined except for proper names, technical terms, words of indeterminate language, and words or phrases that have become part of the vernacular of the immediately surrounding text.',
+  '3.2.1': 'When any user interface component receives focus, it does not cause a change of context.',
+  '3.2.2': 'Changing the setting of any user interface component does not automatically cause a change of context unless the user has been informed of the behavior.',
+  '3.2.3': 'Repeated components that appear in multiple Web pages within a set of Web pages are in the same relative order each time they appear.',
+  '3.2.4': 'Components that have the same functionality are identified consistently.',
+  '3.2.6': 'Help is available through multiple modalities.',
+  '3.3.1': 'If an error is automatically detected, the item that is in error is identified and the error is described to the user in text.',
+  '3.3.2': 'Labels or instructions are provided when content requires user input.',
+  '3.3.3': 'If an error is automatically detected and suggestions for correction are known, then the suggestions are provided to the user.',
+  '3.3.4': 'For Web pages that cause legal commitments or financial transactions, a mechanism is available to review, confirm, and correct information before finalizing the submission.',
+  '3.3.7': 'A mechanism is available for the user to avoid mistakes in form submission.',
+  '3.3.8': 'A mechanism is available to help users avoid mistakes when performing an action that causes a legal commitment or financial transaction.',
+  '4.1.1': 'In content implemented using markup languages, elements have complete start and end tags, elements are nested according to their specifications, and elements do not have duplicate attributes.',
+  '4.1.2': 'For all user interface components, the name and role can be programmatically determined; states, properties, and values that can be set by the user are programmatically set; and changes to these items are available to user agents.',
+  '4.1.3': 'In content implemented using markup languages, status messages can be programmatically determined through role or properties such that they can be presented to the user by assistive technologies without receiving focus.'
+}
+
 function buildVpatHtml(
   project: typeof projects.$inferSelect,
   findingsData: Array<typeof findings.$inferSelect & { standards: string[] }>,
@@ -372,8 +432,6 @@ function buildVpatHtml(
     month: 'long',
     day: 'numeric'
   })
-
-  const BG = '#f5f0ef'
 
   // All WCAG 2.2 criteria (57 total)
   const allCriteria = [
@@ -482,21 +540,44 @@ function buildVpatHtml(
     return issues.map((i) => escapeHtml(i.title || 'Unnamed issue')).slice(0, 3).join('; ') + (issues.length > 3 ? `; and ${issues.length - 3} more` : '')
   }
 
-  // Build table rows for a level (A or AA)
-  function buildTableRows(level: 'A' | 'AA'): string {
+  const RED = '#c0392b'
+
+  // Build detailed criteria rows with criterion text and remarks
+  function buildDetailedTableRows(level: 'A' | 'AA'): string {
     const criteria = allCriteria.filter((c) => c.level === level)
     return criteria.map((c) => {
       const { level: conformanceLevel, color } = getConformanceLevel(c.id)
       const remarks = getRemarks(c.id)
+      const criterionText = CRITERION_DESCRIPTIONS[c.id] || 'See WCAG 2.2 Guidelines for full criterion description.'
+
       return `
-        <tr style="border-bottom: 1px solid #e0dbd9;">
-          <td style="padding: 10px 12px; font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 600;">${escapeHtml(c.id)}</td>
-          <td style="padding: 10px 12px; font-family: -apple-system, sans-serif; font-size: 11px;">${escapeHtml(c.name)}</td>
-          <td style="padding: 10px 12px; font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 600; color: ${color}; background: ${color}15;">${conformanceLevel}</td>
-          <td style="padding: 10px 12px; font-family: -apple-system, sans-serif; font-size: 10px; color: #666; max-width: 250px;">${remarks || '—'}</td>
+        <tr style="border-bottom: 1px solid #e0dbd9; page-break-inside: avoid;">
+          <td style="padding: 16px 14px; font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 700; vertical-align: top; width: 12%; min-width: 50px;">${escapeHtml(c.id)}<br><span style="font-size: 10px; font-weight: 400; color: #666;">${escapeHtml(c.name)}</span></td>
+          <td style="padding: 16px 14px; font-family: -apple-system, sans-serif; font-size: 11px; color: #555; line-height: 1.5; vertical-align: top; width: 50%;">
+            ${escapeHtml(criterionText)}
+          </td>
+          <td style="padding: 16px 14px; font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 600; color: ${color}; background: ${color}15; vertical-align: top; width: 12%; min-width: 70px; text-align: center;">${conformanceLevel}</td>
+          <td style="padding: 16px 14px; font-family: -apple-system, sans-serif; font-size: 10px; color: #666; line-height: 1.5; vertical-align: top; width: 26%;">${remarks || '—'}</td>
         </tr>
       `
     }).join('')
+  }
+
+  // Build standards table showing which WCAG versions are covered
+  function buildStandardsTable(): string {
+    const standards = [
+      { name: 'Web Content Accessibility Guidelines 2.0', levelA: 'Yes', levelAA: 'Yes', levelAAA: 'No' },
+      { name: 'Web Content Accessibility Guidelines 2.1', levelA: 'Yes', levelAA: 'Yes', levelAAA: 'No' },
+      { name: 'Web Content Accessibility Guidelines 2.2', levelA: 'Yes', levelAA: 'Yes', levelAAA: 'No' }
+    ]
+    return standards.map(s => `
+      <tr style="border-bottom: 1px solid #e0dbd9;">
+        <td style="padding: 12px 14px; font-family: -apple-system, sans-serif; font-size: 11px;">${escapeHtml(s.name)}</td>
+        <td style="padding: 12px 14px; text-align: center; font-family: -apple-system, sans-serif; font-size: 11px;">${s.levelA}</td>
+        <td style="padding: 12px 14px; text-align: center; font-family: -apple-system, sans-serif; font-size: 11px;">${s.levelAA}</td>
+        <td style="padding: 12px 14px; text-align: center; font-family: -apple-system, sans-serif; font-size: 11px;">${s.levelAAA}</td>
+      </tr>
+    `).join('')
   }
 
   return `<!DOCTYPE html>
@@ -506,123 +587,188 @@ function buildVpatHtml(
 <title>VPAT — ${escapeHtml(project.name)}</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: white; color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-  @page { margin: 0; }
+  body { background: white; color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; }
+  @page { margin: 0.5in; }
   @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-  table { width: 100%; border-collapse: collapse; }
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+  h1 { font-family: Georgia, 'Times New Roman', serif; }
+  h2 { font-family: Georgia, 'Times New Roman', serif; border-bottom: 2px solid #e0dbd9; padding-bottom: 12px; }
   .page { page-break-before: always; }
+  .page-number { text-align: right; font-size: 10px; color: #999; margin-top: 40px; }
 </style>
 </head>
 <body>
 
 <!-- ════════════════════════════════════════
-     COVER PAGE
+     PAGE 1: TITLE & PRODUCT INFORMATION
 ════════════════════════════════════════ -->
-<div style="padding: 80px; background: ${BG}; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between;">
+<div style="padding: 60px 50px; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between;">
   <div>
-    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size: 56px; font-weight: 700; color: #1a1a1a; margin-bottom: 12px;">VPAT®</h1>
-    <p style="font-family: -apple-system, sans-serif; font-size: 14px; color: #666; margin-bottom: 40px;">Voluntary Product Accessibility Template<br>Version 2.5</p>
+    <h1 style="font-size: 48px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px;">Accessibility Conformance Report</h1>
+    <p style="font-size: 16px; color: #666; margin-bottom: 40px; font-weight: 500;">WCAG Edition (Based on VPAT® Version 2.4)</p>
 
-    <div style="background: white; padding: 32px 28px; margin-bottom: 40px; border: 1px solid #e0dbd9;">
-      <p style="font-family: -apple-system, sans-serif; font-size: 12px; margin-bottom: 10px;"><strong>Product Name:</strong> ${escapeHtml(project.name)}</p>
-      ${project.clientName ? `<p style="font-family: -apple-system, sans-serif; font-size: 12px; margin-bottom: 10px;"><strong>Organization:</strong> ${escapeHtml(project.clientName)}</p>` : ''}
-      ${project.url ? `<p style="font-family: -apple-system, sans-serif; font-size: 12px; margin-bottom: 10px;"><strong>Product URL:</strong> ${escapeHtml(project.url)}</p>` : ''}
-      <p style="font-family: -apple-system, sans-serif; font-size: 12px; margin-bottom: 10px;"><strong>Report Date:</strong> ${date}</p>
-      ${project.description ? `<p style="font-family: -apple-system, sans-serif; font-size: 12px; margin-top: 16px; line-height: 1.5;"><strong>Product Description:</strong> ${escapeHtml(project.description)}</p>` : ''}
+    <div style="background: #f9f6f5; padding: 32px; border-left: 4px solid ${RED}; margin: 40px 0;">
+      <p style="font-size: 13px; margin-bottom: 10px;"><strong>Name of Product/Version:</strong> ${escapeHtml(project.name)}</p>
+      <p style="font-size: 13px; margin-bottom: 10px;"><strong>Report Date:</strong> ${date}</p>
+      ${project.clientName ? `<p style="font-size: 13px; margin-bottom: 10px;"><strong>Organization:</strong> ${escapeHtml(project.clientName)}</p>` : ''}
+      ${project.url ? `<p style="font-size: 13px; margin-bottom: 10px;"><strong>Product URL:</strong> ${escapeHtml(project.url)}</p>` : ''}
+    </div>
+
+    ${project.description ? `
+    <div style="margin: 32px 0;">
+      <h3 style="font-size: 13px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #666;">Product Description</h3>
+      <p style="font-size: 12px; color: #555; line-height: 1.7;">
+        ${escapeHtml(project.description)}
+      </p>
+    </div>
+    ` : ''}
+
+    <div style="margin: 32px 0;">
+      <h3 style="font-size: 13px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #666;">Contact Information</h3>
+      <p style="font-size: 12px; color: #555;">For more information about this accessibility assessment, contact the organization responsible for the product.</p>
+    </div>
+
+    <div style="margin: 32px 0;">
+      <h3 style="font-size: 13px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #666;">Evaluation Methods Used</h3>
+      <p style="font-size: 12px; color: #555; line-height: 1.7;">
+        This accessibility audit was conducted using a combination of manual inspection and automated testing tools. The evaluation assessed conformance with WCAG 2.2 Success Criteria at levels A and AA. Testing included keyboard navigation, screen reader testing, color contrast verification, and functional testing of interactive components.
+      </p>
     </div>
   </div>
 
-  <div>
-    <h3 style="font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; margin-bottom: 12px;">Evaluation Methods</h3>
-    <p style="font-family: -apple-system, sans-serif; font-size: 11px; color: #666; line-height: 1.6;">
-      This accessibility audit was conducted using manual review, automated testing tools, and user testing as appropriate. Evaluators assessed conformance to WCAG 2.2 criteria.
-    </p>
+  <div style="padding-top: 40px; border-top: 1px solid #e0dbd9;">
+    <p style="font-size: 10px; color: #999;">Echo Accessibility Audit Tool</p>
   </div>
 </div>
 
 <!-- ════════════════════════════════════════
-     TERMS & DEFINITIONS PAGE
+     PAGE 2: APPLICABLE STANDARDS
 ════════════════════════════════════════ -->
-<div class="page" style="padding: 80px; background: white;">
-  <h2 style="font-family: Georgia, serif; font-size: 32px; font-weight: 700; color: #1a1a1a; margin-bottom: 24px;">Conformance Levels</h2>
+<div class="page" style="padding: 60px 50px;">
+  <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 30px;">Applicable Standards/Guidelines</h2>
 
-  <div style="margin-bottom: 32px;">
-    <h3 style="font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 700; color: #2d7a4f; margin-bottom: 8px;">Supports</h3>
-    <p style="font-family: -apple-system, sans-serif; font-size: 12px; color: #444; line-height: 1.6; margin-left: 16px;">
+  <p style="font-size: 12px; color: #555; margin-bottom: 24px; line-height: 1.7;">
+    This report covers the degree of conformance for the following accessibility standard/guidelines:
+  </p>
+
+  <table style="border: 1px solid #e0dbd9;">
+    <thead>
+      <tr style="background: #f9f6f5; border-bottom: 2px solid #e0dbd9;">
+        <th style="padding: 14px; text-align: left; font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666;">Standard/Guideline</th>
+        <th style="padding: 14px; text-align: center; font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666;">Level A</th>
+        <th style="padding: 14px; text-align: center; font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666;">Level AA</th>
+        <th style="padding: 14px; text-align: center; font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666;">Level AAA</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${buildStandardsTable()}
+    </tbody>
+  </table>
+
+  <div class="page-number">Page 2 of 16</div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PAGE 3: TERMS & DEFINITIONS
+════════════════════════════════════════ -->
+<div class="page" style="padding: 60px 50px;">
+  <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 30px;">Terms</h2>
+
+  <p style="font-size: 12px; color: #555; margin-bottom: 24px; line-height: 1.7;">
+    The terms used in the Conformance Level information are defined as follows:
+  </p>
+
+  <div style="margin-bottom: 24px;">
+    <h4 style="font-size: 13px; font-weight: 700; color: #2d7a4f; margin-bottom: 8px;">• Supports</h4>
+    <p style="font-size: 12px; color: #555; margin-left: 20px; line-height: 1.6;">
       The functionality of the product has at least one method that meets the criterion without known defects or meets with equivalent facilitation.
     </p>
   </div>
 
-  <div style="margin-bottom: 32px;">
-    <h3 style="font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 700; color: #c0392b; margin-bottom: 8px;">Does Not Support</h3>
-    <p style="font-family: -apple-system, sans-serif; font-size: 12px; color: #444; line-height: 1.6; margin-left: 16px;">
+  <div style="margin-bottom: 24px;">
+    <h4 style="font-size: 13px; font-weight: 700; color: #d97706; margin-bottom: 8px;">• Partially Supports</h4>
+    <p style="font-size: 12px; color: #555; margin-left: 20px; line-height: 1.6;">
+      Some functionality of the product does not meet the criterion.
+    </p>
+  </div>
+
+  <div style="margin-bottom: 24px;">
+    <h4 style="font-size: 13px; font-weight: 700; color: ${RED}; margin-bottom: 8px;">• Does Not Support</h4>
+    <p style="font-size: 12px; color: #555; margin-left: 20px; line-height: 1.6;">
       The majority of product functionality does not meet the criterion.
     </p>
   </div>
 
-  <div style="margin-bottom: 32px;">
-    <h3 style="font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 700; color: #999; margin-bottom: 8px;">Not Evaluated</h3>
-    <p style="font-family: -apple-system, sans-serif; font-size: 12px; color: #444; line-height: 1.6; margin-left: 16px;">
+  <div style="margin-bottom: 24px;">
+    <h4 style="font-size: 13px; font-weight: 700; color: #999; margin-bottom: 8px;">• Not Applicable</h4>
+    <p style="font-size: 12px; color: #555; margin-left: 20px; line-height: 1.6;">
+      The criterion is not relevant to the product.
+    </p>
+  </div>
+
+  <div style="margin-bottom: 24px;">
+    <h4 style="font-size: 13px; font-weight: 700; color: #999; margin-bottom: 8px;">• Not Evaluated</h4>
+    <p style="font-size: 12px; color: #555; margin-left: 20px; line-height: 1.6;">
       The product has not been evaluated against the criterion.
     </p>
   </div>
+
+  <div class="page-number">Page 3 of 16</div>
 </div>
 
 <!-- ════════════════════════════════════════
-     WCAG 2.2 LEVEL A TABLE
+     PAGES 4+: WCAG 2.2 LEVEL A & AA TABLES
 ════════════════════════════════════════ -->
-<div class="page" style="padding: 80px; background: white;">
-  <h2 style="font-family: Georgia, serif; font-size: 32px; font-weight: 700; color: #1a1a1a; margin-bottom: 24px;">WCAG 2.2 — Level A</h2>
+<div class="page" style="padding: 60px 50px;">
+  <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 30px;">Table 1: Success Criteria, Level A</h2>
 
-  <table style="border: 1px solid #e0dbd9; font-size: 11px;">
-    <thead>
-      <tr style="background: #f9f6f5; border-bottom: 2px solid #e0dbd9;">
-        <th style="padding: 12px 12px; text-align: left; font-family: -apple-system, sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; width: 10%;">Criterion</th>
-        <th style="padding: 12px 12px; text-align: left; font-family: -apple-system, sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; width: 35%;">Name</th>
-        <th style="padding: 12px 12px; text-align: left; font-family: -apple-system, sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; width: 20%;">Conformance</th>
-        <th style="padding: 12px 12px; text-align: left; font-family: -apple-system, sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; width: 35%;">Remarks</th>
-      </tr>
-    </thead>
+  <p style="font-size: 11px; color: #666; margin-bottom: 20px; font-style: italic;">
+    When reporting on conformance with WCAG 2.2 Success Criteria, the criteria are scoped for full pages, complete processes, and accessibility-supported ways of using technology.
+  </p>
+
+  <table style="border: 1px solid #e0dbd9; width: 100%;">
     <tbody>
-      ${buildTableRows('A')}
+      ${buildDetailedTableRows('A')}
     </tbody>
   </table>
+
+  <div class="page-number">Page 4+ of 16</div>
 </div>
 
 <!-- ════════════════════════════════════════
-     WCAG 2.2 LEVEL AA TABLE
+     LEVEL AA TABLE
 ════════════════════════════════════════ -->
-<div class="page" style="padding: 80px; background: white;">
-  <h2 style="font-family: Georgia, serif; font-size: 32px; font-weight: 700; color: #1a1a1a; margin-bottom: 24px;">WCAG 2.2 — Level AA</h2>
+<div class="page" style="padding: 60px 50px;">
+  <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 30px;">Table 2: Success Criteria, Level AA</h2>
 
-  <table style="border: 1px solid #e0dbd9; font-size: 11px;">
-    <thead>
-      <tr style="background: #f9f6f5; border-bottom: 2px solid #e0dbd9;">
-        <th style="padding: 12px 12px; text-align: left; font-family: -apple-system, sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; width: 10%;">Criterion</th>
-        <th style="padding: 12px 12px; text-align: left; font-family: -apple-system, sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; width: 35%;">Name</th>
-        <th style="padding: 12px 12px; text-align: left; font-family: -apple-system, sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; width: 20%;">Conformance</th>
-        <th style="padding: 12px 12px; text-align: left; font-family: -apple-system, sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; width: 35%;">Remarks</th>
-      </tr>
-    </thead>
+  <table style="border: 1px solid #e0dbd9; width: 100%;">
     <tbody>
-      ${buildTableRows('AA')}
+      ${buildDetailedTableRows('AA')}
     </tbody>
   </table>
+
+  <div class="page-number">Page 10+ of 16</div>
 </div>
 
 <!-- ════════════════════════════════════════
      LEGAL DISCLAIMER
 ════════════════════════════════════════ -->
-<div class="page" style="padding: 80px; background: white;">
-  <h2 style="font-family: Georgia, serif; font-size: 28px; font-weight: 700; color: #1a1a1a; margin-bottom: 20px;">Legal Disclaimer</h2>
+<div class="page" style="padding: 60px 50px;">
+  <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 30px;">Legal Disclaimer</h2>
 
-  <p style="font-family: -apple-system, sans-serif; font-size: 11px; color: #666; line-height: 1.7;">
-    This Voluntary Product Accessibility Template (VPAT) is a tool intended to facilitate communication between organizations and individuals regarding the accessibility of a product or service. It is not intended to be a legal document or a guarantee of product accessibility. The information provided herein is based on self-assessment and may not reflect the complete accessibility status of the product or service.
+  <p style="font-size: 11px; color: #666; line-height: 1.8; margin-bottom: 16px;">
+    This Voluntary Product Accessibility Template (VPAT) is a tool intended to facilitate communication between organizations and individuals regarding the accessibility of a product or service. It is not intended to be a legal document or a guarantee of product accessibility.
   </p>
 
-  <p style="font-family: -apple-system, sans-serif; font-size: 11px; color: #666; line-height: 1.7; margin-top: 16px;">
+  <p style="font-size: 11px; color: #666; line-height: 1.8; margin-bottom: 16px;">
+    The information provided herein is based on self-assessment and may not reflect the complete accessibility status of the product or service. Additional accessibility issues may be discovered or acknowledged after publication of this report.
+  </p>
+
+  <p style="font-size: 11px; color: #666; line-height: 1.8;">
     This assessment was generated on ${date} using Echo, an accessibility auditing tool. For the most current information about product accessibility, please contact the organization directly.
   </p>
+
+  <div class="page-number">Page 16 of 16</div>
 </div>
 
 </body>
