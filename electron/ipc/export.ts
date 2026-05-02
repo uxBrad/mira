@@ -87,7 +87,7 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
     return { success: true, path: filePath }
   })
 
-  ipcMain.handle('export:pdf', async (_, projectId: string, format: 'summary' | 'vpat' = 'summary') => {
+  ipcMain.handle('export:pdf', async (_, projectId: string, format: 'summary' | 'vpat' = 'summary', auditState?: { criteriaVerdict: Record<string, 'pass' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> }) => {
     try {
       const db = getDb()
       const [project] = await db.select().from(projects).where(eq(projects.id, projectId))
@@ -136,7 +136,7 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
 
       // Build HTML report based on format
       const html = format === 'vpat'
-        ? buildVpatHtml(project, findingsData)
+        ? buildVpatHtml(project, findingsData, auditState || { criteriaVerdict: {}, criteriaProgress: {} })
         : buildReportHtml(project, findingsData, severityCounts)
       console.log(`[PDF Export] ${format} HTML generated, length:`, html.length)
 
@@ -364,7 +364,8 @@ function buildReportHtml(
 
 function buildVpatHtml(
   project: typeof projects.$inferSelect,
-  findingsData: Array<typeof findings.$inferSelect & { standards: string[] }>
+  findingsData: Array<typeof findings.$inferSelect & { standards: string[] }>,
+  auditState: { criteriaVerdict: Record<string, 'pass' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> }
 ): string {
   const date = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
@@ -374,7 +375,69 @@ function buildVpatHtml(
 
   const BG = '#f5f0ef'
 
-  // Group findings by WCAG criterion
+  // All WCAG 2.2 criteria (57 total)
+  const allCriteria = [
+    // Level A (26 criteria)
+    { id: '1.1.1', name: 'Non-text Content', level: 'A' },
+    { id: '1.2.1', name: 'Audio-only and Video-only (Prerecorded)', level: 'A' },
+    { id: '1.2.2', name: 'Captions (Prerecorded)', level: 'A' },
+    { id: '1.2.3', name: 'Audio Description or Media Alternative (Prerecorded)', level: 'A' },
+    { id: '1.3.1', name: 'Info and Relationships', level: 'A' },
+    { id: '1.3.2', name: 'Meaningful Sequence', level: 'A' },
+    { id: '1.3.3', name: 'Sensory Characteristics', level: 'A' },
+    { id: '1.4.1', name: 'Use of Color', level: 'A' },
+    { id: '1.4.2', name: 'Audio Control', level: 'A' },
+    { id: '2.1.1', name: 'Keyboard', level: 'A' },
+    { id: '2.1.2', name: 'No Keyboard Trap', level: 'A' },
+    { id: '2.1.4', name: 'Character Key Shortcuts', level: 'A' },
+    { id: '2.2.1', name: 'Timing Adjustable', level: 'A' },
+    { id: '2.2.2', name: 'Pause, Stop, Hide', level: 'A' },
+    { id: '2.3.1', name: 'Three Flashes or Below Threshold', level: 'A' },
+    { id: '2.4.1', name: 'Bypass Blocks', level: 'A' },
+    { id: '2.4.2', name: 'Page Titled', level: 'A' },
+    { id: '2.4.3', name: 'Focus Order', level: 'A' },
+    { id: '2.4.4', name: 'Link Purpose (In Context)', level: 'A' },
+    { id: '2.5.1', name: 'Pointer Gestures', level: 'A' },
+    { id: '2.5.2', name: 'Pointer Cancellation', level: 'A' },
+    { id: '2.5.3', name: 'Label in Name', level: 'A' },
+    { id: '2.5.4', name: 'Motion Actuation', level: 'A' },
+    { id: '3.1.1', name: 'Language of Page', level: 'A' },
+    { id: '3.2.1', name: 'On Focus', level: 'A' },
+    { id: '3.2.2', name: 'On Input', level: 'A' },
+    { id: '3.3.1', name: 'Error Identification', level: 'A' },
+    { id: '3.3.2', name: 'Labels or Instructions', level: 'A' },
+    { id: '3.3.7', name: 'Redundant Entry', level: 'A' },
+    { id: '4.1.1', name: 'Parsing', level: 'A' },
+    { id: '4.1.2', name: 'Name, Role, Value', level: 'A' },
+    // Level AA (31 criteria)
+    { id: '1.2.4', name: 'Captions (Live)', level: 'AA' },
+    { id: '1.2.5', name: 'Audio Description (Prerecorded)', level: 'AA' },
+    { id: '1.3.4', name: 'Orientation', level: 'AA' },
+    { id: '1.3.5', name: 'Identify Input Purpose', level: 'AA' },
+    { id: '1.4.3', name: 'Contrast (Minimum)', level: 'AA' },
+    { id: '1.4.4', name: 'Resize Text', level: 'AA' },
+    { id: '1.4.5', name: 'Images of Text', level: 'AA' },
+    { id: '1.4.10', name: 'Reflow', level: 'AA' },
+    { id: '1.4.11', name: 'Non-text Contrast', level: 'AA' },
+    { id: '1.4.12', name: 'Text Spacing', level: 'AA' },
+    { id: '1.4.13', name: 'Content on Hover or Focus', level: 'AA' },
+    { id: '2.4.5', name: 'Multiple Ways', level: 'AA' },
+    { id: '2.4.6', name: 'Headings and Labels', level: 'AA' },
+    { id: '2.4.7', name: 'Focus Visible', level: 'AA' },
+    { id: '2.4.11', name: 'Focus Not Obscured (Minimum)', level: 'AA' },
+    { id: '2.5.7', name: 'Dragging Movements', level: 'AA' },
+    { id: '2.5.8', name: 'Target Size (Minimum)', level: 'AA' },
+    { id: '3.1.2', name: 'Language of Parts', level: 'AA' },
+    { id: '3.2.3', name: 'Consistent Navigation', level: 'AA' },
+    { id: '3.2.4', name: 'Consistent Identification', level: 'AA' },
+    { id: '3.2.6', name: 'Consistent Help', level: 'AA' },
+    { id: '3.3.3', name: 'Error Suggestion', level: 'AA' },
+    { id: '3.3.4', name: 'Error Prevention (Legal, Financial, Data)', level: 'AA' },
+    { id: '3.3.8', name: 'Accessible Authentication (Minimum)', level: 'AA' },
+    { id: '4.1.3', name: 'Status Messages', level: 'AA' }
+  ]
+
+  // Group findings by criterion
   const findingsByCriterion = new Map<string, typeof findingsData>()
   findingsData.forEach((f) => {
     if (f.wcagCriterion) {
@@ -385,40 +448,56 @@ function buildVpatHtml(
     }
   })
 
-  // WCAG 2.2 Criteria (subset for brevity in VPAT)
-  const wcagCriteria = [
-    { id: '1.1.1', name: 'Non-text Content', level: 'A' },
-    { id: '1.2.1', name: 'Audio-only and Video-only (Prerecorded)', level: 'A' },
-    { id: '1.3.1', name: 'Info and Relationships', level: 'A' },
-    { id: '1.4.1', name: 'Use of Color', level: 'A' },
-    { id: '2.1.1', name: 'Keyboard', level: 'A' },
-    { id: '2.4.1', name: 'Bypass Blocks', level: 'A' },
-    { id: '3.1.1', name: 'Language of Page', level: 'A' },
-    { id: '3.2.1', name: 'On Focus', level: 'A' },
-    { id: '4.1.1', name: 'Parsing', level: 'A' }
-  ]
+  // Determine conformance level for a criterion
+  function getConformanceLevel(criterionId: string): { level: string; color: string } {
+    const verdict = auditState.criteriaVerdict[criterionId] ?? null
+    const issues = findingsByCriterion.get(criterionId) || []
+    const hasOpenIssues = issues.some((f) => f.status !== 'resolved' && f.status !== 'wont_fix')
 
-  function getAssessment(criterion: string): string {
-    const issues = findingsByCriterion.get(criterion) || []
-    if (issues.length === 0) return 'Supports'
-    const hasOpen = issues.some((f) => f.status !== 'resolved' && f.status !== 'wont_fix')
-    return hasOpen ? 'Does Not Support' : 'Supports'
+    if (hasOpenIssues) {
+      // Has open issues = Does Not Support
+      return { level: 'Does Not Support', color: '#c0392b' }
+    } else if (verdict === 'pass' || (verdict !== 'fail' && issues.length === 0)) {
+      // Marked pass, or no verdict and no issues = Supports
+      return { level: 'Supports', color: '#2d7a4f' }
+    } else if (verdict === 'fail' && issues.length > 0 && !hasOpenIssues) {
+      // Failed but all issues resolved = Supports (issues were found and fixed)
+      return { level: 'Supports', color: '#2d7a4f' }
+    } else if (verdict === 'fail' && issues.length === 0) {
+      // Failed but no findings recorded = Does Not Support
+      return { level: 'Does Not Support', color: '#c0392b' }
+    } else if (verdict === null && issues.length === 0) {
+      // Not evaluated = Not Evaluated
+      return { level: 'Not Evaluated', color: '#999' }
+    }
+
+    // Default = Supports
+    return { level: 'Supports', color: '#2d7a4f' }
   }
 
-  const rows = wcagCriteria.map((c) => {
-    const assessment = getAssessment(c.id)
-    const issues = findingsByCriterion.get(c.id) || []
-    const remarks = issues.length > 0 ? `${issues.length} issue${issues.length !== 1 ? 's' : ''} found` : ''
+  // Get remarks (finding titles) for a criterion
+  function getRemarks(criterionId: string): string {
+    const issues = findingsByCriterion.get(criterionId) || []
+    if (issues.length === 0) return ''
+    return issues.map((i) => escapeHtml(i.title || 'Unnamed issue')).slice(0, 3).join('; ') + (issues.length > 3 ? `; and ${issues.length - 3} more` : '')
+  }
 
-    return `
-      <tr style="border-bottom: 1px solid #e0dbd9;">
-        <td style="padding: 12px 16px; font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 600;">${escapeHtml(c.id)}</td>
-        <td style="padding: 12px 16px; font-family: -apple-system, sans-serif; font-size: 14px;">${escapeHtml(c.name)}</td>
-        <td style="padding: 12px 16px; font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 600; color: ${assessment === 'Supports' ? '#2d7a4f' : '#c0392b'};">${assessment}</td>
-        <td style="padding: 12px 16px; font-family: -apple-system, sans-serif; font-size: 12px; color: #666;">${remarks}</td>
-      </tr>
-    `
-  }).join('')
+  // Build table rows for a level (A or AA)
+  function buildTableRows(level: 'A' | 'AA'): string {
+    const criteria = allCriteria.filter((c) => c.level === level)
+    return criteria.map((c) => {
+      const { level: conformanceLevel, color } = getConformanceLevel(c.id)
+      const remarks = getRemarks(c.id)
+      return `
+        <tr style="border-bottom: 1px solid #e0dbd9;">
+          <td style="padding: 10px 12px; font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 600;">${escapeHtml(c.id)}</td>
+          <td style="padding: 10px 12px; font-family: -apple-system, sans-serif; font-size: 11px;">${escapeHtml(c.name)}</td>
+          <td style="padding: 10px 12px; font-family: -apple-system, sans-serif; font-size: 11px; font-weight: 600; color: ${color}; background: ${color}15;">${conformanceLevel}</td>
+          <td style="padding: 10px 12px; font-family: -apple-system, sans-serif; font-size: 10px; color: #666; max-width: 250px;">${remarks || '—'}</td>
+        </tr>
+      `
+    }).join('')
+  }
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -431,42 +510,119 @@ function buildVpatHtml(
   @page { margin: 0; }
   @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
   table { width: 100%; border-collapse: collapse; }
+  .page { page-break-before: always; }
 </style>
 </head>
 <body>
 
-<div style="padding: 80px; background:${BG}; min-height:100vh; display:flex; flex-direction:column; justify-content:space-between;">
+<!-- ════════════════════════════════════════
+     COVER PAGE
+════════════════════════════════════════ -->
+<div style="padding: 80px; background: ${BG}; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between;">
   <div>
-    <h1 style="font-family:Georgia,'Times New Roman',serif; font-size:48px; font-weight:700; color:#1a1a1a; margin-bottom:20px;">VPAT®</h1>
-    <p style="font-family:-apple-system,sans-serif; font-size:13px; color:#666; margin-bottom:40px;">Voluntary Product Accessibility Template</p>
+    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size: 56px; font-weight: 700; color: #1a1a1a; margin-bottom: 12px;">VPAT®</h1>
+    <p style="font-family: -apple-system, sans-serif; font-size: 14px; color: #666; margin-bottom: 40px;">Voluntary Product Accessibility Template<br>Version 2.5</p>
 
-    <div style="background:white; padding:30px; border-radius:8px; margin-bottom:40px;">
-      <p style="font-family:-apple-system,sans-serif; font-size:11px; color:#666; margin-bottom:8px;"><strong>Product Name:</strong> ${escapeHtml(project.name)}</p>
-      ${project.clientName ? `<p style="font-family:-apple-system,sans-serif; font-size:11px; color:#666; margin-bottom:8px;"><strong>Organization:</strong> ${escapeHtml(project.clientName)}</p>` : ''}
-      ${project.url ? `<p style="font-family:-apple-system,sans-serif; font-size:11px; color:#666; margin-bottom:8px;"><strong>Product URL:</strong> ${escapeHtml(project.url)}</p>` : ''}
-      <p style="font-family:-apple-system,sans-serif; font-size:11px; color:#666;"><strong>Report Date:</strong> ${date}</p>
+    <div style="background: white; padding: 32px 28px; margin-bottom: 40px; border: 1px solid #e0dbd9;">
+      <p style="font-family: -apple-system, sans-serif; font-size: 12px; margin-bottom: 10px;"><strong>Product Name:</strong> ${escapeHtml(project.name)}</p>
+      ${project.clientName ? `<p style="font-family: -apple-system, sans-serif; font-size: 12px; margin-bottom: 10px;"><strong>Organization:</strong> ${escapeHtml(project.clientName)}</p>` : ''}
+      ${project.url ? `<p style="font-family: -apple-system, sans-serif; font-size: 12px; margin-bottom: 10px;"><strong>Product URL:</strong> ${escapeHtml(project.url)}</p>` : ''}
+      <p style="font-family: -apple-system, sans-serif; font-size: 12px; margin-bottom: 10px;"><strong>Report Date:</strong> ${date}</p>
+      ${project.description ? `<p style="font-family: -apple-system, sans-serif; font-size: 12px; margin-top: 16px; line-height: 1.5;"><strong>Product Description:</strong> ${escapeHtml(project.description)}</p>` : ''}
     </div>
+  </div>
+
+  <div>
+    <h3 style="font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; margin-bottom: 12px;">Evaluation Methods</h3>
+    <p style="font-family: -apple-system, sans-serif; font-size: 11px; color: #666; line-height: 1.6;">
+      This accessibility audit was conducted using manual review, automated testing tools, and user testing as appropriate. Evaluators assessed conformance to WCAG 2.2 criteria.
+    </p>
   </div>
 </div>
 
-<div style="padding: 80px; background:white; page-break-before:always;">
-  <h2 style="font-family:Georgia,serif; font-size:32px; font-weight:700; color:#1a1a1a; margin-bottom:30px;">WCAG 2.2 Level A Conformance</h2>
+<!-- ════════════════════════════════════════
+     TERMS & DEFINITIONS PAGE
+════════════════════════════════════════ -->
+<div class="page" style="padding: 80px; background: white;">
+  <h2 style="font-family: Georgia, serif; font-size: 32px; font-weight: 700; color: #1a1a1a; margin-bottom: 24px;">Conformance Levels</h2>
 
-  <table style="border: 1px solid #e0dbd9;">
+  <div style="margin-bottom: 32px;">
+    <h3 style="font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 700; color: #2d7a4f; margin-bottom: 8px;">Supports</h3>
+    <p style="font-family: -apple-system, sans-serif; font-size: 12px; color: #444; line-height: 1.6; margin-left: 16px;">
+      The functionality of the product has at least one method that meets the criterion without known defects or meets with equivalent facilitation.
+    </p>
+  </div>
+
+  <div style="margin-bottom: 32px;">
+    <h3 style="font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 700; color: #c0392b; margin-bottom: 8px;">Does Not Support</h3>
+    <p style="font-family: -apple-system, sans-serif; font-size: 12px; color: #444; line-height: 1.6; margin-left: 16px;">
+      The majority of product functionality does not meet the criterion.
+    </p>
+  </div>
+
+  <div style="margin-bottom: 32px;">
+    <h3 style="font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 700; color: #999; margin-bottom: 8px;">Not Evaluated</h3>
+    <p style="font-family: -apple-system, sans-serif; font-size: 12px; color: #444; line-height: 1.6; margin-left: 16px;">
+      The product has not been evaluated against the criterion.
+    </p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     WCAG 2.2 LEVEL A TABLE
+════════════════════════════════════════ -->
+<div class="page" style="padding: 80px; background: white;">
+  <h2 style="font-family: Georgia, serif; font-size: 32px; font-weight: 700; color: #1a1a1a; margin-bottom: 24px;">WCAG 2.2 — Level A</h2>
+
+  <table style="border: 1px solid #e0dbd9; font-size: 11px;">
     <thead>
-      <tr style="background:#f9f6f5; border-bottom: 2px solid #e0dbd9;">
-        <th style="padding: 12px 16px; text-align: left; font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666;">Criterion</th>
-        <th style="padding: 12px 16px; text-align: left; font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666;">Name</th>
-        <th style="padding: 12px 16px; text-align: left; font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666;">Assessment</th>
-        <th style="padding: 12px 16px; text-align: left; font-family: -apple-system, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666;">Remarks</th>
+      <tr style="background: #f9f6f5; border-bottom: 2px solid #e0dbd9;">
+        <th style="padding: 12px 12px; text-align: left; font-family: -apple-system, sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; width: 10%;">Criterion</th>
+        <th style="padding: 12px 12px; text-align: left; font-family: -apple-system, sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; width: 35%;">Name</th>
+        <th style="padding: 12px 12px; text-align: left; font-family: -apple-system, sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; width: 20%;">Conformance</th>
+        <th style="padding: 12px 12px; text-align: left; font-family: -apple-system, sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; width: 35%;">Remarks</th>
       </tr>
     </thead>
     <tbody>
-      ${rows}
+      ${buildTableRows('A')}
     </tbody>
   </table>
+</div>
 
-  <p style="font-family:-apple-system,sans-serif; font-size:11px; color:#aaa; margin-top:40px;">Generated ${date} · Echo Accessibility Audit Tool</p>
+<!-- ════════════════════════════════════════
+     WCAG 2.2 LEVEL AA TABLE
+════════════════════════════════════════ -->
+<div class="page" style="padding: 80px; background: white;">
+  <h2 style="font-family: Georgia, serif; font-size: 32px; font-weight: 700; color: #1a1a1a; margin-bottom: 24px;">WCAG 2.2 — Level AA</h2>
+
+  <table style="border: 1px solid #e0dbd9; font-size: 11px;">
+    <thead>
+      <tr style="background: #f9f6f5; border-bottom: 2px solid #e0dbd9;">
+        <th style="padding: 12px 12px; text-align: left; font-family: -apple-system, sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; width: 10%;">Criterion</th>
+        <th style="padding: 12px 12px; text-align: left; font-family: -apple-system, sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; width: 35%;">Name</th>
+        <th style="padding: 12px 12px; text-align: left; font-family: -apple-system, sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; width: 20%;">Conformance</th>
+        <th style="padding: 12px 12px; text-align: left; font-family: -apple-system, sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #666; width: 35%;">Remarks</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${buildTableRows('AA')}
+    </tbody>
+  </table>
+</div>
+
+<!-- ════════════════════════════════════════
+     LEGAL DISCLAIMER
+════════════════════════════════════════ -->
+<div class="page" style="padding: 80px; background: white;">
+  <h2 style="font-family: Georgia, serif; font-size: 28px; font-weight: 700; color: #1a1a1a; margin-bottom: 20px;">Legal Disclaimer</h2>
+
+  <p style="font-family: -apple-system, sans-serif; font-size: 11px; color: #666; line-height: 1.7;">
+    This Voluntary Product Accessibility Template (VPAT) is a tool intended to facilitate communication between organizations and individuals regarding the accessibility of a product or service. It is not intended to be a legal document or a guarantee of product accessibility. The information provided herein is based on self-assessment and may not reflect the complete accessibility status of the product or service.
+  </p>
+
+  <p style="font-family: -apple-system, sans-serif; font-size: 11px; color: #666; line-height: 1.7; margin-top: 16px;">
+    This assessment was generated on ${date} using Echo, an accessibility auditing tool. For the most current information about product accessibility, please contact the organization directly.
+  </p>
 </div>
 
 </body>

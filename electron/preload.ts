@@ -116,7 +116,8 @@ const updateAPI = {
 
 // Export API
 const exportAPI = {
-  pdf: (projectId: string, format?: 'summary' | 'vpat') => ipcRenderer.invoke('export:pdf', projectId, format || 'summary'),
+  pdf: (projectId: string, format?: 'summary' | 'vpat', auditState?: { criteriaVerdict: Record<string, 'pass' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> }) =>
+    ipcRenderer.invoke('export:pdf', projectId, format || 'summary', auditState),
   csv: (projectId: string) => ipcRenderer.invoke('export:csv', projectId),
   chooseScreenshot: () => ipcRenderer.invoke('export:chooseScreenshot')
 }

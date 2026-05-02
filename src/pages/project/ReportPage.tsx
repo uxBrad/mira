@@ -82,7 +82,14 @@ export default function ReportPage() {
     setIsExportingPdf(true)
     setShowFormatDialog(false)
     try {
-      const result = await window.api.export.pdf(id, format)
+      // Read audit state from localStorage to pass to export handler
+      const auditKey = `echo-step-audit-${id}`
+      const raw = JSON.parse(localStorage.getItem(auditKey) || '{}')
+      const auditState = {
+        criteriaVerdict: raw.criteriaVerdict || {},
+        criteriaProgress: raw.criteriaProgress || {}
+      }
+      const result = await window.api.export.pdf(id, format, auditState)
       if (result.canceled) {
         return
       }

@@ -1,7 +1,6 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
-import { Bell, Settings, LogOut, Clock, User } from 'lucide-react'
+import { Bell, Settings, LogOut, Clock, User, LayoutGrid, Layers } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
-import { cn } from '../../lib/utils'
 import { useToast } from '../ui/use-toast'
 import UpdateBanner from '../UpdateBanner'
 import { useState, useEffect } from 'react'
@@ -48,57 +47,61 @@ export default function AppShell() {
       style={{ background: '#fcf9f8', opacity: ready ? 1 : 0 }}
     >
 
-      {/* Top navigation bar */}
+      {/* Top navigation bar — minimal icon-based design */}
       <header
-        className="flex-shrink-0 flex items-center px-6 titlebar-drag"
-        style={{ background: '#ffffff', borderBottom: '1px solid #ebe7e7', height: '56px' }}
+        className="flex-shrink-0 flex items-center px-4 titlebar-drag"
+        style={{ background: '#ffffff', borderBottom: '1px solid #ebe7e7', height: '40px' }}
         aria-label="Main navigation"
       >
-        {/* Nav links — centered pill switcher */}
-        <nav className="flex items-center justify-center flex-1 titlebar-no-drag" aria-label="App sections">
-          <div
-            className="flex items-center p-1 gap-0.5"
-            style={{ background: '#ede9e7', borderRadius: '9999px' }}
-          >
-            {[
-              { to: '/', label: 'Projects', matchPrefix: ['/project/'] },
-              { to: '/templates', label: 'Templates', matchPrefix: [] },
-              { to: '/settings', label: 'Settings', matchPrefix: [] },
-            ].map(({ to, label, matchPrefix }) => {
-              const isActive =
-                (to === '/' ? location.pathname === '/' : location.pathname.startsWith(to)) ||
-                matchPrefix.some((p) => location.pathname.startsWith(p))
-              return (
-                <NavLink
-                  key={to}
-                  to={to}
-                  end={to === '/'}
-                  className={cn(
-                    'px-4 py-1.5 font-sans text-sm font-medium transition-all duration-150',
-                    isActive
-                      ? 'text-foreground'
-                      : 'text-[#7a7877] hover:text-foreground'
-                  )}
-                  style={{
-                    borderRadius: '9999px',
-                    background: isActive ? '#ffffff' : 'transparent',
-                    boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04)' : 'none',
-                  }}
-                  aria-current={isActive ? 'page' : undefined}
-                >
-                  {label}
-                </NavLink>
-              )
-            })}
-          </div>
+        {/* Left: Navigation icon buttons */}
+        <nav className="flex items-center gap-2 titlebar-no-drag" aria-label="App sections">
+          {[
+            { to: '/', icon: LayoutGrid, label: 'Projects', matchPrefix: ['/project/'] },
+            { to: '/templates', icon: Layers, label: 'Templates', matchPrefix: [] },
+            { to: '/settings', icon: Settings, label: 'Settings', matchPrefix: [] },
+          ].map(({ to, icon: Icon, label, matchPrefix }) => {
+            const isActive =
+              (to === '/' ? location.pathname === '/' : location.pathname.startsWith(to)) ||
+              matchPrefix.some((p) => location.pathname.startsWith(p))
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                end={to === '/'}
+                className="flex items-center justify-center w-8 h-8 transition-colors"
+                style={{
+                  color: isActive ? '#1a1a1a' : '#9a9897',
+                  borderRadius: '4px',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) (e.currentTarget as HTMLElement).style.color = '#1a1a1a'
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) (e.currentTarget as HTMLElement).style.color = '#9a9897'
+                }}
+                title={label}
+                aria-label={label}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                <Icon className="h-4 w-4" aria-hidden="true" />
+              </NavLink>
+            )
+          })}
         </nav>
 
-        {/* Right icons */}
-        <div className="flex items-center gap-1 flex-shrink-0 titlebar-no-drag">
+        {/* Center: App name (draggable) */}
+        <div className="flex-1 flex items-center justify-center titlebar-drag" style={{ minWidth: 0 }}>
+          <p className="font-sans text-xs font-medium text-[#9a9897]" style={{ pointerEvents: 'none' }}>
+            Echo
+          </p>
+        </div>
+
+        {/* Right: User controls + Windows controls placeholder */}
+        <div className="flex items-center gap-1 flex-shrink-0 titlebar-no-drag" style={{ paddingRight: '140px' }}>
           {/* Trial badge */}
           {trialBanner && (
-            <div className="mr-2 px-2.5 py-1" style={{ background: '#f6f3f2' }} role="status" aria-live="polite">
-              <div className="flex items-center gap-1.5">
+            <div className="px-2 py-0.5" style={{ background: '#f6f3f2' }} role="status" aria-live="polite">
+              <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3 text-primary flex-shrink-0" aria-hidden="true" />
                 <p className="font-sans text-xs font-medium text-foreground whitespace-nowrap">
                   {subscriptionStatus.daysRemaining === 0
@@ -110,40 +113,32 @@ export default function AppShell() {
           )}
 
           <button
-            className="flex items-center justify-center w-9 h-9 text-[#5f5e5e] hover:text-foreground transition-colors"
+            className="flex items-center justify-center w-7 h-7 text-[#9a9897] hover:text-foreground transition-colors"
             aria-label="Notifications"
           >
-            <Bell className="h-5 w-5" aria-hidden="true" />
+            <Bell className="h-4 w-4" aria-hidden="true" />
           </button>
-
-          <NavLink
-            to="/settings"
-            className="flex items-center justify-center w-9 h-9 text-[#5f5e5e] hover:text-foreground transition-colors"
-            aria-label="Settings"
-          >
-            <Settings className="h-5 w-5" aria-hidden="true" />
-          </NavLink>
 
           {session?.user ? (
             <button
               onClick={handleLogout}
-              className="ml-1 flex items-center justify-center w-9 h-9 font-sans text-xs font-bold text-white overflow-hidden flex-shrink-0 transition-opacity hover:opacity-80"
-              style={{ borderRadius: '9999px', background: '#610000' }}
+              className="flex items-center justify-center w-7 h-7 font-sans text-xs font-bold text-white overflow-hidden flex-shrink-0 transition-opacity hover:opacity-80"
+              style={{ borderRadius: '4px', background: '#610000' }}
               aria-label={`Sign out (${session.user.email})`}
               title={session.user.email}
             >
               {avatar
                 ? <img src={avatar} alt="" className="w-full h-full object-cover" aria-hidden="true" />
-                : (session.user.email?.[0]?.toUpperCase() ?? <User className="h-5 w-5" />)
+                : (session.user.email?.[0]?.toUpperCase() ?? <User className="h-4 w-4" />)
               }
             </button>
           ) : (
             <button
               onClick={handleLogout}
-              className="flex items-center justify-center w-9 h-9 text-[#5f5e5e] hover:text-primary transition-colors"
+              className="flex items-center justify-center w-7 h-7 text-[#9a9897] hover:text-primary transition-colors"
               aria-label="Sign out"
             >
-              <LogOut className="h-5 w-5" aria-hidden="true" />
+              <LogOut className="h-4 w-4" aria-hidden="true" />
             </button>
           )}
         </div>
