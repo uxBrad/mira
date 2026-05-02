@@ -122,6 +122,11 @@ const exportAPI = {
   chooseScreenshot: () => ipcRenderer.invoke('export:chooseScreenshot')
 }
 
+// System API
+const systemAPI = {
+  openFile: (filePath: string) => ipcRenderer.invoke('system:openFile', filePath)
+}
+
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
@@ -132,7 +137,8 @@ if (process.contextIsolated) {
       templates: templatesAPI,
       export: exportAPI,
       update: updateAPI,
-      import: importAPI
+      import: importAPI,
+      system: systemAPI
     })
   } catch (error) {
     console.error(error)
@@ -148,6 +154,7 @@ if (process.contextIsolated) {
     templates: templatesAPI,
     export: exportAPI,
     update: updateAPI,
-    import: importAPI
+    import: importAPI,
+    system: systemAPI
   }
 }

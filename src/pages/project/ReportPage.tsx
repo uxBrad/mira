@@ -93,7 +93,32 @@ export default function ReportPage() {
       if (result.canceled) {
         return
       }
-      toast({ title: 'PDF exported', description: `${format === 'vpat' ? 'VPAT' : 'Summary'} report saved to ${result.path}` })
+
+      // Show toast with clickable file path
+      const handleOpenFile = async () => {
+        try {
+          await window.api.system.openFile(result.path!)
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Failed to open file'
+          toast({ variant: 'destructive', title: 'Error', description: message })
+        }
+      }
+
+      toast({
+        title: 'PDF exported',
+        description: (
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-sm text-foreground">{format === 'vpat' ? 'VPAT' : 'Summary'} report saved</span>
+            <button
+              onClick={handleOpenFile}
+              className="text-xs font-semibold text-primary hover:text-primary/80 underline transition-colors flex-shrink-0"
+              type="button"
+            >
+              Open File
+            </button>
+          </div>
+        )
+      })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to export PDF'
       toast({ variant: 'destructive', title: 'Export failed', description: message })
@@ -119,7 +144,32 @@ export default function ReportPage() {
         // User canceled the save dialog
         return
       }
-      toast({ title: 'CSV exported', description: `Report saved to ${result.path}` })
+
+      // Show toast with clickable file path
+      const handleOpenFile = async () => {
+        try {
+          await window.api.system.openFile(result.path!)
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Failed to open file'
+          toast({ variant: 'destructive', title: 'Error', description: message })
+        }
+      }
+
+      toast({
+        title: 'CSV exported',
+        description: (
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-sm text-foreground">CSV report saved</span>
+            <button
+              onClick={handleOpenFile}
+              className="text-xs font-semibold text-primary hover:text-primary/80 underline transition-colors flex-shrink-0"
+              type="button"
+            >
+              Open File
+            </button>
+          </div>
+        )
+      })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to export CSV'
       toast({ variant: 'destructive', title: 'Export failed', description: message })

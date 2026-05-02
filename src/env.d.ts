@@ -185,5 +185,8 @@ interface Window {
       }>
       importFindings: (projectId: string, findings: unknown[]) => Promise<{ imported: number }>
     }
+    system: {
+      openFile: (filePath: string) => Promise<{ success: boolean }>
+    }
   }
 }
