@@ -126,6 +126,7 @@ export default function RegisterPage() {
 
                 <Button
                   type="submit"
+                  size="lg"
                   className="w-full"
                   disabled={isLoading || code.length !== 6}
                 >
@@ -243,6 +244,7 @@ export default function RegisterPage() {
 
               <Button
                 type="submit"
+                size="lg"
                 className="w-full"
                 disabled={isLoading || !name || !email || !password || !confirmPassword}
               >

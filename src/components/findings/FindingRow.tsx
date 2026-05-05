@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Pencil, Trash2, Eye } from 'lucide-react'
+import { Button } from '../ui/button'
 import {
   Select,
   SelectContent,
@@ -105,23 +106,6 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
 
   const severityColor = SEVERITY_COLORS[finding.severity ?? ''] ?? '#5f5e5e'
 
-  // Shared button style for consistent sizing
-  const btnBase: React.CSSProperties = {
-    border: '1px solid #d0cac8',
-    borderRadius: '4px',
-    height: '32px',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '0 10px',
-    fontSize: '13px',
-    fontFamily: 'inherit',
-    fontWeight: 500,
-    cursor: 'pointer',
-    transition: 'background 0.15s',
-    whiteSpace: 'nowrap' as const,
-  }
-
   return (
     <>
       <article
@@ -225,34 +209,37 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
             </Select>
 
             {/* View Details */}
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onEdit}
               aria-label={`View details: ${finding.title}`}
-              style={{ ...btnBase, color: '#2b2c2c', background: 'transparent' }}
             >
-              <Eye style={{ width: '13px', height: '13px' }} aria-hidden="true" />
+              <Eye className="w-4 h-4" aria-hidden="true" />
               View Details
-            </button>
+            </Button>
 
             {/* Edit */}
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onEdit}
               aria-label={`Edit: ${finding.title}`}
-              style={{ ...btnBase, color: '#5f5e5e', background: 'transparent' }}
             >
-              <Pencil style={{ width: '13px', height: '13px' }} aria-hidden="true" />
+              <Pencil className="w-4 h-4" aria-hidden="true" />
               Edit
-            </button>
+            </Button>
 
             {/* Delete */}
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setDeleteOpen(true)}
               aria-label={`Delete: ${finding.title}`}
-              style={{ ...btnBase, color: '#c0392b', background: 'transparent' }}
             >
-              <Trash2 style={{ width: '13px', height: '13px' }} aria-hidden="true" />
+              <Trash2 className="w-4 h-4" aria-hidden="true" />
               Delete
-            </button>
+            </Button>
           </div>
         </div>
       </article>
@@ -266,21 +253,19 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <button
+            <Button
+              variant="outline"
               onClick={() => setDeleteOpen(false)}
-              className="px-4 py-2 font-sans text-sm font-medium transition-colors hover:bg-[#f6f3f2]"
-              style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '4px' }}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="destructive"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="px-4 py-2 font-sans text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-              style={{ background: '#610000', borderRadius: '4px' }}
             >
               {isDeleting ? 'Deleting…' : 'Delete'}
-            </button>
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

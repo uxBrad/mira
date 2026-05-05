@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
             <p className="text-sm text-muted-foreground mb-6">
               Your password has been updated. You can now sign in with your new password.
             </p>
-            <Button className="w-full" onClick={() => navigate('/login')}>
+            <Button size="lg" className="w-full" onClick={() => navigate('/login')}>
               Sign in
             </Button>
           </div>
@@ -166,6 +166,7 @@ export default function ForgotPasswordPage() {
 
                 <Button
                   type="submit"
+                  size="lg"
                   className="w-full"
                   disabled={isLoading || code.length !== 6 || !password || !confirmPassword}
                 >
@@ -220,7 +221,7 @@ export default function ForgotPasswordPage() {
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading || !email}>
+              <Button type="submit" size="lg" className="w-full" disabled={isLoading || !email}>
                 {isLoading ? (
                   <>
                     <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />

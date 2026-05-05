@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, Plus, Trash2, Maximize2, Minimize2 } from 'lucide-react'
+import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { Textarea } from '../ui/textarea'
@@ -118,24 +119,6 @@ export function ProjectFormDialog({
   }
 
   const heading = mode === 'create' ? 'New Project' : 'Edit Project'
-
-  // Shared 32px button style
-  const btnBase: React.CSSProperties = {
-    border: '1px solid #d0cac8',
-    borderRadius: '4px',
-    height: '32px',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '0 14px',
-    fontSize: '13px',
-    fontFamily: 'inherit',
-    fontWeight: 600,
-    cursor: 'pointer',
-    transition: 'opacity 0.15s',
-    whiteSpace: 'nowrap' as const,
-    background: 'transparent',
-  }
 
   return (
     <div
@@ -344,30 +327,22 @@ export function ProjectFormDialog({
         className="flex items-center justify-end gap-2 px-6 py-4 flex-shrink-0"
         style={{ borderTop: '1px solid #e0dbd9', background: '#f6f3f2' }}
       >
-        <button
-          type="button"
+        <Button
+          variant="outline"
           onClick={() => onOpenChange(false)}
           disabled={isLoading}
-          style={{ ...btnBase, color: '#2b2c2c' }}
         >
           Cancel
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
           form="project-sidebar-form"
           disabled={isLoading || !name.trim()}
-          style={{
-            ...btnBase,
-            background: '#610000',
-            color: '#fff',
-            border: '1px solid #610000',
-            opacity: (isLoading || !name.trim()) ? 0.4 : 1,
-          }}
         >
           {isLoading
             ? mode === 'create' ? 'Creating…' : 'Saving…'
             : mode === 'create' ? 'Create Project' : 'Save Changes'}
-        </button>
+        </Button>
       </div>
     </div>
   )

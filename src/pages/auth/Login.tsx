@@ -131,8 +131,7 @@ export default function LoginPage() {
                 )}
                 {resendSent && (
                   <div
-                    className="mb-6 px-4 py-3 font-data text-sm"
-                    style={{ background: '#ebe7e7' }}
+                    className="mb-6 rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-700"
                   >
                     New code sent — check your inbox.
                   </div>
@@ -161,6 +160,7 @@ export default function LoginPage() {
 
                   <Button
                     type="submit"
+                    size="lg"
                     className="w-full"
                     disabled={isVerifying || verifyCode.length !== 6}
                   >
@@ -200,8 +200,7 @@ export default function LoginPage() {
                   <div
                     role="alert"
                     aria-live="assertive"
-                    className="mb-6 px-4 py-3 font-data text-sm text-primary"
-                    style={{ background: '#ebe7e7' }}
+                    className="mb-6 rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive"
                   >
                     {error}
                   </div>
@@ -229,7 +228,7 @@ export default function LoginPage() {
                       value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} />
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={isLoading || !email || !password}>
+                  <Button type="submit" size="lg" className="w-full" disabled={isLoading || !email || !password}>
                     {isLoading ? (
                       <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />Signing in…</>
                     ) : 'Sign in'}
