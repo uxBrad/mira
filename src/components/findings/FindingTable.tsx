@@ -49,8 +49,14 @@ export function FindingTable({ findings, isLoading, onEdit, onUpdate, onDelete }
 
   return (
     <ul className="space-y-0" role="list" aria-label="Findings" style={{ paddingBottom: '2rem' }}>
-      {findings.map((finding) => (
-        <li key={finding.id}>
+      {findings.map((finding, index) => (
+        <li
+          key={finding.id}
+          style={{
+            '--row-index': Math.min(index, 10),
+            animation: `fadeIn 0.4s ease-out ${Math.min(index * 50, 500)}ms both`,
+          } as React.CSSProperties}
+        >
           <FindingRow
             finding={finding}
             onEdit={() => onEdit(finding)}

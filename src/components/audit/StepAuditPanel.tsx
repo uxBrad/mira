@@ -474,7 +474,7 @@ export function StepAuditPanel({
           <div className="space-y-4">
             {/* Template picker */}
             {templates.length > 0 && (
-              <div>
+              <div style={{ animation: 'slideDown 0.4s ease-out 0ms both' }}>
                 <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                   Choose from template
                 </Label>
@@ -493,7 +493,7 @@ export function StepAuditPanel({
             )}
 
             {/* Title */}
-            <div>
+            <div style={{ animation: 'slideDown 0.4s ease-out 80ms both' }}>
               <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Issue Title
               </Label>
@@ -507,7 +507,7 @@ export function StepAuditPanel({
             </div>
 
             {/* Description */}
-            <div>
+            <div style={{ animation: 'slideDown 0.4s ease-out 160ms both' }}>
               <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Description
               </Label>
@@ -522,7 +522,7 @@ export function StepAuditPanel({
             </div>
 
             {/* Severity */}
-            <div>
+            <div style={{ animation: 'slideDown 0.4s ease-out 240ms both' }}>
               <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Severity
               </Label>
@@ -547,7 +547,7 @@ export function StepAuditPanel({
             </div>
 
             {/* Recommendations */}
-            <div>
+            <div style={{ animation: 'slideDown 0.4s ease-out 320ms both' }}>
               <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Recommendation
               </Label>
@@ -562,7 +562,7 @@ export function StepAuditPanel({
             </div>
 
             {/* Page + Component */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3" style={{ animation: 'slideDown 0.4s ease-out 400ms both' }}>
               <div>
                 <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                   Page
@@ -622,7 +622,7 @@ export function StepAuditPanel({
               onClick={handleLogFinding}
               disabled={!title.trim() || isSubmitting}
               className="w-full py-2.5 font-sans text-sm font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-              style={{ background: '#610000', letterSpacing: '0.1em' }}
+              style={{ background: '#610000', letterSpacing: '0.1em', animation: 'slideDown 0.4s ease-out 480ms both' }}
             >
               {isSubmitting ? 'Logging…' : 'Log Finding'}
             </button>

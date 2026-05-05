@@ -129,18 +129,27 @@ function MultiSelectFilter({
       {open && (
         <div
           className="absolute top-full left-0 mt-1 z-50 min-w-[180px] py-1"
-          style={{ background: '#fff', border: '1px solid #e0dbd9', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', borderRadius: '4px' }}
+          style={{
+            background: '#fff',
+            border: '1px solid #e0dbd9',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            borderRadius: '4px',
+            animation: 'fadeIn 0.3s ease-out'
+          }}
           role="listbox"
           aria-multiselectable="true"
         >
-          {options.map(o => {
+          {options.map((o, index) => {
             const checked = selected.includes(o.key)
             return (
               <button
                 key={o.key}
                 onClick={() => onToggle(o.key)}
                 className="flex items-center gap-2.5 w-full px-3 py-2 font-sans text-sm text-left transition-colors hover:bg-[#f6f3f2]"
-                style={{ color: '#2b2c2c' }}
+                style={{
+                  color: '#2b2c2c',
+                  animation: `slideUp 0.3s ease-out ${Math.min(index * 40, 200)}ms both`,
+                }}
                 role="option"
                 aria-selected={checked}
               >

@@ -332,16 +332,22 @@ export function FindingFormSidebar({
             <div
               role="alert"
               className="mb-4 px-3 py-2 font-sans text-sm"
-              style={{ background: '#fef2f2', color: '#c0392b', border: '1px solid #fecaca', borderRadius: '4px' }}
+              style={{
+                background: '#fef2f2',
+                color: '#c0392b',
+                border: '1px solid #fecaca',
+                borderRadius: '4px',
+                animation: 'fadeIn 0.3s ease-out',
+              }}
             >
               {error}
             </div>
           )}
 
-          <div className="space-y-5">
+          <div className="space-y-5" style={{ '--stagger-index': 0 } as React.CSSProperties}>
             {/* Load from template */}
             {mode === 'create' && templates.length > 0 && (
-              <div className="space-y-1.5">
+              <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 0ms both' }}>
                 <Label htmlFor="sf-template" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                   Load from template
                 </Label>
@@ -361,7 +367,7 @@ export function FindingFormSidebar({
             )}
 
             {/* Title */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 80ms both' }}>
               <Label htmlFor="sf-title" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Title <span aria-hidden="true" style={{ color: '#610000' }}>*</span>
               </Label>
@@ -377,7 +383,7 @@ export function FindingFormSidebar({
             </div>
 
             {/* Severity + Status */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3" style={{ animation: 'slideDown 0.4s ease-out 160ms both' }}>
               <div className="space-y-1.5">
                 <Label htmlFor="sf-severity" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                   Severity
@@ -471,7 +477,7 @@ export function FindingFormSidebar({
             </div>
 
             {/* Component */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 360ms both' }}>
               <Label htmlFor="sf-component" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Component
               </Label>
@@ -529,7 +535,7 @@ export function FindingFormSidebar({
             </div>
 
             {/* Category */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 240ms both' }}>
               <Label htmlFor="sf-category" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Category
               </Label>
@@ -546,7 +552,7 @@ export function FindingFormSidebar({
             </div>
 
             {/* WCAG criterion */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 320ms both' }}>
               <Label htmlFor="sf-wcag" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 WCAG Criterion
               </Label>
@@ -633,7 +639,7 @@ export function FindingFormSidebar({
             </div>
 
             {/* Description */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 440ms both' }}>
               <Label htmlFor="sf-description" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Issue description
               </Label>
@@ -648,7 +654,7 @@ export function FindingFormSidebar({
             </div>
 
             {/* Recommendations */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 500ms both' }}>
               <Label htmlFor="sf-recommendations" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Recommendation
               </Label>
@@ -696,7 +702,7 @@ export function FindingFormSidebar({
             </div>
 
             {/* Notes */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 560ms both' }}>
               <Label htmlFor="sf-notes" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Notes
               </Label>
