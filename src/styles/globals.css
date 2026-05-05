@@ -105,6 +105,17 @@
 .animate-slide-in-right { animation: slideInRight 0.25s ease forwards; }
 .animate-fade-slide-in  { animation: fadeSlideIn  0.2s ease forwards; }
 
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @layer utilities {
   /* Manrope for all labels/data — uppercase tracking utility */
   .font-data {

@@ -664,6 +664,11 @@ export default function ProjectPage() {
         style={{
           width: sidebarOpen ? (findingSidebarWide ? '100%' : '50%') : '0',
           transition: tr,
+          opacity: sidebarOpen ? 1 : 0,
+          transform: sidebarOpen ? 'translateX(0)' : 'translateX(20px)',
+          transitionProperty: 'width, opacity, transform, border-radius',
+          transitionDuration: layoutReady ? '0.3s' : '0s',
+          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
           borderRadius: sidebarOpen ? '10px 0 0 10px' : '0',
           overflow: 'hidden',
         }}
@@ -708,6 +713,11 @@ export default function ProjectPage() {
         style={{
           width: stepAuditOpen ? (stepAuditWide ? '100%' : '50%') : '0',
           transition: tr,
+          opacity: stepAuditOpen ? 1 : 0,
+          transform: stepAuditOpen ? 'translateX(0)' : 'translateX(20px)',
+          transitionProperty: 'width, opacity, transform, border-radius',
+          transitionDuration: layoutReady ? '0.3s' : '0s',
+          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
           borderRadius: stepAuditOpen ? '10px 0 0 10px' : '0',
           overflow: 'hidden',
         }}
