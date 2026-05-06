@@ -688,65 +688,77 @@ export default function ProjectPage() {
             />
           ) : (
             (() => {
-              // Group filtered findings by wcagCriterion
-              const groups: Record<string, Finding[]> = {}
+              // Index filtered findings by wcagCriterion for O(1) lookup
+              const findingsByCriterion: Record<string, Finding[]> = {}
+              const unassigned: Finding[] = []
               for (const f of filtered) {
-                const key = f.wcagCriterion ?? '__none__'
-                if (!groups[key]) groups[key] = []
-                groups[key].push(f)
+                if (!f.wcagCriterion) { unassigned.push(f); continue }
+                if (!findingsByCriterion[f.wcagCriterion]) findingsByCriterion[f.wcagCriterion] = []
+                findingsByCriterion[f.wcagCriterion].push(f)
               }
-              // Sort groups by criterion id numerically, unknown/none at end
-              const sortedKeys = Object.keys(groups).sort((a, b) => {
-                if (a === '__none__') return 1
-                if (b === '__none__') return -1
-                const aParts = a.split('.').map(Number)
-                const bParts = b.split('.').map(Number)
-                for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
-                  const diff = (aParts[i] ?? 0) - (bParts[i] ?? 0)
-                  if (diff !== 0) return diff
-                }
-                return 0
-              })
               return (
-                <div className="space-y-8">
-                  {sortedKeys.map(key => {
-                    const criterion = WCAG_CRITERIA.find(c => c.id === key)
-                    const groupFindings = groups[key]
+                <div className="space-y-6" style={{ paddingBottom: '2rem' }}>
+                  {WCAG_CRITERIA.map(criterion => {
+                    const groupFindings = findingsByCriterion[criterion.id] ?? []
+                    const isEmpty = groupFindings.length === 0
                     return (
-                      <div key={key}>
-                        <div className="flex items-baseline gap-2 mb-2 pb-2" style={{ borderBottom: '1px solid #e0dbd9' }}>
+                      <div key={criterion.id}>
+                        <div className="flex items-baseline gap-2 mb-1 pb-2" style={{ borderBottom: '1px solid #e0dbd9' }}>
                           <span className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.1em' }}>
-                            {key === '__none__' ? 'No criterion' : key}
+                            {criterion.id}
                           </span>
-                          {criterion && (
-                            <span className="font-serif font-bold text-base" style={{ color: '#1a1a1a' }}>
-                              {criterion.name}
-                            </span>
-                          )}
-                          {criterion && (
-                            <span className="font-sans text-xs ml-auto" style={{ color: '#7a7877' }}>
-                              Level {criterion.level}
-                            </span>
-                          )}
-                          <span className="font-sans text-xs" style={{ color: '#7a7877', marginLeft: criterion ? '0' : 'auto' }}>
-                            {groupFindings.length} finding{groupFindings.length !== 1 ? 's' : ''}
+                          <span className="font-serif font-bold text-base" style={{ color: '#1a1a1a' }}>
+                            {criterion.name}
+                          </span>
+                          <span className="font-sans text-xs" style={{ color: '#b0aaa8', marginLeft: 'auto' }}>
+                            Level {criterion.level}
+                          </span>
+                          <span className="font-sans text-xs" style={{ color: isEmpty ? '#b0aaa8' : '#5f5e5e' }}>
+                            {isEmpty ? '0 findings' : `${groupFindings.length} finding${groupFindings.length !== 1 ? 's' : ''}`}
                           </span>
                         </div>
-                        <ul className="space-y-0" role="list">
-                          {groupFindings.map((finding, index) => (
-                            <li key={finding.id} style={{ animation: `fadeIn 0.3s ease-out ${index * 40}ms both` }}>
-                              <FindingRow
-                                finding={finding}
-                                onEdit={() => setEditFinding(finding)}
-                                onUpdate={updateFinding}
-                                onDelete={deleteFinding}
-                              />
-                            </li>
-                          ))}
-                        </ul>
+                        {!isEmpty && (
+                          <ul className="space-y-0" role="list">
+                            {groupFindings.map((finding, index) => (
+                              <li key={finding.id} style={{ animation: `fadeIn 0.3s ease-out ${index * 40}ms both` }}>
+                                <FindingRow
+                                  finding={finding}
+                                  onEdit={() => setEditFinding(finding)}
+                                  onUpdate={updateFinding}
+                                  onDelete={deleteFinding}
+                                />
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
                     )
                   })}
+                  {/* Findings with no criterion assigned */}
+                  {unassigned.length > 0 && (
+                    <div>
+                      <div className="flex items-baseline gap-2 mb-1 pb-2" style={{ borderBottom: '1px solid #e0dbd9' }}>
+                        <span className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.1em' }}>
+                          Unassigned
+                        </span>
+                        <span className="font-sans text-xs ml-auto" style={{ color: '#5f5e5e' }}>
+                          {unassigned.length} finding{unassigned.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <ul className="space-y-0" role="list">
+                        {unassigned.map((finding, index) => (
+                          <li key={finding.id} style={{ animation: `fadeIn 0.3s ease-out ${index * 40}ms both` }}>
+                            <FindingRow
+                              finding={finding}
+                              onEdit={() => setEditFinding(finding)}
+                              onUpdate={updateFinding}
+                              onDelete={deleteFinding}
+                            />
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               )
             })()
