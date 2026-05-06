@@ -56,12 +56,9 @@ export default function DashboardPage() {
     <div
       className="flex h-full overflow-hidden"
       style={{
-        gap: isCreateOpen ? '4px' : '0',
+        gap: '12px',
         background: '#d8d3d1',
-        paddingTop: isCreateOpen ? '10px' : '0',
-        paddingBottom: isCreateOpen ? '10px' : '0',
-        paddingLeft: '0',
-        paddingRight: isCreateOpen ? '10px' : '0',
+        padding: '12px',
         transition: tr,
       }}
     >
@@ -71,7 +68,7 @@ export default function DashboardPage() {
         style={{
           flex: isCreateOpen ? (createFormWide ? '0 0 0%' : '0 0 50%') : '1 1 0%',
           transition: tr,
-          borderRadius: isCreateOpen ? '0 10px 10px 0' : '0',
+          borderRadius: '10px',
           background: '#fcf9f8',
           overflow: 'hidden',
         }}
@@ -231,7 +228,7 @@ export default function DashboardPage() {
         style={{
           width: isCreateOpen ? (createFormWide ? '100%' : '50%') : '0',
           transition: tr,
-          borderRadius: isCreateOpen ? '10px 0 0 10px' : '0',
+          borderRadius: '10px',
           overflow: 'hidden',
         }}
         aria-hidden={!isCreateOpen}

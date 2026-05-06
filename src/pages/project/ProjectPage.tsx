@@ -461,17 +461,14 @@ export default function ProjectPage() {
       ? (stepAuditWide ? '0%' : '50%')
       : `calc(100% - ${toolkitWidth})`
 
-  // All edges rounded when sidebar open, no radius when closed
-  const mainInnerRadius = anySidebarOpen ? '10px' : '0'
-
   return (
     <div
       className="flex h-full overflow-hidden"
       style={{
-        gap: '8px',
+        gap: '12px',
         background: '#d8d3d1',
         transition: tr,
-        padding: '8px',
+        padding: '12px',
       }}
     >
 
@@ -481,7 +478,7 @@ export default function ProjectPage() {
         style={{
           width: mainWidth,
           transition: tr,
-          borderRadius: mainInnerRadius,
+          borderRadius: '10px',
           background: '#fcf9f8',
           overflow: 'hidden',
         }}
@@ -675,7 +672,7 @@ export default function ProjectPage() {
           transitionProperty: 'width, opacity, transform, border-radius',
           transitionDuration: layoutReady ? '0.3s' : '0s',
           transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-          borderRadius: sidebarOpen ? '10px' : '0',
+          borderRadius: '10px',
           overflow: 'hidden',
         }}
         aria-hidden={!sidebarOpen}
@@ -724,7 +721,7 @@ export default function ProjectPage() {
           transitionProperty: 'width, opacity, transform, border-radius',
           transitionDuration: layoutReady ? '0.3s' : '0s',
           transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-          borderRadius: stepAuditOpen ? '10px' : '0',
+          borderRadius: '10px',
           overflow: 'hidden',
         }}
         aria-hidden={!stepAuditOpen}
