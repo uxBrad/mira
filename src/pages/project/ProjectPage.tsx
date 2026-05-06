@@ -593,7 +593,7 @@ export default function ProjectPage() {
         </div>
 
         {/* Findings list */}
-        <main id="main-findings" className="flex-1 overflow-y-auto py-6" style={{ paddingLeft: '16px', paddingRight: '40px' }}>
+        <main id="main-findings" className="flex-1 overflow-y-auto py-6" style={{ paddingLeft: '40px', paddingRight: '40px' }}>
 
           {/* Secondary filters row — Jira-style multiselect */}
           {findings.length > 0 && (
@@ -724,30 +724,39 @@ export default function ProjectPage() {
                 if (!findingsByCriterion[f.wcagCriterion]) findingsByCriterion[f.wcagCriterion] = []
                 findingsByCriterion[f.wcagCriterion].push(f)
               }
+              // Respect the principle tab filter in grouped mode
+              const criteriaToShow = principleFilter === 'all'
+                ? WCAG_CRITERIA
+                : WCAG_CRITERIA.filter(c => c.id.startsWith(principleFilter + '.'))
               return (
-                <div className="space-y-4" style={{ paddingBottom: '2rem' }}>
-                  {WCAG_CRITERIA.map(criterion => {
+                <div className="space-y-6" style={{ paddingBottom: '2rem' }}>
+                  {criteriaToShow.map(criterion => {
                     const groupFindings = findingsByCriterion[criterion.id] ?? []
                     const isEmpty = groupFindings.length === 0
                     const criterionVerdict = auditVerdicts[criterion.id]
                     return (
                       <div key={criterion.id}>
                         {/* Criterion heading row */}
-                        <div className="flex items-center gap-2 mb-1 pb-2" style={{ borderBottom: '1px solid #e0dbd9' }}>
-                          <span className="font-sans text-xs font-bold uppercase tracking-widest flex-shrink-0" style={{ color: '#610000', letterSpacing: '0.1em' }}>
+                        <div className="flex items-center gap-2 mb-2 pb-2.5" style={{ borderBottom: '1px solid #e0dbd9' }}>
+                          <span className="font-sans text-sm font-bold uppercase tracking-widest flex-shrink-0" style={{ color: '#610000', letterSpacing: '0.1em' }}>
                             {criterion.id}
                           </span>
-                          <span className="font-serif font-bold text-sm truncate" style={{ color: '#1a1a1a' }}>
+                          <span className="font-serif font-bold text-base truncate" style={{ color: '#1a1a1a' }}>
                             {criterion.name}
                           </span>
                           {criterionVerdict === 'pass' && (
-                            <span className="flex items-center gap-0.5 font-sans text-[10px] font-bold px-1.5 py-0.5 uppercase flex-shrink-0" style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.06em', borderRadius: '3px', lineHeight: 1 }}>
-                              <CheckCircle2 className="h-2.5 w-2.5" aria-hidden="true" /> Pass
+                            <span className="flex items-center gap-1 font-sans text-xs font-bold px-2 py-0.5 uppercase flex-shrink-0" style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.06em', borderRadius: '3px' }}>
+                              <CheckCircle2 className="h-3 w-3" aria-hidden="true" /> Pass
                             </span>
                           )}
                           {criterionVerdict === 'fail' && (
-                            <span className="font-sans text-[10px] font-bold px-1.5 py-0.5 uppercase flex-shrink-0" style={{ background: '#610000', color: '#fff', letterSpacing: '0.06em', borderRadius: '3px', lineHeight: 1 }}>
+                            <span className="font-sans text-xs font-bold px-2 py-0.5 uppercase flex-shrink-0" style={{ background: '#610000', color: '#fff', letterSpacing: '0.06em', borderRadius: '3px' }}>
                               Fail
+                            </span>
+                          )}
+                          {!criterionVerdict && (
+                            <span className="font-sans text-xs font-bold px-2 py-0.5 uppercase flex-shrink-0" style={{ background: '#e5e2e1', color: '#5f5e5e', letterSpacing: '0.06em', borderRadius: '3px' }}>
+                              Unknown
                             </span>
                           )}
                           <span className="font-sans text-xs flex-shrink-0" style={{ color: '#b0aaa8', marginLeft: 'auto' }}>
@@ -776,9 +785,9 @@ export default function ProjectPage() {
                         )}
                         {/* Empty state: passed */}
                         {isEmpty && criterionVerdict === 'pass' && (
-                          <div className="flex items-center gap-2 px-3 py-2.5 mt-1" style={{ background: '#f0faf4', borderRadius: '4px' }}>
-                            <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" style={{ color: '#2d7a4f' }} />
-                            <span className="font-sans text-xs font-semibold" style={{ color: '#2d7a4f' }}>Passed — no findings</span>
+                          <div className="flex items-center gap-3 px-4 py-3 mt-2" style={{ background: '#f0faf4', border: '1px solid #c3e6d0', borderRadius: '6px' }}>
+                            <CheckCircle2 className="h-4 w-4 flex-shrink-0" aria-hidden="true" style={{ color: '#2d7a4f' }} />
+                            <span className="font-sans text-sm font-semibold" style={{ color: '#2d7a4f' }}>Passed — no findings</span>
                             <button
                               onClick={() => openStepAuditAtCriterion(criterion.id)}
                               className="ml-auto font-sans text-xs font-medium hover:underline"
@@ -790,21 +799,21 @@ export default function ProjectPage() {
                         )}
                         {/* Empty state: not yet assessed */}
                         {isEmpty && criterionVerdict !== 'pass' && (
-                          <div className="flex items-center gap-3 px-3 py-2.5 mt-1" style={{ background: '#f6f3f2', borderRadius: '4px' }}>
-                            <span className="font-sans text-xs" style={{ color: '#b0aaa8' }}>No logged findings</span>
+                          <div className="flex items-center gap-3 px-4 py-3.5 mt-2" style={{ background: '#ffffff', border: '1px solid #e0dbd9', borderRadius: '6px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                            <span className="font-sans text-sm font-medium" style={{ color: '#9a9590' }}>No logged findings</span>
                             <div className="ml-auto flex items-center gap-2">
                               <button
                                 onClick={() => markCriterionPassed(criterion.id)}
-                                className="flex items-center gap-1 font-sans text-xs font-semibold px-2.5 py-1.5 transition-opacity hover:opacity-80"
-                                style={{ background: '#2d7a4f', color: '#fff', borderRadius: '3px' }}
+                                className="flex items-center gap-1 font-sans text-xs font-semibold px-3 py-2 transition-opacity hover:opacity-80"
+                                style={{ background: '#2d7a4f', color: '#fff', borderRadius: '4px' }}
                               >
                                 <Check className="h-3 w-3" aria-hidden="true" />
                                 Mark as Passed
                               </button>
                               <button
                                 onClick={() => openStepAuditAtCriterion(criterion.id)}
-                                className="flex items-center gap-1 font-sans text-xs font-semibold px-2.5 py-1.5 transition-colors hover:bg-[#ede9e7]"
-                                style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '3px', background: 'transparent' }}
+                                className="flex items-center gap-1 font-sans text-xs font-semibold px-3 py-2 transition-colors hover:bg-[#f0ede9]"
+                                style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '4px', background: 'transparent' }}
                               >
                                 Log Finding
                               </button>
@@ -814,8 +823,8 @@ export default function ProjectPage() {
                       </div>
                     )
                   })}
-                  {/* Findings with no criterion assigned */}
-                  {unassigned.length > 0 && (
+                  {/* Findings with no criterion assigned — only in All view */}
+                  {principleFilter === 'all' && unassigned.length > 0 && (
                     <div>
                       <div className="flex items-center gap-2 mb-1 pb-2" style={{ borderBottom: '1px solid #e0dbd9' }}>
                         <span className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.1em' }}>
