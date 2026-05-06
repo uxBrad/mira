@@ -567,19 +567,19 @@ export default function ProjectPage() {
             <div className="flex items-start gap-4 flex-shrink-0 pt-1">
               <div className="text-right">
                 <div className="font-sans text-[10px] font-bold uppercase tracking-wider" style={{ color: '#b0aaa8', letterSpacing: '0.08em' }}>Passed</div>
-                <div className="font-serif font-bold text-xl leading-none mt-1" style={{ color: '#2d7a4f' }}>{passCount}</div>
+                <div className="font-serif font-bold leading-none mt-1" style={{ color: '#2d7a4f', fontSize: '2.5rem' }}>{passCount}</div>
               </div>
               <div className="text-right">
                 <div className="font-sans text-[10px] font-bold uppercase tracking-wider" style={{ color: '#b0aaa8', letterSpacing: '0.08em' }}>Failed</div>
-                <div className="font-serif font-bold text-xl leading-none mt-1" style={{ color: '#610000' }}>{failCount}</div>
+                <div className="font-serif font-bold leading-none mt-1" style={{ color: '#610000', fontSize: '2.5rem' }}>{failCount}</div>
               </div>
               <div className="text-right">
                 <div className="font-sans text-[10px] font-bold uppercase tracking-wider" style={{ color: '#b0aaa8', letterSpacing: '0.08em' }}>Unknown</div>
-                <div className="font-serif font-bold text-xl leading-none mt-1" style={{ color: '#5f5e5e' }}>{unknownCount}</div>
+                <div className="font-serif font-bold leading-none mt-1" style={{ color: '#5f5e5e', fontSize: '2.5rem' }}>{unknownCount}</div>
               </div>
               <div className="text-right pl-4" style={{ borderLeft: '1px solid #e0dbd9' }}>
                 <div className="font-sans text-[10px] font-bold uppercase tracking-wider" style={{ color: '#b0aaa8', letterSpacing: '0.08em' }}>Findings</div>
-                <div className="font-serif font-bold text-xl leading-none mt-1" style={{ color: '#1a1a1a' }}>{findings.length}</div>
+                <div className="font-serif font-bold leading-none mt-1" style={{ color: '#1a1a1a', fontSize: '2.5rem' }}>{findings.length}</div>
               </div>
             </div>
           </div>
