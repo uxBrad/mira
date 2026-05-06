@@ -804,8 +804,8 @@ export default function ProjectPage() {
                             <div className="ml-auto flex items-center gap-2">
                               <button
                                 onClick={() => markCriterionPassed(criterion.id)}
-                                className="flex items-center gap-1 font-sans text-xs font-semibold px-3 py-2 transition-opacity hover:opacity-80"
-                                style={{ background: '#2d7a4f', color: '#fff', borderRadius: '4px' }}
+                                className="flex items-center gap-1 font-sans text-xs font-semibold px-3 py-2 transition-colors hover:bg-[#f0ede9]"
+                                style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '4px', background: 'transparent' }}
                               >
                                 <Check className="h-3 w-3" aria-hidden="true" />
                                 Mark as Passed
