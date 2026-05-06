@@ -451,21 +451,24 @@ export default function ProjectPage() {
   ]
 
   const anySidebarOpen = sidebarOpen || stepAuditOpen
-  const tr = layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none'
+  // margin-right is included so the gap smoothly closes when going to wide mode
+  const tr = layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none'
   const toolkitWidth = `calc(18rem + 100px)`
 
-  // Main column width — subtract gap(s) so total doesn't overflow the padded container
+  // No CSS gap on the outer container — spacing comes from main column's marginRight only.
+  // This avoids the hidden sidebars (width: 0) still contributing gap space between main and toolkit.
+  const mainIsWide = (sidebarOpen && findingSidebarWide) || (stepAuditOpen && stepAuditWide)
+  const mainMarginRight = mainIsWide ? '0px' : '12px'
   const mainWidth = sidebarOpen
-    ? (findingSidebarWide ? '0px' : 'calc(50% - 6px)')
+    ? (findingSidebarWide ? '0px' : 'calc(50% - 12px)')
     : stepAuditOpen
-      ? (stepAuditWide ? '0px' : 'calc(50% - 6px)')
+      ? (stepAuditWide ? '0px' : 'calc(50% - 12px)')
       : `calc(100% - ${toolkitWidth} - 12px)`
 
   return (
     <div
       className="flex h-full overflow-hidden"
       style={{
-        gap: '12px',
         background: '#d8d3d1',
         transition: tr,
         padding: '12px',
@@ -477,6 +480,7 @@ export default function ProjectPage() {
         className="flex-shrink-0 flex flex-col overflow-hidden"
         style={{
           width: mainWidth,
+          marginRight: mainMarginRight,
           transition: tr,
           borderRadius: '10px',
           background: '#fcf9f8',
@@ -665,7 +669,7 @@ export default function ProjectPage() {
       <div
         className="flex-shrink-0 overflow-hidden flex flex-col"
         style={{
-          width: sidebarOpen ? (findingSidebarWide ? '100%' : 'calc(50% - 6px)') : '0',
+          width: sidebarOpen ? (findingSidebarWide ? '100%' : '50%') : '0',
           transition: tr,
           opacity: sidebarOpen ? 1 : 0,
           transform: sidebarOpen ? 'translateX(0)' : 'translateX(20px)',
@@ -714,7 +718,7 @@ export default function ProjectPage() {
       <div
         className="flex-shrink-0 overflow-hidden flex flex-col"
         style={{
-          width: stepAuditOpen ? (stepAuditWide ? '100%' : 'calc(50% - 6px)') : '0',
+          width: stepAuditOpen ? (stepAuditWide ? '100%' : '50%') : '0',
           transition: tr,
           opacity: stepAuditOpen ? 1 : 0,
           transform: stepAuditOpen ? 'translateX(0)' : 'translateX(20px)',
