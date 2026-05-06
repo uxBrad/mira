@@ -470,8 +470,9 @@ export default function ProjectPage() {
 
   if (!project) return null
 
-  const resolvedCount = findings.filter((f) => f.status === 'resolved').length
-  const complianceScore = findings.length > 0 ? Math.round((resolvedCount / findings.length) * 100) : 0
+  const passCount = Object.values(auditVerdicts).filter(v => v === 'pass').length
+  const failCount = Object.values(auditVerdicts).filter(v => v === 'fail').length
+  const unknownCount = WCAG_CRITERIA.length - passCount - failCount
 
   const PRINCIPLES = [
     { key: 'all', label: 'All', icon: LayoutGrid },
@@ -521,41 +522,66 @@ export default function ProjectPage() {
 
         {/* Project header */}
         <div className="flex-shrink-0 px-10 pt-8 pb-0" style={{ background: '#fcf9f8' }}>
-          {/* Standards label */}
-          {project.standards && (
-            <p
-              className="font-sans text-xs font-bold uppercase mb-3"
-              style={{ color: '#610000', letterSpacing: '0.12em' }}
-            >
-              {project.standards} Audit
-            </p>
-          )}
+          {/* Top row: project info (left) + audit stats (right) */}
+          <div className="flex items-start justify-between gap-6 mb-5">
+            <div className="flex-1 min-w-0">
+              {/* Standards label */}
+              {project.standards && (
+                <p
+                  className="font-sans text-xs font-bold uppercase mb-3"
+                  style={{ color: '#610000', letterSpacing: '0.12em' }}
+                >
+                  {project.standards} Audit
+                </p>
+              )}
 
-          {/* Project name — large serif */}
-          <h1
-            className="font-serif font-bold leading-none mb-1"
-            style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em', color: '#1a1a1a' }}
-          >
-            {project.name}
-          </h1>
-
-          {/* Client + URL */}
-          <div className="flex items-center gap-3 mt-2 mb-5 flex-wrap">
-            {project.clientName && (
-              <span className="font-sans text-sm" style={{ color: '#5f5e5e' }}>{project.clientName}</span>
-            )}
-            {project.url && (
-              <a
-                href={project.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-sans text-xs hover:underline"
-                style={{ color: '#5f5e5e' }}
+              {/* Project name — large serif */}
+              <h1
+                className="font-serif font-bold leading-none mb-1"
+                style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em', color: '#1a1a1a' }}
               >
-                {project.url}
-                <ExternalLink className="h-3 w-3" aria-hidden="true" />
-              </a>
-            )}
+                {project.name}
+              </h1>
+
+              {/* Client + URL */}
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
+                {project.clientName && (
+                  <span className="font-sans text-sm" style={{ color: '#5f5e5e' }}>{project.clientName}</span>
+                )}
+                {project.url && (
+                  <a
+                    href={project.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-sans text-xs hover:underline"
+                    style={{ color: '#5f5e5e' }}
+                  >
+                    {project.url}
+                    <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                  </a>
+                )}
+              </div>
+            </div>
+
+            {/* Audit criteria stats — compact, right-aligned with project name */}
+            <div className="flex items-start gap-4 flex-shrink-0 pt-1">
+              <div className="text-right">
+                <div className="font-sans text-[10px] font-bold uppercase tracking-wider" style={{ color: '#b0aaa8', letterSpacing: '0.08em' }}>Passed</div>
+                <div className="font-serif font-bold text-xl leading-none mt-1" style={{ color: '#2d7a4f' }}>{passCount}</div>
+              </div>
+              <div className="text-right">
+                <div className="font-sans text-[10px] font-bold uppercase tracking-wider" style={{ color: '#b0aaa8', letterSpacing: '0.08em' }}>Failed</div>
+                <div className="font-serif font-bold text-xl leading-none mt-1" style={{ color: '#610000' }}>{failCount}</div>
+              </div>
+              <div className="text-right">
+                <div className="font-sans text-[10px] font-bold uppercase tracking-wider" style={{ color: '#b0aaa8', letterSpacing: '0.08em' }}>Unknown</div>
+                <div className="font-serif font-bold text-xl leading-none mt-1" style={{ color: '#5f5e5e' }}>{unknownCount}</div>
+              </div>
+              <div className="text-right pl-4" style={{ borderLeft: '1px solid #e0dbd9' }}>
+                <div className="font-sans text-[10px] font-bold uppercase tracking-wider" style={{ color: '#b0aaa8', letterSpacing: '0.08em' }}>Findings</div>
+                <div className="font-serif font-bold text-xl leading-none mt-1" style={{ color: '#1a1a1a' }}>{findings.length}</div>
+              </div>
+            </div>
           </div>
 
           {/* Separator */}
@@ -593,90 +619,94 @@ export default function ProjectPage() {
         </div>
 
         {/* Findings list */}
-        <main id="main-findings" className="flex-1 overflow-y-auto py-6" style={{ paddingLeft: '40px', paddingRight: '40px' }}>
+        <main id="main-findings" className="flex-1 overflow-hidden flex flex-col">
 
-          {/* Secondary filters row — Jira-style multiselect */}
-          {findings.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap mb-5">
-              <MultiSelectFilter
-                label="Severity"
-                options={[
-                  { key: 'critical', label: 'Critical' },
-                  { key: 'serious', label: 'Serious' },
-                  { key: 'moderate', label: 'Moderate' },
-                  { key: 'minor', label: 'Minor' },
-                ]}
-                selected={severityFilter}
-                onToggle={v => toggleFilter(v, severityFilter, setSeverityFilter)}
-                onClear={() => setSeverityFilter([])}
-              />
-              <MultiSelectFilter
-                label="Status"
-                options={[
-                  { key: 'open', label: 'Open' },
-                  { key: 'in_progress', label: 'In Progress' },
-                  { key: 'resolved', label: 'Resolved' },
-                  { key: 'wont_fix', label: "Won't Fix" },
-                ]}
-                selected={statusFilter}
-                onToggle={v => toggleFilter(v, statusFilter, setStatusFilter)}
-                onClear={() => setStatusFilter([])}
-              />
-              {uniquePages.length > 0 && (
+          {/* Secondary filters — pinned, does not scroll with findings */}
+          <div className="flex-shrink-0 flex items-center gap-2 flex-wrap px-10 py-3" style={{ borderBottom: '1px solid #e0dbd9', background: '#fcf9f8' }}>
+            {findings.length > 0 && (
+              <>
                 <MultiSelectFilter
-                  label="Pages"
-                  options={uniquePages.map(p => ({ key: p, label: p }))}
-                  selected={pageFilter}
-                  onToggle={v => toggleFilter(v, pageFilter, setPageFilter)}
-                  onClear={() => setPageFilter([])}
+                  label="Severity"
+                  options={[
+                    { key: 'critical', label: 'Critical' },
+                    { key: 'serious', label: 'Serious' },
+                    { key: 'moderate', label: 'Moderate' },
+                    { key: 'minor', label: 'Minor' },
+                  ]}
+                  selected={severityFilter}
+                  onToggle={v => toggleFilter(v, severityFilter, setSeverityFilter)}
+                  onClear={() => setSeverityFilter([])}
                 />
-              )}
-              {uniqueComponents.length > 0 && (
                 <MultiSelectFilter
-                  label="Components"
-                  options={uniqueComponents.map(c => ({ key: c, label: c }))}
-                  selected={componentFilter}
-                  onToggle={v => toggleFilter(v, componentFilter, setComponentFilter)}
-                  onClear={() => setComponentFilter([])}
+                  label="Status"
+                  options={[
+                    { key: 'open', label: 'Open' },
+                    { key: 'in_progress', label: 'In Progress' },
+                    { key: 'resolved', label: 'Resolved' },
+                    { key: 'wont_fix', label: "Won't Fix" },
+                  ]}
+                  selected={statusFilter}
+                  onToggle={v => toggleFilter(v, statusFilter, setStatusFilter)}
+                  onClear={() => setStatusFilter([])}
                 />
-              )}
-              {activeFilterCount > 0 && (
-                <button
-                  onClick={() => {
-                    setPrincipleFilter('all')
-                    setSeverityFilter([])
-                    setStatusFilter([])
-                    setPageFilter([])
-                    setComponentFilter([])
-                  }}
-                  className="font-sans text-xs underline underline-offset-2"
-                  style={{ color: '#610000' }}
-                >
-                  Clear all
-                </button>
-              )}
-
-              {/* Group by criteria toggle */}
-              <label
-                className="flex items-center gap-1.5 font-sans text-xs font-semibold px-3 py-1.5 cursor-pointer select-none ml-auto"
-                style={{ border: `1px solid ${groupByCriteria ? '#610000' : '#d0cac8'}`, background: groupByCriteria ? '#610000' : 'transparent', color: groupByCriteria ? '#fff' : '#2b2c2c' }}
+                {uniquePages.length > 0 && (
+                  <MultiSelectFilter
+                    label="Pages"
+                    options={uniquePages.map(p => ({ key: p, label: p }))}
+                    selected={pageFilter}
+                    onToggle={v => toggleFilter(v, pageFilter, setPageFilter)}
+                    onClear={() => setPageFilter([])}
+                  />
+                )}
+                {uniqueComponents.length > 0 && (
+                  <MultiSelectFilter
+                    label="Components"
+                    options={uniqueComponents.map(c => ({ key: c, label: c }))}
+                    selected={componentFilter}
+                    onToggle={v => toggleFilter(v, componentFilter, setComponentFilter)}
+                    onClear={() => setComponentFilter([])}
+                  />
+                )}
+                {activeFilterCount > 0 && (
+                  <button
+                    onClick={() => {
+                      setPrincipleFilter('all')
+                      setSeverityFilter([])
+                      setStatusFilter([])
+                      setPageFilter([])
+                      setComponentFilter([])
+                    }}
+                    className="font-sans text-xs underline underline-offset-2"
+                    style={{ color: '#610000' }}
+                  >
+                    Clear all
+                  </button>
+                )}
+              </>
+            )}
+            {/* Group by criteria toggle — always visible */}
+            <label
+              className="flex items-center gap-1.5 font-sans text-xs font-semibold px-3 py-1.5 cursor-pointer select-none ml-auto"
+              style={{ border: `1px solid ${groupByCriteria ? '#610000' : '#d0cac8'}`, background: groupByCriteria ? '#610000' : 'transparent', color: groupByCriteria ? '#fff' : '#2b2c2c' }}
+            >
+              <input
+                type="checkbox"
+                checked={groupByCriteria}
+                onChange={e => setGroupByCriteria(e.target.checked)}
+                className="sr-only"
+              />
+              <span
+                className="flex-shrink-0 w-3.5 h-3.5 flex items-center justify-center"
+                style={{ border: `1.5px solid ${groupByCriteria ? '#fff' : '#d0cac8'}`, background: groupByCriteria ? '#fff' : 'transparent', borderRadius: '2px' }}
               >
-                <input
-                  type="checkbox"
-                  checked={groupByCriteria}
-                  onChange={e => setGroupByCriteria(e.target.checked)}
-                  className="sr-only"
-                />
-                <span
-                  className="flex-shrink-0 w-3.5 h-3.5 flex items-center justify-center"
-                  style={{ border: `1.5px solid ${groupByCriteria ? '#fff' : '#d0cac8'}`, background: groupByCriteria ? '#fff' : 'transparent', borderRadius: '2px' }}
-                >
-                  {groupByCriteria && <Check className="h-2 w-2" style={{ color: '#610000' }} />}
-                </span>
-                Group by criteria
-              </label>
-            </div>
-          )}
+                {groupByCriteria && <Check className="h-2 w-2" style={{ color: '#610000' }} />}
+              </span>
+              Group by criteria
+            </label>
+          </div>
+
+          {/* Scrollable findings area */}
+          <div className="flex-1 overflow-y-auto py-6" style={{ paddingLeft: '40px', paddingRight: '40px' }}>
 
           {error && (
             <div
@@ -852,6 +882,7 @@ export default function ProjectPage() {
               )
             })()
           )}
+          </div>{/* end scrollable findings area */}
         </main>
       </div>
 
@@ -1081,43 +1112,6 @@ export default function ProjectPage() {
           </button>
         </div>
 
-        {/* Masthead divider */}
-        <div style={{ height: '12px', background: '#e5e2e1' }} aria-hidden="true" />
-
-        {/* Project Statistics */}
-        <div className="px-6 py-6">
-          <p className="font-sans text-xs font-bold uppercase tracking-widest mb-5" style={{ color: '#5f5e5e', letterSpacing: '0.12em' }}>
-            Project Statistics
-          </p>
-          <dl className="space-y-5">
-            <div>
-              <dt className="font-sans text-xs mb-1" style={{ color: '#5f5e5e' }}>Compliance Score</dt>
-              <dd className="font-serif font-bold" style={{ fontSize: '2.5rem', color: '#1a1a1a', lineHeight: 1 }}>
-                {complianceScore}%
-              </dd>
-              <div className="mt-2 h-1.5" style={{ background: '#e0dbd9' }}>
-                <div
-                  className="h-full transition-all"
-                  style={{ width: `${complianceScore}%`, background: complianceScore >= 80 ? '#2d7a4f' : complianceScore >= 50 ? '#8b6914' : '#610000' }}
-                />
-              </div>
-            </div>
-            <div>
-              <dt className="font-sans text-xs mb-0.5" style={{ color: '#5f5e5e' }}>Total findings</dt>
-              <dd className="font-serif font-bold text-2xl" style={{ color: '#1a1a1a' }}>{findings.length}</dd>
-            </div>
-            <div>
-              <dt className="font-sans text-xs mb-0.5" style={{ color: '#5f5e5e' }}>Open</dt>
-              <dd className="font-serif font-bold text-2xl" style={{ color: '#610000' }}>
-                {findings.filter((f) => f.status === 'open').length}
-              </dd>
-            </div>
-            <div>
-              <dt className="font-sans text-xs mb-0.5" style={{ color: '#5f5e5e' }}>Resolved</dt>
-              <dd className="font-serif font-bold text-2xl" style={{ color: '#2d7a4f' }}>{resolvedCount}</dd>
-            </div>
-          </dl>
-        </div>
         </div>{/* end fixed-width inner */}
       </aside>
 
