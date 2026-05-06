@@ -15,6 +15,7 @@ import {
   Upload,
   ChevronDown,
   Check,
+  CheckCircle2,
 } from 'lucide-react'
 import { useFindings } from '../../hooks/useFindings'
 import { useTemplates } from '../../hooks/useTemplates'
@@ -194,6 +195,17 @@ export default function ProjectPage() {
   const [componentFilter, setComponentFilter] = useState<string[]>([])
   const [findingInitialData, setFindingInitialData] = useState<Partial<{title:string;description:string;wcagCriterion:string;wcagLevel:string;standards:string[];category:string;severity:string;status:string;pageUrl:string;component:string;screenshotPath:string;recommendations:string;notes:string}> | undefined>(undefined)
   const [groupByCriteria, setGroupByCriteria] = useState(false)
+  const [auditVerdicts, setAuditVerdicts] = useState<Record<string, 'pass' | 'fail'>>(() => {
+    try {
+      const saved = localStorage.getItem(`echo-step-audit-${id}`)
+      if (saved) {
+        const v = JSON.parse(saved)?.criteriaVerdict
+        if (v && typeof v === 'object') return v as Record<string, 'pass' | 'fail'>
+      }
+    } catch { /* ignore */ }
+    return {}
+  })
+  const [stepAuditNavCriterionId, setStepAuditNavCriterionId] = useState<string | undefined>()
   const [stepAuditOpen, setStepAuditOpen] = useState(false)
   const [stepAuditMounted, setStepAuditMounted] = useState(false)
   const [stepAuditWide, setStepAuditWide] = useState(false)
@@ -275,6 +287,22 @@ export default function ProjectPage() {
     await updateFinding(editFinding.id, data as unknown as Record<string, unknown>)
     setEditFinding(null)
     toast({ title: 'Finding updated' })
+  }
+
+  function markCriterionPassed(criterionId: string) {
+    try {
+      const key = `echo-step-audit-${id}`
+      const saved = localStorage.getItem(key)
+      const data = saved ? JSON.parse(saved) : {}
+      const criteriaVerdict = { ...(data.criteriaVerdict ?? {}), [criterionId]: 'pass' as const }
+      localStorage.setItem(key, JSON.stringify({ ...data, criteriaVerdict }))
+      setAuditVerdicts(prev => ({ ...prev, [criterionId]: 'pass' }))
+    } catch { /* ignore */ }
+  }
+
+  function openStepAuditAtCriterion(criterionId: string) {
+    setStepAuditNavCriterionId(criterionId)
+    setStepAuditOpen(true)
   }
 
   async function handleUpdateProject(data: {
@@ -688,39 +716,54 @@ export default function ProjectPage() {
             />
           ) : (
             (() => {
-              // Index filtered findings by wcagCriterion for O(1) lookup
+              // Use all findings (not filtered) so empty = truly no findings for that criterion
               const findingsByCriterion: Record<string, Finding[]> = {}
               const unassigned: Finding[] = []
-              for (const f of filtered) {
+              for (const f of findings) {
                 if (!f.wcagCriterion) { unassigned.push(f); continue }
                 if (!findingsByCriterion[f.wcagCriterion]) findingsByCriterion[f.wcagCriterion] = []
                 findingsByCriterion[f.wcagCriterion].push(f)
               }
               return (
-                <div className="space-y-6" style={{ paddingBottom: '2rem' }}>
+                <div className="space-y-4" style={{ paddingBottom: '2rem' }}>
                   {WCAG_CRITERIA.map(criterion => {
                     const groupFindings = findingsByCriterion[criterion.id] ?? []
                     const isEmpty = groupFindings.length === 0
+                    const criterionVerdict = auditVerdicts[criterion.id]
                     return (
                       <div key={criterion.id}>
-                        <div className="flex items-baseline gap-2 mb-1 pb-2" style={{ borderBottom: '1px solid #e0dbd9' }}>
-                          <span className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.1em' }}>
+                        {/* Criterion heading row */}
+                        <div className="flex items-center gap-2 mb-1 pb-2" style={{ borderBottom: '1px solid #e0dbd9' }}>
+                          <span className="font-sans text-xs font-bold uppercase tracking-widest flex-shrink-0" style={{ color: '#610000', letterSpacing: '0.1em' }}>
                             {criterion.id}
                           </span>
-                          <span className="font-serif font-bold text-base" style={{ color: '#1a1a1a' }}>
+                          <span className="font-serif font-bold text-sm truncate" style={{ color: '#1a1a1a' }}>
                             {criterion.name}
                           </span>
-                          <span className="font-sans text-xs" style={{ color: '#b0aaa8', marginLeft: 'auto' }}>
+                          {criterionVerdict === 'pass' && (
+                            <span className="flex items-center gap-0.5 font-sans text-[10px] font-bold px-1.5 py-0.5 uppercase flex-shrink-0" style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.06em', borderRadius: '3px', lineHeight: 1 }}>
+                              <CheckCircle2 className="h-2.5 w-2.5" aria-hidden="true" /> Pass
+                            </span>
+                          )}
+                          {criterionVerdict === 'fail' && (
+                            <span className="font-sans text-[10px] font-bold px-1.5 py-0.5 uppercase flex-shrink-0" style={{ background: '#610000', color: '#fff', letterSpacing: '0.06em', borderRadius: '3px', lineHeight: 1 }}>
+                              Fail
+                            </span>
+                          )}
+                          <span className="font-sans text-xs flex-shrink-0" style={{ color: '#b0aaa8', marginLeft: 'auto' }}>
                             Level {criterion.level}
                           </span>
-                          <span className="font-sans text-xs" style={{ color: isEmpty ? '#b0aaa8' : '#5f5e5e' }}>
-                            {isEmpty ? '0 findings' : `${groupFindings.length} finding${groupFindings.length !== 1 ? 's' : ''}`}
-                          </span>
+                          {!isEmpty && (
+                            <span className="font-sans text-xs flex-shrink-0" style={{ color: '#5f5e5e' }}>
+                              {groupFindings.length} finding{groupFindings.length !== 1 ? 's' : ''}
+                            </span>
+                          )}
                         </div>
+                        {/* Findings list */}
                         {!isEmpty && (
                           <ul className="space-y-0" role="list">
-                            {groupFindings.map((finding, index) => (
-                              <li key={finding.id} style={{ animation: `fadeIn 0.3s ease-out ${index * 40}ms both` }}>
+                            {groupFindings.map((finding, idx) => (
+                              <li key={finding.id} style={{ animation: `fadeIn 0.3s ease-out ${idx * 40}ms both` }}>
                                 <FindingRow
                                   finding={finding}
                                   onEdit={() => setEditFinding(finding)}
@@ -731,13 +774,50 @@ export default function ProjectPage() {
                             ))}
                           </ul>
                         )}
+                        {/* Empty state: passed */}
+                        {isEmpty && criterionVerdict === 'pass' && (
+                          <div className="flex items-center gap-2 px-3 py-2.5 mt-1" style={{ background: '#f0faf4', borderRadius: '4px' }}>
+                            <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" style={{ color: '#2d7a4f' }} />
+                            <span className="font-sans text-xs font-semibold" style={{ color: '#2d7a4f' }}>Passed — no findings</span>
+                            <button
+                              onClick={() => openStepAuditAtCriterion(criterion.id)}
+                              className="ml-auto font-sans text-xs font-medium hover:underline"
+                              style={{ color: '#5f5e5e' }}
+                            >
+                              Log Finding
+                            </button>
+                          </div>
+                        )}
+                        {/* Empty state: not yet assessed */}
+                        {isEmpty && criterionVerdict !== 'pass' && (
+                          <div className="flex items-center gap-3 px-3 py-2.5 mt-1" style={{ background: '#f6f3f2', borderRadius: '4px' }}>
+                            <span className="font-sans text-xs" style={{ color: '#b0aaa8' }}>No logged findings</span>
+                            <div className="ml-auto flex items-center gap-2">
+                              <button
+                                onClick={() => markCriterionPassed(criterion.id)}
+                                className="flex items-center gap-1 font-sans text-xs font-semibold px-2.5 py-1.5 transition-opacity hover:opacity-80"
+                                style={{ background: '#2d7a4f', color: '#fff', borderRadius: '3px' }}
+                              >
+                                <Check className="h-3 w-3" aria-hidden="true" />
+                                Mark as Passed
+                              </button>
+                              <button
+                                onClick={() => openStepAuditAtCriterion(criterion.id)}
+                                className="flex items-center gap-1 font-sans text-xs font-semibold px-2.5 py-1.5 transition-colors hover:bg-[#ede9e7]"
+                                style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '3px', background: 'transparent' }}
+                              >
+                                Log Finding
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )
                   })}
                   {/* Findings with no criterion assigned */}
                   {unassigned.length > 0 && (
                     <div>
-                      <div className="flex items-baseline gap-2 mb-1 pb-2" style={{ borderBottom: '1px solid #e0dbd9' }}>
+                      <div className="flex items-center gap-2 mb-1 pb-2" style={{ borderBottom: '1px solid #e0dbd9' }}>
                         <span className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.1em' }}>
                           Unassigned
                         </span>
@@ -746,8 +826,8 @@ export default function ProjectPage() {
                         </span>
                       </div>
                       <ul className="space-y-0" role="list">
-                        {unassigned.map((finding, index) => (
-                          <li key={finding.id} style={{ animation: `fadeIn 0.3s ease-out ${index * 40}ms both` }}>
+                        {unassigned.map((finding, idx) => (
+                          <li key={finding.id} style={{ animation: `fadeIn 0.3s ease-out ${idx * 40}ms both` }}>
                             <FindingRow
                               finding={finding}
                               onEdit={() => setEditFinding(finding)}
@@ -833,7 +913,18 @@ export default function ProjectPage() {
       >
         {stepAuditMounted && (
           <StepAuditPanel
-            onClose={() => { setStepAuditOpen(false); setStepAuditWide(false) }}
+            onClose={() => {
+              setStepAuditOpen(false)
+              setStepAuditWide(false)
+              // Re-read verdicts so grouped view reflects any pass/fail changes made in audit
+              try {
+                const saved = localStorage.getItem(`echo-step-audit-${id}`)
+                if (saved) {
+                  const v = JSON.parse(saved)?.criteriaVerdict
+                  if (v && typeof v === 'object') setAuditVerdicts(v as Record<string, 'pass' | 'fail'>)
+                }
+              } catch { /* ignore */ }
+            }}
             isWide={stepAuditWide}
             onToggleWide={() => setStepAuditWide(w => !w)}
             projectId={id!}
@@ -841,6 +932,7 @@ export default function ProjectPage() {
             auditComponents={project.components}
             findings={findings}
             templates={templates}
+            navigateToCriterionId={stepAuditNavCriterionId}
             onAddFinding={async (data) => {
               await createFinding(data)
               toast({ title: 'Finding logged' })

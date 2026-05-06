@@ -95,6 +95,7 @@ interface StepAuditPanelProps {
   templates?: Template[]
   isWide?: boolean
   onToggleWide?: () => void
+  navigateToCriterionId?: string
   onAddFinding: (data: {
     projectId: string
     title: string
@@ -136,6 +137,7 @@ export function StepAuditPanel({
   templates = [],
   isWide = false,
   onToggleWide,
+  navigateToCriterionId,
   onAddFinding
 }: StepAuditPanelProps) {
   const criteria = WCAG_CRITERIA as unknown as Array<{ id: string; name: string; level: string; category: string }>
@@ -146,6 +148,10 @@ export function StepAuditPanel({
   // ─── Initialise directly from localStorage (lazy initialisers run synchronously
   //     before the first paint, so there is no flash back to criterion 0) ────────
   const [index, setIndex] = useState<number>(() => {
+    if (navigateToCriterionId) {
+      const idx = criteria.findIndex(c => c.id === navigateToCriterionId)
+      if (idx >= 0) return idx
+    }
     try {
       const saved = localStorage.getItem(storageKey)
       if (saved) {
@@ -198,6 +204,13 @@ export function StepAuditPanel({
       localStorage.setItem(storageKey, JSON.stringify({ index, criteriaVerdict, criteriaProgress }))
     } catch { /* ignore – private browsing may block writes */ }
   }, [index, criteriaVerdict, criteriaProgress, storageKey])
+
+  // ─── Navigate to a specific criterion when requested from outside ─────────
+  useEffect(() => {
+    if (!navigateToCriterionId) return
+    const idx = criteria.findIndex(c => c.id === navigateToCriterionId)
+    if (idx >= 0) setIndex(idx)
+  }, [navigateToCriterionId]) // criteria is module-level stable — omitting from deps intentionally
 
   const criterion = criteria[index]
   const total = criteria.length
