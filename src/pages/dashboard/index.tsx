@@ -66,167 +66,163 @@ export default function DashboardPage() {
       <div
         className="flex flex-col overflow-hidden"
         style={{
-          flex: isCreateOpen ? (createFormWide ? '0 0 0%' : '0 0 50%') : '1 1 0%',
+          flex: isCreateOpen ? (createFormWide ? '0 0 0px' : '0 0 calc(50% - 6px)') : '1 1 0%',
           transition: tr,
           borderRadius: '10px',
           background: '#fcf9f8',
           overflow: 'hidden',
         }}
       >
-        <div className="flex h-full">
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto px-10 py-10">
-            {/* Page header */}
-            <div className="mb-10">
-              <p className="font-sans text-xs font-bold tracking-widest uppercase mb-1" style={{ color: '#610000', letterSpacing: '0.12em' }}>
-                Audit Management
-              </p>
-              <h1 className="font-serif font-bold leading-none" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em', color: '#1a1a1a' }}>
-                Projects
-              </h1>
-            </div>
-
-            {/* Error */}
-            {error && (
-              <div role="alert" className="flex items-center gap-2 text-primary px-4 py-3 mb-6" style={{ background: '#ebe7e7' }}>
-                <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                <p className="font-sans text-sm">{error}</p>
-              </div>
-            )}
-
-            {/* Loading skeletons */}
-            {isLoading && (
-              <div className="space-y-px" aria-busy="true" aria-label="Loading projects">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-20 animate-pulse" style={{ background: '#ebe7e7' }} aria-hidden="true" />
-                ))}
-              </div>
-            )}
-
-            {/* Empty state */}
-            {!isLoading && filtered.length === 0 && !error && (
-              <div className="py-24">
-                <FolderOpen className="h-10 w-10 text-muted-foreground/30 mb-4" aria-hidden="true" />
-                <h2 className="font-serif font-bold text-2xl mb-1">
-                  {statusFilter !== 'all' ? 'No projects in this category' : 'No projects yet'}
-                </h2>
-                <p className="font-sans text-sm mb-6 max-w-xs" style={{ color: '#5f5e5e' }}>
-                  {statusFilter !== 'all'
-                    ? 'Try a different filter or create a new project.'
-                    : 'Create your first accessibility audit project to get started.'}
-                </p>
-                <button
-                  onClick={openCreate}
-                  className="flex items-center gap-2 px-3 py-2.5 font-sans text-sm font-medium transition-opacity hover:opacity-90"
-                  style={{ background: '#610000', color: '#fff', borderRadius: '2px' }}
-                >
-                  <Plus className="h-4 w-4" aria-hidden="true" />
-                  New project
-                </button>
-              </div>
-            )}
-
-            {/* Project list */}
-            {!isLoading && filtered.length > 0 && (
-              <ul className="space-y-0" role="list" aria-label="Audit projects">
-                {filtered.map((project) => (
-                  <li key={project.id} className="mb-4">
-                    <ProjectCard
-                      project={project}
-                      onClick={() => navigate(`/project/${project.id}`)}
-                      onUpdate={updateProject}
-                      onDelete={deleteProject}
-                    />
-                  </li>
-                ))}
-              </ul>
-            )}
+        <div className="flex-1 overflow-y-auto px-10 py-10">
+          {/* Page header */}
+          <div className="mb-10">
+            <p className="font-sans text-xs font-bold tracking-widest uppercase mb-1" style={{ color: '#610000', letterSpacing: '0.12em' }}>
+              Audit Management
+            </p>
+            <h1 className="font-serif font-bold leading-none" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em', color: '#1a1a1a' }}>
+              Projects
+            </h1>
           </div>
 
-          {/* Tool pane — hide when form is open */}
-          <aside
-            className="flex-shrink-0 overflow-hidden flex flex-col"
-            style={{
-              width: isCreateOpen ? '0' : toolkitWidth,
-              transition: tr,
-              background: '#f6f3f2',
-              borderLeft: '1px solid #e0dbd9',
-            }}
-            aria-label="Project tools"
-            aria-hidden={isCreateOpen}
-          >
-            <div className="flex flex-col h-full overflow-y-auto px-7 py-10" style={{ width: toolkitWidth }}>
+          {/* Error */}
+          {error && (
+            <div role="alert" className="flex items-center gap-2 text-primary px-4 py-3 mb-6" style={{ background: '#ebe7e7' }}>
+              <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+              <p className="font-sans text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Loading skeletons */}
+          {isLoading && (
+            <div className="space-y-px" aria-busy="true" aria-label="Loading projects">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-20 animate-pulse" style={{ background: '#ebe7e7' }} aria-hidden="true" />
+              ))}
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!isLoading && filtered.length === 0 && !error && (
+            <div className="py-24">
+              <FolderOpen className="h-10 w-10 text-muted-foreground/30 mb-4" aria-hidden="true" />
+              <h2 className="font-serif font-bold text-2xl mb-1">
+                {statusFilter !== 'all' ? 'No projects in this category' : 'No projects yet'}
+              </h2>
+              <p className="font-sans text-sm mb-6 max-w-xs" style={{ color: '#5f5e5e' }}>
+                {statusFilter !== 'all'
+                  ? 'Try a different filter or create a new project.'
+                  : 'Create your first accessibility audit project to get started.'}
+              </p>
               <button
                 onClick={openCreate}
-                className="flex w-full items-center justify-between px-3 py-2.5 font-sans text-sm font-medium mb-8 transition-opacity hover:opacity-90"
+                className="flex items-center gap-2 px-3 py-2.5 font-sans text-sm font-medium transition-opacity hover:opacity-90"
                 style={{ background: '#610000', color: '#fff', borderRadius: '2px' }}
               >
-                <span>New Project</span>
                 <Plus className="h-4 w-4" aria-hidden="true" />
+                New project
               </button>
-
-              {/* Filter controls */}
-              {projects.length > 0 && (
-                <div>
-                  <p className="font-sans text-xs font-bold tracking-widest uppercase mb-3" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
-                    Filter
-                  </p>
-                  <div className="space-y-0.5" role="group" aria-label="Filter by status">
-                    {FILTERS.map((f) => (
-                      <button
-                        key={f.key}
-                        onClick={() => setStatusFilter(f.key)}
-                        aria-pressed={statusFilter === f.key}
-                        className={`w-full text-left px-3 py-2.5 font-sans text-sm transition-colors ${
-                          statusFilter === f.key
-                            ? 'bg-primary text-primary-foreground'
-                            : 'text-muted-foreground hover:bg-surface-high hover:text-foreground'
-                        }`}
-                      >
-                        {f.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Stats */}
-              {projects.length > 0 && (
-                <div className="mt-8 pt-8" style={{ borderTop: '1px solid #ebe7e7' }}>
-                  <p className="font-sans text-xs font-bold tracking-widest uppercase mb-4" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
-                    Summary
-                  </p>
-                  <dl className="flex flex-wrap gap-x-8 gap-y-4">
-                    <div>
-                      <dt className="font-sans text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>Projects</dt>
-                      <dd className="font-serif font-bold text-2xl" style={{ color: '#1a1a1a' }}>{projects.length}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-sans text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>In progress</dt>
-                      <dd className="font-serif font-bold text-2xl" style={{ color: '#1a1a1a' }}>
-                        {projects.filter((p) => p.status === 'in_progress').length}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="font-sans text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>Findings</dt>
-                      <dd className="font-serif font-bold text-2xl" style={{ color: '#610000' }}>
-                        {projects.reduce((sum, p) => sum + (p.findingCount ?? 0), 0)}
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
-              )}
             </div>
-          </aside>
+          )}
 
+          {/* Project list */}
+          {!isLoading && filtered.length > 0 && (
+            <ul className="space-y-0" role="list" aria-label="Audit projects">
+              {filtered.map((project) => (
+                <li key={project.id} className="mb-4">
+                  <ProjectCard
+                    project={project}
+                    onClick={() => navigate(`/project/${project.id}`)}
+                    onUpdate={updateProject}
+                    onDelete={deleteProject}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
+
+      {/* ── Toolkit sidebar — sibling of main, not nested inside ── */}
+      <aside
+        className="flex-shrink-0 overflow-hidden flex flex-col"
+        style={{
+          width: isCreateOpen ? '0' : toolkitWidth,
+          transition: tr,
+          background: '#f6f3f2',
+          borderRadius: '10px',
+        }}
+        aria-label="Project tools"
+        aria-hidden={isCreateOpen}
+      >
+        <div className="flex flex-col h-full overflow-y-auto px-7 py-10" style={{ width: toolkitWidth }}>
+          <button
+            onClick={openCreate}
+            className="flex w-full items-center justify-between px-3 py-2.5 font-sans text-sm font-medium mb-8 transition-opacity hover:opacity-90"
+            style={{ background: '#610000', color: '#fff', borderRadius: '2px' }}
+          >
+            <span>New Project</span>
+            <Plus className="h-4 w-4" aria-hidden="true" />
+          </button>
+
+          {/* Filter controls */}
+          {projects.length > 0 && (
+            <div>
+              <p className="font-sans text-xs font-bold tracking-widest uppercase mb-3" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
+                Filter
+              </p>
+              <div className="space-y-0.5" role="group" aria-label="Filter by status">
+                {FILTERS.map((f) => (
+                  <button
+                    key={f.key}
+                    onClick={() => setStatusFilter(f.key)}
+                    aria-pressed={statusFilter === f.key}
+                    className={`w-full text-left px-3 py-2.5 font-sans text-sm transition-colors ${
+                      statusFilter === f.key
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-surface-high hover:text-foreground'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Stats */}
+          {projects.length > 0 && (
+            <div className="mt-8 pt-8" style={{ borderTop: '1px solid #ebe7e7' }}>
+              <p className="font-sans text-xs font-bold tracking-widest uppercase mb-4" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
+                Summary
+              </p>
+              <dl className="flex flex-wrap gap-x-8 gap-y-4">
+                <div>
+                  <dt className="font-sans text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>Projects</dt>
+                  <dd className="font-serif font-bold text-2xl" style={{ color: '#1a1a1a' }}>{projects.length}</dd>
+                </div>
+                <div>
+                  <dt className="font-sans text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>In progress</dt>
+                  <dd className="font-serif font-bold text-2xl" style={{ color: '#1a1a1a' }}>
+                    {projects.filter((p) => p.status === 'in_progress').length}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-sans text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>Findings</dt>
+                  <dd className="font-serif font-bold text-2xl" style={{ color: '#610000' }}>
+                    {projects.reduce((sum, p) => sum + (p.findingCount ?? 0), 0)}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          )}
+        </div>
+      </aside>
 
       {/* ── New Project form — in-layout split-screen panel ── */}
       <div
         className="flex-shrink-0 overflow-hidden flex flex-col"
         style={{
-          width: isCreateOpen ? (createFormWide ? '100%' : '50%') : '0',
+          width: isCreateOpen ? (createFormWide ? '100%' : 'calc(50% - 6px)') : '0',
           transition: tr,
           borderRadius: '10px',
           overflow: 'hidden',

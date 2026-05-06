@@ -454,12 +454,12 @@ export default function ProjectPage() {
   const tr = layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none'
   const toolkitWidth = `calc(18rem + 100px)`
 
-  // Main column width
+  // Main column width — subtract gap(s) so total doesn't overflow the padded container
   const mainWidth = sidebarOpen
-    ? (findingSidebarWide ? '0%' : '50%')
+    ? (findingSidebarWide ? '0px' : 'calc(50% - 6px)')
     : stepAuditOpen
-      ? (stepAuditWide ? '0%' : '50%')
-      : `calc(100% - ${toolkitWidth})`
+      ? (stepAuditWide ? '0px' : 'calc(50% - 6px)')
+      : `calc(100% - ${toolkitWidth} - 12px)`
 
   return (
     <div
@@ -665,7 +665,7 @@ export default function ProjectPage() {
       <div
         className="flex-shrink-0 overflow-hidden flex flex-col"
         style={{
-          width: sidebarOpen ? (findingSidebarWide ? '100%' : '50%') : '0',
+          width: sidebarOpen ? (findingSidebarWide ? '100%' : 'calc(50% - 6px)') : '0',
           transition: tr,
           opacity: sidebarOpen ? 1 : 0,
           transform: sidebarOpen ? 'translateX(0)' : 'translateX(20px)',
@@ -714,7 +714,7 @@ export default function ProjectPage() {
       <div
         className="flex-shrink-0 overflow-hidden flex flex-col"
         style={{
-          width: stepAuditOpen ? (stepAuditWide ? '100%' : '50%') : '0',
+          width: stepAuditOpen ? (stepAuditWide ? '100%' : 'calc(50% - 6px)') : '0',
           transition: tr,
           opacity: stepAuditOpen ? 1 : 0,
           transform: stepAuditOpen ? 'translateX(0)' : 'translateX(20px)',
@@ -751,7 +751,8 @@ export default function ProjectPage() {
           width: anySidebarOpen ? '0' : toolkitWidth,
           transition: tr,
           background: '#f6f3f2',
-          borderLeft: '1px solid #e0dbd9',
+          borderRadius: '10px',
+          overflow: 'hidden',
         }}
         aria-label="Audit toolkit"
         aria-hidden={anySidebarOpen}
