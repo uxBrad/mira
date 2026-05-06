@@ -461,20 +461,17 @@ export default function ProjectPage() {
       ? (stepAuditWide ? '0%' : '50%')
       : `calc(100% - ${toolkitWidth})`
 
-  // Right-side inner radius when a panel is open beside main
-  const mainInnerRadius = anySidebarOpen ? '0 10px 10px 0' : '0'
+  // All edges rounded when sidebar open, no radius when closed
+  const mainInnerRadius = anySidebarOpen ? '10px' : '0'
 
   return (
     <div
       className="flex h-full overflow-hidden"
       style={{
-        gap: anySidebarOpen ? '4px' : '0',
+        gap: '8px',
         background: '#d8d3d1',
         transition: tr,
-        paddingTop: anySidebarOpen ? '10px' : '0',
-        paddingBottom: anySidebarOpen ? '10px' : '0',
-        paddingLeft: '0',
-        paddingRight: anySidebarOpen ? '10px' : '0',
+        padding: '8px',
       }}
     >
 
@@ -564,7 +561,7 @@ export default function ProjectPage() {
         </div>
 
         {/* Findings list */}
-        <main id="main-findings" className="flex-1 overflow-y-auto px-10 py-6">
+        <main id="main-findings" className="flex-1 overflow-y-auto py-6" style={{ paddingLeft: '16px', paddingRight: '40px' }}>
 
           {/* Secondary filters row — Jira-style multiselect */}
           {findings.length > 0 && (
@@ -678,7 +675,7 @@ export default function ProjectPage() {
           transitionProperty: 'width, opacity, transform, border-radius',
           transitionDuration: layoutReady ? '0.3s' : '0s',
           transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-          borderRadius: sidebarOpen ? '10px 0 0 10px' : '0',
+          borderRadius: sidebarOpen ? '10px' : '0',
           overflow: 'hidden',
         }}
         aria-hidden={!sidebarOpen}
@@ -727,7 +724,7 @@ export default function ProjectPage() {
           transitionProperty: 'width, opacity, transform, border-radius',
           transitionDuration: layoutReady ? '0.3s' : '0s',
           transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-          borderRadius: stepAuditOpen ? '10px 0 0 10px' : '0',
+          borderRadius: stepAuditOpen ? '10px' : '0',
           overflow: 'hidden',
         }}
         aria-hidden={!stepAuditOpen}
