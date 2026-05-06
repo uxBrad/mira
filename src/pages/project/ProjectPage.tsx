@@ -19,6 +19,8 @@ import {
 import { useFindings } from '../../hooks/useFindings'
 import { useTemplates } from '../../hooks/useTemplates'
 import { FindingTable } from '../../components/findings/FindingTable'
+import { FindingRow } from '../../components/findings/FindingRow'
+import { WCAG_CRITERIA } from '../../lib/utils'
 import { FindingFormSidebar } from '../../components/findings/FindingFormSidebar'
 import { ProjectFormDialog } from '../../components/projects/ProjectFormDialog'
 import { StepAuditPanel } from '../../components/audit/StepAuditPanel'
@@ -191,6 +193,7 @@ export default function ProjectPage() {
   const [pageFilter, setPageFilter] = useState<string[]>([])
   const [componentFilter, setComponentFilter] = useState<string[]>([])
   const [findingInitialData, setFindingInitialData] = useState<Partial<{title:string;description:string;wcagCriterion:string;wcagLevel:string;standards:string[];category:string;severity:string;status:string;pageUrl:string;component:string;screenshotPath:string;recommendations:string;notes:string}> | undefined>(undefined)
+  const [groupByCriteria, setGroupByCriteria] = useState(false)
   const [stepAuditOpen, setStepAuditOpen] = useState(false)
   const [stepAuditMounted, setStepAuditMounted] = useState(false)
   const [stepAuditWide, setStepAuditWide] = useState(false)
@@ -624,6 +627,26 @@ export default function ProjectPage() {
                   Clear all
                 </button>
               )}
+
+              {/* Group by criteria toggle */}
+              <label
+                className="flex items-center gap-1.5 font-sans text-xs font-semibold px-3 py-1.5 cursor-pointer select-none ml-auto"
+                style={{ border: `1px solid ${groupByCriteria ? '#610000' : '#d0cac8'}`, background: groupByCriteria ? '#610000' : 'transparent', color: groupByCriteria ? '#fff' : '#2b2c2c' }}
+              >
+                <input
+                  type="checkbox"
+                  checked={groupByCriteria}
+                  onChange={e => setGroupByCriteria(e.target.checked)}
+                  className="sr-only"
+                />
+                <span
+                  className="flex-shrink-0 w-3.5 h-3.5 flex items-center justify-center"
+                  style={{ border: `1.5px solid ${groupByCriteria ? '#fff' : '#d0cac8'}`, background: groupByCriteria ? '#fff' : 'transparent', borderRadius: '2px' }}
+                >
+                  {groupByCriteria && <Check className="h-2 w-2" style={{ color: '#610000' }} />}
+                </span>
+                Group by criteria
+              </label>
             </div>
           )}
 
@@ -655,13 +678,79 @@ export default function ProjectPage() {
             </div>
           )}
 
-          <FindingTable
-            findings={filtered}
-            isLoading={isLoading}
-            onEdit={(f) => setEditFinding(f as Finding)}
-            onUpdate={updateFinding}
-            onDelete={deleteFinding}
-          />
+          {!groupByCriteria ? (
+            <FindingTable
+              findings={filtered}
+              isLoading={isLoading}
+              onEdit={(f) => setEditFinding(f as Finding)}
+              onUpdate={updateFinding}
+              onDelete={deleteFinding}
+            />
+          ) : (
+            (() => {
+              // Group filtered findings by wcagCriterion
+              const groups: Record<string, Finding[]> = {}
+              for (const f of filtered) {
+                const key = f.wcagCriterion ?? '__none__'
+                if (!groups[key]) groups[key] = []
+                groups[key].push(f)
+              }
+              // Sort groups by criterion id numerically, unknown/none at end
+              const sortedKeys = Object.keys(groups).sort((a, b) => {
+                if (a === '__none__') return 1
+                if (b === '__none__') return -1
+                const aParts = a.split('.').map(Number)
+                const bParts = b.split('.').map(Number)
+                for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+                  const diff = (aParts[i] ?? 0) - (bParts[i] ?? 0)
+                  if (diff !== 0) return diff
+                }
+                return 0
+              })
+              return (
+                <div className="space-y-8">
+                  {sortedKeys.map(key => {
+                    const criterion = WCAG_CRITERIA.find(c => c.id === key)
+                    const groupFindings = groups[key]
+                    return (
+                      <div key={key}>
+                        <div className="flex items-baseline gap-2 mb-2 pb-2" style={{ borderBottom: '1px solid #e0dbd9' }}>
+                          <span className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.1em' }}>
+                            {key === '__none__' ? 'No criterion' : key}
+                          </span>
+                          {criterion && (
+                            <span className="font-serif font-bold text-base" style={{ color: '#1a1a1a' }}>
+                              {criterion.name}
+                            </span>
+                          )}
+                          {criterion && (
+                            <span className="font-sans text-xs ml-auto" style={{ color: '#7a7877' }}>
+                              Level {criterion.level}
+                            </span>
+                          )}
+                          <span className="font-sans text-xs" style={{ color: '#7a7877', marginLeft: criterion ? '0' : 'auto' }}>
+                            {groupFindings.length} finding{groupFindings.length !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                        <ul className="space-y-0" role="list">
+                          {groupFindings.map((finding, index) => (
+                            <li key={finding.id} style={{ animation: `fadeIn 0.3s ease-out ${index * 40}ms both` }}>
+                              <FindingRow
+                                finding={finding}
+                                onEdit={() => setEditFinding(finding)}
+                                onUpdate={updateFinding}
+                                onDelete={deleteFinding}
+                              />
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })()
+          )}
         </main>
       </div>
 
@@ -789,16 +878,6 @@ export default function ProjectPage() {
           >
             <span>Step-by-Step Audit</span>
             <ListChecks className="h-4 w-4" aria-hidden="true" />
-          </button>
-
-          {/* View Report */}
-          <button
-            className="flex w-full items-center justify-between px-4 py-3 mb-4 font-sans text-sm font-bold uppercase tracking-widest transition-colors hover:bg-[#e0dbd9]"
-            style={{ background: '#e5e2e1', color: '#2b2c2c', letterSpacing: '0.1em' }}
-            onClick={() => navigate(`/project/${id}/report`)}
-          >
-            <span>View Report</span>
-            <Eye className="h-4 w-4" aria-hidden="true" />
           </button>
 
           {/* Tertiary buttons */}
