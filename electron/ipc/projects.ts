@@ -28,9 +28,11 @@ export function registerProjectHandlers(ipcMain: IpcMain): void {
         components: projects.components,
         createdAt: projects.createdAt,
         updatedAt: projects.updatedAt,
-        findingCount: sql<number>`(SELECT COUNT(*) FROM findings WHERE findings.project_id = ${projects.id})`
+        findingCount: sql<number>`count(${findings.id})`
       })
       .from(projects)
+      .leftJoin(findings, eq(findings.projectId, projects.id))
+      .groupBy(projects.id)
       .orderBy(desc(projects.updatedAt))
 
     return rows.map(deserializeProject)

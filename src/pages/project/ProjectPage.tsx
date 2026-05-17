@@ -110,8 +110,9 @@ function MultiSelectFilter({
         aria-expanded={open}
       >
         <span>
-          {label}
-          {active && `: ${selectedLabels.slice(0, 2).join(', ')}${selectedLabels.length > 2 ? ` +${selectedLabels.length - 2}` : ''}`}
+          {active
+            ? `${label}: ${selectedLabels.slice(0, 2).join(', ')}${selectedLabels.length > 2 ? ` +${selectedLabels.length - 2}` : ''}`
+            : `${label}: Any`}
         </span>
         {active && (
           <button
@@ -873,7 +874,6 @@ export default function ProjectPage() {
                             <span className="font-sans text-sm font-medium" style={{ color: '#9a9590' }}>No logged findings</span>
                             <div className="ml-auto flex items-center gap-2">
                               <EchoButton
-                                variant="primary"
                                 onClick={() => openStepAuditAtCriterion(criterion.id)}
                                 style={{ padding: '5px 12px', fontSize: '12px' }}
                               >

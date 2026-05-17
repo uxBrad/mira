@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Archive } from 'lucide-react'
 import { EchoButton } from '../ui/echo-button'
 import { EchoPill } from '../ui/echo-pill'
 import { KVTag } from '../ui/kv-tag'
@@ -14,7 +14,7 @@ interface ProjectCardProps {
   project: ProjectWithCount
   onClick: () => void
   onEdit: (project: ProjectWithCount) => void
-  onDelete: (project: ProjectWithCount) => void
+  onArchive: (project: ProjectWithCount) => void
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -23,7 +23,7 @@ const STATUS_LABELS: Record<string, string> = {
   archived: 'Archived'
 }
 
-export function ProjectCard({ project, onClick, onEdit, onDelete }: ProjectCardProps) {
+export function ProjectCard({ project, onClick, onEdit, onArchive }: ProjectCardProps) {
   const auditStats = useMemo(() => {
     try {
       const saved = localStorage.getItem(`echo-step-audit-${project.id}`)
@@ -75,13 +75,13 @@ export function ProjectCard({ project, onClick, onEdit, onDelete }: ProjectCardP
             Edit
           </EchoButton>
           <EchoButton
-            icon={<Trash2 className="h-3.5 w-3.5" />}
+            icon={<Archive className="h-3.5 w-3.5" />}
             iconPosition="left"
-            onClick={(e) => { e.stopPropagation(); onDelete(project) }}
-            aria-label={`Delete ${project.name}`}
+            onClick={(e) => { e.stopPropagation(); onArchive(project) }}
+            aria-label={`Archive ${project.name}`}
             style={{ padding: '5px 10px', fontSize: '13px' }}
           >
-            Delete
+            Archive
           </EchoButton>
         </div>
       </div>

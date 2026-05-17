@@ -20,18 +20,18 @@ const FILTERS = [
   { key: 'archived', label: 'Archived' },
 ]
 
-type PanelMode = null | 'create' | 'edit' | 'delete'
+type PanelMode = null | 'create' | 'edit' | 'archive'
 
-function DeletePanel({
+function ArchivePanel({
   project,
   onConfirm,
   onClose,
-  isDeleting,
+  isArchiving,
 }: {
   project: ProjectWithCount
   onConfirm: () => void
   onClose: () => void
-  isDeleting: boolean
+  isArchiving: boolean
 }) {
   return (
     <div
@@ -43,7 +43,7 @@ function DeletePanel({
         style={{ borderBottom: '1px solid #e0dbd9', background: '#f6f3f2', minHeight: '60px' }}
       >
         <span className="font-sans text-sm font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.12em' }}>
-          Delete Project
+          Archive Project
         </span>
         <button
           onClick={onClose}
@@ -57,19 +57,19 @@ function DeletePanel({
 
       <div className="flex-1 overflow-y-auto px-6 py-8 space-y-3">
         <p className="font-sans text-sm leading-relaxed" style={{ color: '#1a1a1a' }}>
-          Permanently delete <strong>&ldquo;{project.name}&rdquo;</strong> and all{' '}
-          {project.findingCount} finding{project.findingCount !== 1 ? 's' : ''} within it?
+          Archive <strong>&ldquo;{project.name}&rdquo;</strong>? The project and its{' '}
+          {project.findingCount} finding{project.findingCount !== 1 ? 's' : ''} will be preserved but hidden from the default view.
         </p>
-        <p className="font-sans text-sm" style={{ color: '#5f5e5e' }}>This cannot be undone.</p>
+        <p className="font-sans text-sm" style={{ color: '#5f5e5e' }}>You can restore it anytime by editing the project status.</p>
       </div>
 
       <div
         className="flex-shrink-0 flex items-center justify-end gap-2 px-6 py-4"
         style={{ borderTop: '1px solid #e0dbd9', background: '#f6f3f2' }}
       >
-        <EchoButton onClick={onClose} disabled={isDeleting}>Cancel</EchoButton>
-        <EchoButton variant="primary" onClick={onConfirm} disabled={isDeleting}>
-          {isDeleting ? 'Deleting…' : 'Delete'}
+        <EchoButton onClick={onClose} disabled={isArchiving}>Cancel</EchoButton>
+        <EchoButton variant="primary" onClick={onConfirm} disabled={isArchiving}>
+          {isArchiving ? 'Archiving…' : 'Archive'}
         </EchoButton>
       </div>
     </div>
@@ -82,7 +82,7 @@ export default function DashboardPage() {
   const [panelProject, setPanelProject] = useState<ProjectWithCount | null>(null)
   const [panelMounted, setPanelMounted] = useState(false)
   const [panelWide, setPanelWide] = useState(false)
-  const [isDeletingPanel, setIsDeletingPanel] = useState(false)
+  const [isArchivingPanel, setIsArchivingPanel] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string>('in_progress')
   const navigate = useNavigate()
   const { toast } = useToast()
@@ -104,8 +104,8 @@ export default function DashboardPage() {
     setPanelProject(project)
   }
 
-  function openDelete(project: ProjectWithCount) {
-    setPanelMode('delete')
+  function openArchive(project: ProjectWithCount) {
+    setPanelMode('archive')
     setPanelMounted(true)
     setPanelProject(project)
   }
@@ -144,17 +144,17 @@ export default function DashboardPage() {
     toast({ title: 'Project updated' })
   }
 
-  async function handleDeleteConfirm() {
+  async function handleArchiveConfirm() {
     if (!panelProject) return
-    setIsDeletingPanel(true)
+    setIsArchivingPanel(true)
     try {
-      await deleteProject(panelProject.id)
+      await updateProject(panelProject.id, { status: 'archived' })
       closePanel()
-      toast({ title: 'Project deleted', description: `"${panelProject.name}" has been deleted.` })
+      toast({ title: 'Project archived', description: `"${panelProject.name}" has been archived.` })
     } catch {
-      toast({ variant: 'destructive', title: 'Delete failed' })
+      toast({ variant: 'destructive', title: 'Archive failed' })
     } finally {
-      setIsDeletingPanel(false)
+      setIsArchivingPanel(false)
     }
   }
 
@@ -260,7 +260,7 @@ export default function DashboardPage() {
                     project={project}
                     onClick={() => navigate(`/project/${project.id}`)}
                     onEdit={openEdit}
-                    onDelete={openDelete}
+                    onArchive={openArchive}
                   />
                 </li>
               ))}
@@ -383,12 +383,12 @@ export default function DashboardPage() {
                 onToggleWide={() => setPanelWide(w => !w)}
               />
             )}
-            {panelMode === 'delete' && panelProject && (
-              <DeletePanel
+            {panelMode === 'archive' && panelProject && (
+              <ArchivePanel
                 project={panelProject}
-                onConfirm={handleDeleteConfirm}
+                onConfirm={handleArchiveConfirm}
                 onClose={closePanel}
-                isDeleting={isDeletingPanel}
+                isArchiving={isArchivingPanel}
               />
             )}
           </>
