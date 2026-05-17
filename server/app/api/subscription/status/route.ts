@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../../lib/prisma'
 import { getAuthenticatedUser } from '../../../../lib/auth-middleware'
 
-const TRIAL_DAYS = 7
+const TRIAL_DAYS = 30
 
 export async function GET(request: NextRequest) {
   try {
