@@ -1,18 +1,9 @@
-import { useState } from 'react'
-import { MoreHorizontal, Pencil, Trash2, ExternalLink } from 'lucide-react'
+import { useMemo } from 'react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { EchoButton } from '../ui/echo-button'
 import { EchoPill } from '../ui/echo-pill'
-import { ProjectFormDialog } from './ProjectFormDialog'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription
-} from '../ui/dialog'
-import { formatRelativeDate } from '../../lib/utils'
-import { useToast } from '../ui/use-toast'
+import { KVTag } from '../ui/kv-tag'
+import { WCAG_CRITERIA, formatRelativeDate } from '../../lib/utils'
 import type { Project } from '../../../db/schema'
 
 interface ProjectWithCount extends Project {
@@ -22,11 +13,8 @@ interface ProjectWithCount extends Project {
 interface ProjectCardProps {
   project: ProjectWithCount
   onClick: () => void
-  onUpdate: (
-    id: string,
-    data: { name?: string; clientName?: string; url?: string; description?: string; status?: string }
-  ) => Promise<unknown>
-  onDelete: (id: string) => Promise<void>
+  onEdit: (project: ProjectWithCount) => void
+  onDelete: (project: ProjectWithCount) => void
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -35,173 +23,92 @@ const STATUS_LABELS: Record<string, string> = {
   archived: 'Archived'
 }
 
-export function ProjectCard({ project, onClick, onUpdate, onDelete }: ProjectCardProps) {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [editOpen, setEditOpen] = useState(false)
-  const [deleteOpen, setDeleteOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const { toast } = useToast()
-
-  async function handleUpdate(data: {
-    name: string
-    clientName?: string
-    url?: string
-    description?: string
-  }) {
-    await onUpdate(project.id, data)
-    setEditOpen(false)
-    toast({ title: 'Project updated' })
-  }
-
-  async function handleDelete() {
-    setIsDeleting(true)
+export function ProjectCard({ project, onClick, onEdit, onDelete }: ProjectCardProps) {
+  const auditStats = useMemo(() => {
     try {
-      await onDelete(project.id)
-      setDeleteOpen(false)
-      toast({ title: 'Project deleted', description: `"${project.name}" has been deleted.` })
-    } catch {
-      toast({ variant: 'destructive', title: 'Delete failed' })
-    } finally {
-      setIsDeleting(false)
-    }
-  }
+      const saved = localStorage.getItem(`echo-step-audit-${project.id}`)
+      if (saved) {
+        const v = JSON.parse(saved)?.criteriaVerdict ?? {}
+        const pass = Object.values(v).filter((x) => x === 'pass').length
+        const fail = Object.values(v).filter((x) => x === 'fail').length
+        return { pass, fail, unknown: WCAG_CRITERIA.length - pass - fail }
+      }
+    } catch { /* ignore */ }
+    return { pass: 0, fail: 0, unknown: WCAG_CRITERIA.length }
+  }, [project.id])
 
   return (
-    <>
-      <article
-        className="p-5 cursor-pointer group transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        style={{
-          background: '#ffffff',
-          borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.06)'
-        }}
-        role="button"
-        tabIndex={0}
-        onClick={onClick}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }}
-        aria-label={`${project.name}${project.clientName ? `, client: ${project.clientName}` : ''}, ${project.findingCount} findings`}
-      >
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <h2
-              className="font-serif font-bold leading-tight mb-1"
-              style={{ fontSize: '1.75rem', letterSpacing: '-0.02em', color: '#1a1a1a' }}
-            >
-              {project.name}
-            </h2>
-            {project.clientName && (
-              <p className="font-sans text-sm mb-0" style={{ color: '#5f5e5e' }}>{project.clientName}</p>
-            )}
-          </div>
-          <button
-            className="flex-shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 flex items-center justify-center w-8 h-8 transition-opacity"
-            style={{ color: '#9a9897' }}
-            onClick={(e) => { e.stopPropagation(); setMenuOpen(true) }}
-            aria-label={`Options for ${project.name}`}
-            aria-haspopup="dialog"
+    <article
+      className="p-5 cursor-pointer group transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      style={{
+        background: '#ffffff',
+        borderRadius: '8px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.06)'
+      }}
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }}
+      aria-label={`${project.name}${project.clientName ? `, client: ${project.clientName}` : ''}`}
+    >
+      {/* Top row: name + actions */}
+      <div className="flex items-start gap-4 mb-3">
+        <div className="flex-1 min-w-0">
+          <h2
+            className="font-serif font-bold leading-tight mb-1"
+            style={{ fontSize: '1.75rem', letterSpacing: '-0.02em', color: '#1a1a1a' }}
           >
-            <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-          </button>
+            {project.name}
+          </h2>
+          {project.clientName && (
+            <p className="font-sans text-sm" style={{ color: '#5f5e5e' }}>{project.clientName}</p>
+          )}
         </div>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <EchoButton
+            icon={<Pencil className="h-3.5 w-3.5" />}
+            iconPosition="left"
+            onClick={(e) => { e.stopPropagation(); onEdit(project) }}
+            aria-label={`Edit ${project.name}`}
+            style={{ padding: '5px 10px', fontSize: '13px' }}
+          >
+            Edit
+          </EchoButton>
+          <EchoButton
+            icon={<Trash2 className="h-3.5 w-3.5" />}
+            iconPosition="left"
+            onClick={(e) => { e.stopPropagation(); onDelete(project) }}
+            aria-label={`Delete ${project.name}`}
+            style={{ padding: '5px 10px', fontSize: '13px' }}
+          >
+            Delete
+          </EchoButton>
+        </div>
+      </div>
 
-        {project.description && (
-          <p className="font-sans text-sm leading-relaxed mt-2 mb-3" style={{ color: '#5f5e5e' }}>{project.description}</p>
-        )}
+      {project.description && (
+        <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>{project.description}</p>
+      )}
 
-        <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid #f0ede9' }}>
+      {/* Bottom: status pill + 4 metrics + date */}
+      <div className="flex items-center justify-between pt-3 flex-wrap gap-2" style={{ borderTop: '1px solid #f0ede9' }}>
+        <div className="flex items-center gap-2">
           <EchoPill variant="level" label={STATUS_LABELS[project.status] || project.status} />
-          <div className="flex items-center gap-2">
-            <span className="font-sans text-xs" style={{ color: '#5f5e5e' }}>
-              {project.findingCount} issue{project.findingCount !== 1 ? 's' : ''}
-            </span>
-            <span className="font-sans text-xs" style={{ color: '#5f5e5e' }}>·</span>
-            <span className="font-sans text-xs" style={{ color: '#5f5e5e' }}>
-              {formatRelativeDate(project.updatedAt)}
-            </span>
+          <span className="font-sans text-xs" style={{ color: '#b0aaa8' }}>
+            {formatRelativeDate(project.updatedAt)}
+          </span>
+        </div>
+        <div className="flex items-start gap-2">
+          <div className="flex flex-col gap-1">
+            <KVTag label="Findings" value={String(project.findingCount)} />
+            <KVTag label="Unknown" value={String(auditStats.unknown)} />
+          </div>
+          <div className="flex flex-col gap-1">
+            <KVTag label="Passed" value={String(auditStats.pass)} valueVariant="pass" />
+            <KVTag label="Failed" value={String(auditStats.fail)} valueVariant="fail" />
           </div>
         </div>
-      </article>
-
-      {/* Quick actions dialog */}
-      <Dialog open={menuOpen} onOpenChange={setMenuOpen}>
-        <DialogContent className="max-w-xs">
-          <DialogHeader>
-            <DialogTitle className="text-base truncate">{project.name}</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col gap-2">
-            <EchoButton
-              icon={<Pencil className="h-4 w-4" />}
-              iconPosition="left"
-              fullWidth
-              onClick={() => { setMenuOpen(false); setEditOpen(true) }}
-            >
-              Edit project
-            </EchoButton>
-            {project.url && (
-              <EchoButton
-                icon={<ExternalLink className="h-4 w-4" />}
-                iconPosition="left"
-                fullWidth
-                onClick={() => { setMenuOpen(false); window.open(project.url!, '_blank') }}
-              >
-                Open URL
-              </EchoButton>
-            )}
-            <EchoButton
-              icon={<Trash2 className="h-4 w-4" />}
-              iconPosition="left"
-              fullWidth
-              onClick={() => { setMenuOpen(false); setDeleteOpen(true) }}
-              style={{ color: '#610000' }}
-            >
-              Delete project
-            </EchoButton>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit dialog */}
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden" style={{ maxHeight: '90vh' }}>
-          <div style={{ height: '80vh', display: 'flex', flexDirection: 'column' }}>
-            <ProjectFormDialog
-              open={editOpen}
-              onOpenChange={setEditOpen}
-              onSubmit={handleUpdate}
-              mode="edit"
-              initialData={{
-                name: project.name,
-                clientName: project.clientName ?? undefined,
-                url: project.url ?? undefined,
-                description: project.description ?? undefined,
-                status: project.status
-              }}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete confirmation */}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Delete project?</DialogTitle>
-            <DialogDescription>
-              This will permanently delete &ldquo;{project.name}&rdquo; and all{' '}
-              {project.findingCount} finding{project.findingCount !== 1 ? 's' : ''} within it.
-              This cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <EchoButton onClick={() => setDeleteOpen(false)}>
-              Cancel
-            </EchoButton>
-            <EchoButton variant="primary" onClick={handleDelete} disabled={isDeleting}>
-              {isDeleting ? 'Deleting…' : 'Delete project'}
-            </EchoButton>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+      </div>
+    </article>
   )
 }

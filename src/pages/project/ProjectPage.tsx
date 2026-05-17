@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Check,
   CheckCircle2,
+  X,
 } from 'lucide-react'
 import { useFindings } from '../../hooks/useFindings'
 import { useTemplates } from '../../hooks/useTemplates'
@@ -29,7 +30,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
   DialogDescription
 } from '../../components/ui/dialog'
 
@@ -181,7 +181,6 @@ export default function ProjectPage() {
   const [isLoadingProject, setIsLoadingProject] = useState(true)
   const [createOpen, setCreateOpen] = useState(false)
   const [editFinding, setEditFinding] = useState<Finding | null>(null)
-  const [editProjectOpen, setEditProjectOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [isExporting, setIsExporting] = useState<'pdf' | 'csv' | null>(null)
   const [showFormatDialog, setShowFormatDialog] = useState(false)
@@ -210,9 +209,8 @@ export default function ProjectPage() {
   const [findingSidebarWide, setFindingSidebarWide] = useState(false)
   const [layoutReady, setLayoutReady] = useState(false)
 
-  // Modal manage pages / components
-  const [pageModalOpen, setPageModalOpen] = useState(false)
-  const [componentModalOpen, setComponentModalOpen] = useState(false)
+  // Toolkit inner panel: null = normal view, 'pages' | 'components' | 'config' = management panel
+  const [toolkitPanel, setToolkitPanel] = useState<null | 'pages' | 'components' | 'config'>(null)
   const [newPageValue, setNewPageValue] = useState('')
   const [newComponentValue, setNewComponentValue] = useState('')
   const [renamingPage, setRenamingPage] = useState<string | null>(null)
@@ -995,330 +993,88 @@ export default function ProjectPage() {
         style={{
           width: anySidebarOpen ? '0' : toolkitWidth,
           transition: tr,
-          background: '#f6f3f2',
+          background: toolkitPanel ? '#ffffff' : '#f6f3f2',
           borderRadius: '10px',
           overflow: 'hidden',
         }}
         aria-label="Audit toolkit"
         aria-hidden={anySidebarOpen}
       >
-        {/* Fixed-width inner prevents content reflow during the width transition */}
-        <div className="no-scrollbar flex flex-col h-full overflow-y-auto" style={{ width: toolkitWidth }}>
-        <div className="px-5 pt-8 pb-8 flex flex-col gap-6">
+        {/* Fixed-width inner — prevents content reflow during width transition */}
+        <div className="flex flex-col h-full" style={{ width: toolkitWidth }}>
 
-          {/* ── Section: Audit Toolkit ── */}
-          <div>
-            <h2 className="font-serif font-bold text-2xl mb-1" style={{ letterSpacing: '-0.01em' }}>
-              Audit Toolkit
-            </h2>
-            <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>
-              Log and review accessibility findings.
-            </p>
-            <div className="space-y-2">
-              <EchoButton
-                variant="primary"
-                icon={<Plus className="h-4 w-4" />}
-                iconPosition="right"
-                fullWidth
-                onClick={openBlankFinding}
-              >
-                Add Finding
-              </EchoButton>
-              <EchoButton
-                icon={<ListChecks className="h-4 w-4" />}
-                iconPosition="right"
-                fullWidth
-                onClick={() => setStepAuditOpen(true)}
-              >
-                Step-by-step Audit
-              </EchoButton>
-              <EchoButton
-                icon={<Upload className="h-4 w-4" />}
-                iconPosition="right"
-                fullWidth
-                onClick={() => setImportOpen(true)}
-              >
-                Import Findings
-              </EchoButton>
-            </div>
-          </div>
+          {/* ── Normal toolkit view ── */}
+          {toolkitPanel === null && (
+            <div className="no-scrollbar flex-1 overflow-y-auto px-5 pt-8 pb-8 flex flex-col gap-6">
 
-          {/* ── Section: Reports ── */}
-          <div>
-            <h2 className="font-serif font-bold text-2xl mb-1" style={{ letterSpacing: '-0.01em' }}>
-              Reports
-            </h2>
-            <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>
-              Export your audit results.
-            </p>
-            <div className="space-y-2">
-              <EchoButton
-                variant="primary"
-                icon={<Download className="h-4 w-4" />}
-                iconPosition="right"
-                fullWidth
-                onClick={handleClickExportPDF}
-                disabled={!!isExporting}
-                aria-busy={isExporting === 'pdf'}
-              >
-                {isExporting === 'pdf' ? 'Generating…' : 'Export Report (PDF)'}
-              </EchoButton>
-              <EchoButton
-                icon={<Download className="h-4 w-4" />}
-                iconPosition="right"
-                fullWidth
-                onClick={handleExportCSV}
-                disabled={!!isExporting || findings.length === 0}
-                aria-busy={isExporting === 'csv'}
-              >
-                {isExporting === 'csv' ? 'Exporting…' : 'Export Report (CSV)'}
-              </EchoButton>
-            </div>
-          </div>
-
-          {/* ── Section: Settings ── */}
-          <div>
-            <h2 className="font-serif font-bold text-2xl mb-1" style={{ letterSpacing: '-0.01em' }}>
-              Settings
-            </h2>
-            <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>
-              Configure your project scope.
-            </p>
-            <div className="space-y-2">
-              <EchoButton
-                icon={<Settings2 className="h-4 w-4" />}
-                iconPosition="right"
-                fullWidth
-                onClick={() => setEditProjectOpen(true)}
-              >
-                Configure Project
-              </EchoButton>
-              <EchoButton
-                icon={<Plus className="h-4 w-4" />}
-                iconPosition="right"
-                fullWidth
-                onClick={() => setPageModalOpen(true)}
-              >
-                Pages
-              </EchoButton>
-              <EchoButton
-                icon={<Plus className="h-4 w-4" />}
-                iconPosition="right"
-                fullWidth
-                onClick={() => setComponentModalOpen(true)}
-              >
-                Components
-              </EchoButton>
-            </div>
-          </div>
-
-        </div>
-        </div>{/* end fixed-width inner */}
-      </aside>
-
-      {/* ── Manage Pages modal ── */}
-      <Dialog open={pageModalOpen} onOpenChange={(o) => { setPageModalOpen(o); if (!o) { setNewPageValue(''); setRenamingPage(null); setRenamePageValue('') } }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Manage Pages</DialogTitle>
-            <DialogDescription>Add, rename, or remove pages tracked in this audit.</DialogDescription>
-          </DialogHeader>
-
-          {/* Existing pages list */}
-          {project.auditUrls.length > 0 && (
-            <div className="space-y-1 max-h-60 overflow-y-auto">
-              {project.auditUrls.map((page) => (
-                <div key={page} className="flex items-center gap-2 px-3 py-2" style={{ background: '#f6f3f2', borderRadius: '4px' }}>
-                  {renamingPage === page ? (
-                    <>
-                      <input
-                        autoFocus
-                        value={renamePageValue}
-                        onChange={(e) => setRenamePageValue(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleRenamePage(page, renamePageValue)
-                          if (e.key === 'Escape') { setRenamingPage(null); setRenamePageValue('') }
-                        }}
-                        className="flex-1 h-8 px-2 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
-                        style={{ borderColor: '#d0cac8' }}
-                      />
-                      <button
-                        onClick={() => handleRenamePage(page, renamePageValue)}
-                        disabled={!renamePageValue.trim()}
-                        className="px-2.5 py-1 font-sans text-xs font-bold text-white disabled:opacity-40"
-                        style={{ background: '#610000', borderRadius: '3px' }}
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => { setRenamingPage(null); setRenamePageValue('') }}
-                        className="px-2.5 py-1 font-sans text-xs font-medium"
-                        style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '3px' }}
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <span className="flex-1 font-sans text-sm truncate" style={{ color: '#2b2c2c' }}>{page}</span>
-                      <button
-                        onClick={() => { setRenamingPage(page); setRenamePageValue(page) }}
-                        className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-[#ede9e7] transition-colors"
-                        style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '3px' }}
-                      >
-                        Rename
-                      </button>
-                      <button
-                        onClick={() => handleDeletePage(page)}
-                        className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-red-50 transition-colors"
-                        style={{ border: '1px solid #d0cac8', color: '#c0392b', borderRadius: '3px' }}
-                      >
-                        Delete
-                      </button>
-                    </>
-                  )}
+              {/* Section: Audit Toolkit */}
+              <div>
+                <h2 className="font-serif font-bold text-2xl mb-1" style={{ letterSpacing: '-0.01em' }}>
+                  Audit Toolkit
+                </h2>
+                <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>
+                  Log and review accessibility findings.
+                </p>
+                <div className="space-y-2">
+                  <EchoButton variant="primary" icon={<Plus className="h-4 w-4" />} iconPosition="right" fullWidth onClick={openBlankFinding}>
+                    Add Finding
+                  </EchoButton>
+                  <EchoButton icon={<ListChecks className="h-4 w-4" />} iconPosition="right" fullWidth onClick={() => setStepAuditOpen(true)}>
+                    Step-by-step Audit
+                  </EchoButton>
+                  <EchoButton icon={<Upload className="h-4 w-4" />} iconPosition="right" fullWidth onClick={() => setImportOpen(true)}>
+                    Import Findings
+                  </EchoButton>
                 </div>
-              ))}
+              </div>
+
+              {/* Section: Reports */}
+              <div>
+                <h2 className="font-serif font-bold text-2xl mb-1" style={{ letterSpacing: '-0.01em' }}>
+                  Reports
+                </h2>
+                <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>
+                  Export your audit results.
+                </p>
+                <div className="space-y-2">
+                  <EchoButton variant="primary" icon={<Download className="h-4 w-4" />} iconPosition="right" fullWidth onClick={handleClickExportPDF} disabled={!!isExporting} aria-busy={isExporting === 'pdf'}>
+                    {isExporting === 'pdf' ? 'Generating…' : 'Export Report (PDF)'}
+                  </EchoButton>
+                  <EchoButton icon={<Download className="h-4 w-4" />} iconPosition="right" fullWidth onClick={handleExportCSV} disabled={!!isExporting || findings.length === 0} aria-busy={isExporting === 'csv'}>
+                    {isExporting === 'csv' ? 'Exporting…' : 'Export Report (CSV)'}
+                  </EchoButton>
+                </div>
+              </div>
+
+              {/* Section: Settings */}
+              <div>
+                <h2 className="font-serif font-bold text-2xl mb-1" style={{ letterSpacing: '-0.01em' }}>
+                  Settings
+                </h2>
+                <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>
+                  Configure your project scope.
+                </p>
+                <div className="space-y-2">
+                  <EchoButton icon={<Settings2 className="h-4 w-4" />} iconPosition="right" fullWidth onClick={() => setToolkitPanel('config')}>
+                    Configure Project
+                  </EchoButton>
+                  <EchoButton icon={<Plus className="h-4 w-4" />} iconPosition="right" fullWidth onClick={() => setToolkitPanel('pages')}>
+                    Pages
+                  </EchoButton>
+                  <EchoButton icon={<Plus className="h-4 w-4" />} iconPosition="right" fullWidth onClick={() => setToolkitPanel('components')}>
+                    Components
+                  </EchoButton>
+                </div>
+              </div>
+
             </div>
           )}
 
-          {/* Add new page */}
-          <div className="flex gap-2 mt-2">
-            <input
-              value={newPageValue}
-              onChange={(e) => setNewPageValue(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') confirmAddPage() }}
-              placeholder="/about or Home"
-              className="flex-1 h-9 px-3 font-sans text-sm border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-              style={{ borderColor: '#d0cac8' }}
-            />
-            <button
-              onClick={confirmAddPage}
-              disabled={!newPageValue.trim()}
-              className="px-4 py-2 font-sans text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-              style={{ background: '#610000', borderRadius: '4px' }}
-            >
-              Add
-            </button>
-          </div>
-
-          <DialogFooter>
-            <button
-              onClick={() => setPageModalOpen(false)}
-              className="px-4 py-2 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
-              style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}
-            >
-              Done
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── Manage Components modal ── */}
-      <Dialog open={componentModalOpen} onOpenChange={(o) => { setComponentModalOpen(o); if (!o) { setNewComponentValue(''); setRenamingComponent(null); setRenameComponentValue('') } }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Manage Components</DialogTitle>
-            <DialogDescription>Add, rename, or remove components tracked in this audit.</DialogDescription>
-          </DialogHeader>
-
-          {/* Existing components list */}
-          {project.components.length > 0 && (
-            <div className="space-y-1 max-h-60 overflow-y-auto">
-              {project.components.map((comp) => (
-                <div key={comp} className="flex items-center gap-2 px-3 py-2" style={{ background: '#f6f3f2', borderRadius: '4px' }}>
-                  {renamingComponent === comp ? (
-                    <>
-                      <input
-                        autoFocus
-                        value={renameComponentValue}
-                        onChange={(e) => setRenameComponentValue(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleRenameComponent(comp, renameComponentValue)
-                          if (e.key === 'Escape') { setRenamingComponent(null); setRenameComponentValue('') }
-                        }}
-                        className="flex-1 h-8 px-2 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
-                        style={{ borderColor: '#d0cac8' }}
-                      />
-                      <button
-                        onClick={() => handleRenameComponent(comp, renameComponentValue)}
-                        disabled={!renameComponentValue.trim()}
-                        className="px-2.5 py-1 font-sans text-xs font-bold text-white disabled:opacity-40"
-                        style={{ background: '#610000', borderRadius: '3px' }}
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => { setRenamingComponent(null); setRenameComponentValue('') }}
-                        className="px-2.5 py-1 font-sans text-xs font-medium"
-                        style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '3px' }}
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <span className="flex-1 font-sans text-sm truncate" style={{ color: '#2b2c2c' }}>{comp}</span>
-                      <button
-                        onClick={() => { setRenamingComponent(comp); setRenameComponentValue(comp) }}
-                        className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-[#ede9e7] transition-colors"
-                        style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '3px' }}
-                      >
-                        Rename
-                      </button>
-                      <button
-                        onClick={() => handleDeleteComponent(comp)}
-                        className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-red-50 transition-colors"
-                        style={{ border: '1px solid #d0cac8', color: '#c0392b', borderRadius: '3px' }}
-                      >
-                        Delete
-                      </button>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Add new component */}
-          <div className="flex gap-2 mt-2">
-            <input
-              value={newComponentValue}
-              onChange={(e) => setNewComponentValue(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') confirmAddComponent() }}
-              placeholder="Navigation, Hero, Footer…"
-              className="flex-1 h-9 px-3 font-sans text-sm border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-              style={{ borderColor: '#d0cac8' }}
-            />
-            <button
-              onClick={confirmAddComponent}
-              disabled={!newComponentValue.trim()}
-              className="px-4 py-2 font-sans text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-              style={{ background: '#610000', borderRadius: '4px' }}
-            >
-              Add
-            </button>
-          </div>
-
-          <DialogFooter>
-            <button
-              onClick={() => setComponentModalOpen(false)}
-              className="px-4 py-2 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
-              style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}
-            >
-              Done
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── Configure Project modal ── */}
-      <Dialog open={editProjectOpen} onOpenChange={setEditProjectOpen}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden" style={{ maxHeight: '90vh' }}>
-          <div style={{ height: '80vh', display: 'flex', flexDirection: 'column' }}>
+          {/* ── Configure Project panel ── */}
+          {toolkitPanel === 'config' && (
             <ProjectFormDialog
-              open={editProjectOpen}
-              onOpenChange={setEditProjectOpen}
+              open={true}
+              onOpenChange={(o) => { if (!o) setToolkitPanel(null) }}
               onSubmit={handleUpdateProject}
               mode="edit"
               initialData={{
@@ -1331,9 +1087,130 @@ export default function ProjectPage() {
                 auditUrls: project.auditUrls,
               }}
             />
-          </div>
-        </DialogContent>
-      </Dialog>
+          )}
+
+          {/* ── Manage Pages panel ── */}
+          {toolkitPanel === 'pages' && (
+            <div className="flex flex-col h-full overflow-hidden" style={{ borderLeft: '1px solid #e0dbd9' }}>
+              <div className="flex-shrink-0 flex items-center justify-between px-6" style={{ borderBottom: '1px solid #e0dbd9', background: '#f6f3f2', minHeight: '60px' }}>
+                <span className="font-sans text-sm font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.12em' }}>Pages</span>
+                <button
+                  onClick={() => { setToolkitPanel(null); setNewPageValue(''); setRenamingPage(null); setRenamePageValue('') }}
+                  className="flex items-center justify-center hover:text-foreground transition-colors"
+                  style={{ color: '#5f5e5e', width: '40px', height: '40px' }}
+                  aria-label="Close"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+                <p className="font-sans text-sm" style={{ color: '#5f5e5e' }}>Add, rename, or remove pages tracked in this audit.</p>
+                {project.auditUrls.length > 0 && (
+                  <div className="space-y-1">
+                    {project.auditUrls.map((page) => (
+                      <div key={page} className="flex items-center gap-2 px-3 py-2" style={{ background: '#f6f3f2' }}>
+                        {renamingPage === page ? (
+                          <>
+                            <input autoFocus value={renamePageValue} onChange={(e) => setRenamePageValue(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter') handleRenamePage(page, renamePageValue); if (e.key === 'Escape') { setRenamingPage(null); setRenamePageValue('') } }}
+                              className="flex-1 h-8 px-2 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                              style={{ borderColor: '#d0cac8' }}
+                            />
+                            <button onClick={() => handleRenamePage(page, renamePageValue)} disabled={!renamePageValue.trim()} className="px-2.5 py-1 font-sans text-xs font-bold text-white disabled:opacity-40" style={{ background: '#610000' }}>Save</button>
+                            <button onClick={() => { setRenamingPage(null); setRenamePageValue('') }} className="px-2.5 py-1 font-sans text-xs font-medium" style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}>Cancel</button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="flex-1 font-sans text-sm truncate" style={{ color: '#2b2c2c' }}>{page}</span>
+                            <button onClick={() => { setRenamingPage(page); setRenamePageValue(page) }} className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-[#ede9e7] transition-colors" style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}>Rename</button>
+                            <button onClick={() => handleDeletePage(page)} className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-red-50 transition-colors" style={{ border: '1px solid #d0cac8', color: '#c0392b' }}>Delete</button>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <input value={newPageValue} onChange={(e) => setNewPageValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') confirmAddPage() }}
+                    placeholder="/about or Home"
+                    className="flex-1 h-9 px-3 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                    style={{ borderColor: '#d0cac8' }}
+                  />
+                  <EchoButton variant="primary" onClick={confirmAddPage} disabled={!newPageValue.trim()} style={{ padding: '0 16px' }}>
+                    Add
+                  </EchoButton>
+                </div>
+              </div>
+              <div className="flex-shrink-0 px-6 py-4" style={{ borderTop: '1px solid #e0dbd9', background: '#f6f3f2' }}>
+                <EchoButton fullWidth onClick={() => { setToolkitPanel(null); setNewPageValue(''); setRenamingPage(null); setRenamePageValue('') }} style={{ justifyContent: 'center' }}>
+                  Done
+                </EchoButton>
+              </div>
+            </div>
+          )}
+
+          {/* ── Manage Components panel ── */}
+          {toolkitPanel === 'components' && (
+            <div className="flex flex-col h-full overflow-hidden" style={{ borderLeft: '1px solid #e0dbd9' }}>
+              <div className="flex-shrink-0 flex items-center justify-between px-6" style={{ borderBottom: '1px solid #e0dbd9', background: '#f6f3f2', minHeight: '60px' }}>
+                <span className="font-sans text-sm font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.12em' }}>Components</span>
+                <button
+                  onClick={() => { setToolkitPanel(null); setNewComponentValue(''); setRenamingComponent(null); setRenameComponentValue('') }}
+                  className="flex items-center justify-center hover:text-foreground transition-colors"
+                  style={{ color: '#5f5e5e', width: '40px', height: '40px' }}
+                  aria-label="Close"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+                <p className="font-sans text-sm" style={{ color: '#5f5e5e' }}>Add, rename, or remove components tracked in this audit.</p>
+                {project.components.length > 0 && (
+                  <div className="space-y-1">
+                    {project.components.map((comp) => (
+                      <div key={comp} className="flex items-center gap-2 px-3 py-2" style={{ background: '#f6f3f2' }}>
+                        {renamingComponent === comp ? (
+                          <>
+                            <input autoFocus value={renameComponentValue} onChange={(e) => setRenameComponentValue(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter') handleRenameComponent(comp, renameComponentValue); if (e.key === 'Escape') { setRenamingComponent(null); setRenameComponentValue('') } }}
+                              className="flex-1 h-8 px-2 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                              style={{ borderColor: '#d0cac8' }}
+                            />
+                            <button onClick={() => handleRenameComponent(comp, renameComponentValue)} disabled={!renameComponentValue.trim()} className="px-2.5 py-1 font-sans text-xs font-bold text-white disabled:opacity-40" style={{ background: '#610000' }}>Save</button>
+                            <button onClick={() => { setRenamingComponent(null); setRenameComponentValue('') }} className="px-2.5 py-1 font-sans text-xs font-medium" style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}>Cancel</button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="flex-1 font-sans text-sm truncate" style={{ color: '#2b2c2c' }}>{comp}</span>
+                            <button onClick={() => { setRenamingComponent(comp); setRenameComponentValue(comp) }} className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-[#ede9e7] transition-colors" style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}>Rename</button>
+                            <button onClick={() => handleDeleteComponent(comp)} className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-red-50 transition-colors" style={{ border: '1px solid #d0cac8', color: '#c0392b' }}>Delete</button>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <input value={newComponentValue} onChange={(e) => setNewComponentValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') confirmAddComponent() }}
+                    placeholder="Navigation, Hero, Footer…"
+                    className="flex-1 h-9 px-3 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                    style={{ borderColor: '#d0cac8' }}
+                  />
+                  <EchoButton variant="primary" onClick={confirmAddComponent} disabled={!newComponentValue.trim()} style={{ padding: '0 16px' }}>
+                    Add
+                  </EchoButton>
+                </div>
+              </div>
+              <div className="flex-shrink-0 px-6 py-4" style={{ borderTop: '1px solid #e0dbd9', background: '#f6f3f2' }}>
+                <EchoButton fullWidth onClick={() => { setToolkitPanel(null); setNewComponentValue(''); setRenamingComponent(null); setRenameComponentValue('') }} style={{ justifyContent: 'center' }}>
+                  Done
+                </EchoButton>
+              </div>
+            </div>
+          )}
+
+        </div>{/* end fixed-width inner */}
+      </aside>
 
       {/* ── Import Findings modal ── */}
       {id && (

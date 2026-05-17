@@ -1,40 +1,118 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, FolderOpen, AlertCircle } from 'lucide-react'
+import { Plus, FolderOpen, AlertCircle, Layers, Settings2, X } from 'lucide-react'
 import { useProjects } from '../../hooks/useProjects'
 import { ProjectCard } from '../../components/projects/ProjectCard'
 import { ProjectFormDialog } from '../../components/projects/ProjectFormDialog'
 import { useToast } from '../../components/ui/use-toast'
 import { EchoButton } from '../../components/ui/echo-button'
 import { KVTag } from '../../components/ui/kv-tag'
+import type { Project } from '../../../db/schema'
+
+interface ProjectWithCount extends Project {
+  findingCount: number
+}
 
 const FILTERS = [
+  { key: 'all', label: 'All' },
   { key: 'in_progress', label: 'In Progress' },
   { key: 'complete', label: 'Complete' },
   { key: 'archived', label: 'Archived' },
-  { key: 'all', label: 'All' },
 ]
+
+type PanelMode = null | 'create' | 'edit' | 'delete'
+
+function DeletePanel({
+  project,
+  onConfirm,
+  onClose,
+  isDeleting,
+}: {
+  project: ProjectWithCount
+  onConfirm: () => void
+  onClose: () => void
+  isDeleting: boolean
+}) {
+  return (
+    <div
+      className="flex flex-col h-full overflow-hidden"
+      style={{ background: '#ffffff', borderLeft: '1px solid #e0dbd9' }}
+    >
+      <div
+        className="flex-shrink-0 flex items-center justify-between px-6"
+        style={{ borderBottom: '1px solid #e0dbd9', background: '#f6f3f2', minHeight: '60px' }}
+      >
+        <span className="font-sans text-sm font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.12em' }}>
+          Delete Project
+        </span>
+        <button
+          onClick={onClose}
+          className="flex items-center justify-center transition-colors hover:text-foreground"
+          style={{ color: '#5f5e5e', width: '40px', height: '40px' }}
+          aria-label="Close panel"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-6 py-8 space-y-3">
+        <p className="font-sans text-sm leading-relaxed" style={{ color: '#1a1a1a' }}>
+          Permanently delete <strong>&ldquo;{project.name}&rdquo;</strong> and all{' '}
+          {project.findingCount} finding{project.findingCount !== 1 ? 's' : ''} within it?
+        </p>
+        <p className="font-sans text-sm" style={{ color: '#5f5e5e' }}>This cannot be undone.</p>
+      </div>
+
+      <div
+        className="flex-shrink-0 flex items-center justify-end gap-2 px-6 py-4"
+        style={{ borderTop: '1px solid #e0dbd9', background: '#f6f3f2' }}
+      >
+        <EchoButton onClick={onClose} disabled={isDeleting}>Cancel</EchoButton>
+        <EchoButton variant="primary" onClick={onConfirm} disabled={isDeleting}>
+          {isDeleting ? 'Deleting…' : 'Delete'}
+        </EchoButton>
+      </div>
+    </div>
+  )
+}
 
 export default function DashboardPage() {
   const { projects, isLoading, error, createProject, updateProject, deleteProject } = useProjects()
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [createFormMounted, setCreateFormMounted] = useState(false)
-  const [createFormWide, setCreateFormWide] = useState(false)
+  const [panelMode, setPanelMode] = useState<PanelMode>(null)
+  const [panelProject, setPanelProject] = useState<ProjectWithCount | null>(null)
+  const [panelMounted, setPanelMounted] = useState(false)
+  const [panelWide, setPanelWide] = useState(false)
+  const [isDeletingPanel, setIsDeletingPanel] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string>('in_progress')
   const navigate = useNavigate()
   const { toast } = useToast()
+
+  const panelOpen = panelMode !== null
 
   const filtered =
     statusFilter === 'all' ? projects : projects.filter((p) => p.status === statusFilter)
 
   function openCreate() {
-    setIsCreateOpen(true)
-    setCreateFormMounted(true)
+    setPanelMode('create')
+    setPanelMounted(true)
+    setPanelProject(null)
   }
 
-  function closeCreate() {
-    setIsCreateOpen(false)
-    setCreateFormWide(false)
+  function openEdit(project: ProjectWithCount) {
+    setPanelMode('edit')
+    setPanelMounted(true)
+    setPanelProject(project)
+  }
+
+  function openDelete(project: ProjectWithCount) {
+    setPanelMode('delete')
+    setPanelMounted(true)
+    setPanelProject(project)
+  }
+
+  function closePanel() {
+    setPanelMode(null)
+    setPanelWide(false)
   }
 
   async function handleCreate(data: {
@@ -46,13 +124,42 @@ export default function DashboardPage() {
     auditUrls?: string[]
   }) {
     const project = await createProject(data)
-    closeCreate()
+    closePanel()
     toast({ title: 'Project created', description: `"${project.name}" is ready.` })
     navigate(`/project/${project.id}`)
   }
 
+  async function handleEdit(data: {
+    name: string
+    clientName?: string
+    url?: string
+    description?: string
+    status?: string
+    standards?: string
+    auditUrls?: string[]
+  }) {
+    if (!panelProject) return
+    await updateProject(panelProject.id, data)
+    closePanel()
+    toast({ title: 'Project updated' })
+  }
+
+  async function handleDeleteConfirm() {
+    if (!panelProject) return
+    setIsDeletingPanel(true)
+    try {
+      await deleteProject(panelProject.id)
+      closePanel()
+      toast({ title: 'Project deleted', description: `"${panelProject.name}" has been deleted.` })
+    } catch {
+      toast({ variant: 'destructive', title: 'Delete failed' })
+    } finally {
+      setIsDeletingPanel(false)
+    }
+  }
+
   const toolkitWidth = '24.25rem'
-  const tr = 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+  const tr = 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1), flex 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
 
   return (
     <div
@@ -61,32 +168,53 @@ export default function DashboardPage() {
         gap: '12px',
         background: '#d8d3d1',
         padding: '12px',
-        transition: tr,
       }}
     >
       {/* ── Main list ── */}
       <div
         className="flex flex-col overflow-hidden"
         style={{
-          flex: isCreateOpen ? (createFormWide ? '0 0 0px' : '0 0 calc(50% - 6px)') : '1 1 0%',
+          flex: panelOpen ? (panelWide ? '0 0 0px' : '0 0 calc(50% - 6px)') : '1 1 0%',
           transition: tr,
           borderRadius: '10px',
           background: '#fcf9f8',
           overflow: 'hidden',
         }}
       >
-        <div className="flex-1 overflow-y-auto px-10 py-10">
-          {/* Page header */}
-          <div className="mb-10">
-            <p className="font-sans text-xs font-bold tracking-widest uppercase mb-1" style={{ color: '#610000', letterSpacing: '0.12em' }}>
-              Audit Management
-            </p>
-            <h1 className="font-serif font-bold leading-none" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em', color: '#1a1a1a' }}>
-              Projects
-            </h1>
-          </div>
+        {/* Header */}
+        <div className="flex-shrink-0 px-10 pt-10 pb-5" style={{ background: '#fcf9f8' }}>
+          <p className="font-sans text-xs font-bold tracking-widest uppercase mb-1" style={{ color: '#610000', letterSpacing: '0.12em' }}>
+            Audit Management
+          </p>
+          <h1 className="font-serif font-bold leading-none" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em', color: '#1a1a1a' }}>
+            Projects
+          </h1>
+        </div>
 
-          {/* Error */}
+        {/* Filter bar */}
+        <div
+          className="flex-shrink-0 flex items-center gap-2 px-10 py-3"
+          style={{ borderBottom: '1px solid #e0dbd9', background: '#fcf9f8' }}
+        >
+          {FILTERS.map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setStatusFilter(f.key)}
+              aria-pressed={statusFilter === f.key}
+              className="font-sans text-xs font-semibold px-3 py-1.5 whitespace-nowrap transition-colors"
+              style={{
+                border: `1px solid ${statusFilter === f.key ? '#610000' : '#d0cac8'}`,
+                background: statusFilter === f.key ? '#610000' : 'transparent',
+                color: statusFilter === f.key ? '#fff' : '#2b2c2c',
+              }}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Project list */}
+        <div className="flex-1 overflow-y-auto px-10 py-6">
           {error && (
             <div role="alert" className="flex items-center gap-2 text-primary px-4 py-3 mb-6" style={{ background: '#ebe7e7' }}>
               <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
@@ -94,7 +222,6 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Loading skeletons */}
           {isLoading && (
             <div className="space-y-px" aria-busy="true" aria-label="Loading projects">
               {[1, 2, 3].map((i) => (
@@ -103,7 +230,6 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Empty state */}
           {!isLoading && filtered.length === 0 && !error && (
             <div className="py-24">
               <FolderOpen className="h-10 w-10 text-muted-foreground/30 mb-4" aria-hidden="true" />
@@ -126,7 +252,6 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Project list */}
           {!isLoading && filtered.length > 0 && (
             <ul className="space-y-0" role="list" aria-label="Audit projects">
               {filtered.map((project) => (
@@ -134,8 +259,8 @@ export default function DashboardPage() {
                   <ProjectCard
                     project={project}
                     onClick={() => navigate(`/project/${project.id}`)}
-                    onUpdate={updateProject}
-                    onDelete={deleteProject}
+                    onEdit={openEdit}
+                    onDelete={openDelete}
                   />
                 </li>
               ))}
@@ -144,91 +269,129 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Toolkit sidebar — sibling of main, not nested inside ── */}
+      {/* ── Toolkit sidebar ── */}
       <aside
         className="flex-shrink-0 overflow-hidden flex flex-col"
         style={{
-          width: isCreateOpen ? '0' : toolkitWidth,
+          width: panelOpen ? '0' : toolkitWidth,
           transition: tr,
           background: '#f6f3f2',
           borderRadius: '10px',
         }}
         aria-label="Project tools"
-        aria-hidden={isCreateOpen}
+        aria-hidden={panelOpen}
       >
-        <div className="flex flex-col h-full overflow-y-auto px-7 py-10" style={{ width: toolkitWidth }}>
-          <EchoButton
-            variant="primary"
-            icon={<Plus className="h-4 w-4" />}
-            iconPosition="right"
-            fullWidth
-            className="mb-8"
-            onClick={openCreate}
-          >
-            New Project
-          </EchoButton>
+        <div className="no-scrollbar flex flex-col h-full overflow-y-auto" style={{ width: toolkitWidth }}>
+          <div className="px-5 pt-8 pb-8 flex flex-col gap-6">
 
-          {/* Filter controls */}
-          {projects.length > 0 && (
+            {/* Section: Projects */}
             <div>
-              <p className="font-sans text-xs font-bold tracking-widest uppercase mb-3" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
-                Filter
+              <h2 className="font-serif font-bold text-2xl mb-1" style={{ letterSpacing: '-0.01em' }}>
+                Projects
+              </h2>
+              <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>
+                Manage your accessibility audits.
               </p>
-              <div className="space-y-0.5" role="group" aria-label="Filter by status">
-                {FILTERS.map((f) => (
-                  <button
-                    key={f.key}
-                    onClick={() => setStatusFilter(f.key)}
-                    aria-pressed={statusFilter === f.key}
-                    className={`w-full text-left px-3 py-2.5 font-sans text-sm transition-colors ${
-                      statusFilter === f.key
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:bg-surface-high hover:text-foreground'
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
+              <div className="space-y-2">
+                <EchoButton
+                  variant="primary"
+                  icon={<Plus className="h-4 w-4" />}
+                  iconPosition="right"
+                  fullWidth
+                  onClick={openCreate}
+                >
+                  New Project
+                </EchoButton>
+                <EchoButton
+                  icon={<Settings2 className="h-4 w-4" />}
+                  iconPosition="right"
+                  fullWidth
+                  onClick={() => navigate('/settings')}
+                >
+                  Settings
+                </EchoButton>
+                <EchoButton
+                  icon={<Layers className="h-4 w-4" />}
+                  iconPosition="right"
+                  fullWidth
+                  onClick={() => navigate('/templates')}
+                >
+                  Templates
+                </EchoButton>
               </div>
             </div>
-          )}
 
-          {/* Stats */}
-          {projects.length > 0 && (
-            <div className="mt-8 pt-8" style={{ borderTop: '1px solid #ebe7e7' }}>
-              <p className="font-sans text-xs font-bold tracking-widest uppercase mb-4" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
-                Summary
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <KVTag label="Projects" value={String(projects.length)} />
-                <KVTag label="In Progress" value={String(projects.filter((p) => p.status === 'in_progress').length)} />
-                <KVTag label="Findings" value={String(projects.reduce((sum, p) => sum + (p.findingCount ?? 0), 0))} valueVariant="fail" />
+            {/* Section: Summary */}
+            {projects.length > 0 && (
+              <div>
+                <h2 className="font-serif font-bold text-2xl mb-1" style={{ letterSpacing: '-0.01em' }}>
+                  Summary
+                </h2>
+                <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>
+                  Across all your projects.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <KVTag label="Projects" value={String(projects.length)} />
+                  <KVTag label="In Progress" value={String(projects.filter((p) => p.status === 'in_progress').length)} />
+                  <KVTag label="Findings" value={String(projects.reduce((sum, p) => sum + (p.findingCount ?? 0), 0))} valueVariant="fail" />
+                </div>
               </div>
-            </div>
-          )}
+            )}
+
+          </div>
         </div>
       </aside>
 
-      {/* ── New Project form — in-layout split-screen panel ── */}
+      {/* ── Right panel: create / edit / delete ── */}
       <div
         className="flex-shrink-0 overflow-hidden flex flex-col"
         style={{
-          width: isCreateOpen ? (createFormWide ? '100%' : 'calc(50% - 6px)') : '0',
+          width: panelOpen ? (panelWide ? '100%' : 'calc(50% - 6px)') : '0',
           transition: tr,
           borderRadius: '10px',
           overflow: 'hidden',
         }}
-        aria-hidden={!isCreateOpen}
+        aria-hidden={!panelOpen}
       >
-        {createFormMounted && (
-          <ProjectFormDialog
-            open={isCreateOpen}
-            onOpenChange={(o) => { if (!o) closeCreate() }}
-            onSubmit={handleCreate}
-            mode="create"
-            isWide={createFormWide}
-            onToggleWide={() => setCreateFormWide(w => !w)}
-          />
+        {panelMounted && (
+          <>
+            {panelMode === 'create' && (
+              <ProjectFormDialog
+                open={panelMode === 'create'}
+                onOpenChange={(o) => { if (!o) closePanel() }}
+                onSubmit={handleCreate}
+                mode="create"
+                isWide={panelWide}
+                onToggleWide={() => setPanelWide(w => !w)}
+              />
+            )}
+            {panelMode === 'edit' && panelProject && (
+              <ProjectFormDialog
+                open={panelMode === 'edit'}
+                onOpenChange={(o) => { if (!o) closePanel() }}
+                onSubmit={handleEdit}
+                mode="edit"
+                initialData={{
+                  name: panelProject.name,
+                  clientName: panelProject.clientName ?? undefined,
+                  url: panelProject.url ?? undefined,
+                  description: panelProject.description ?? undefined,
+                  status: panelProject.status,
+                  standards: panelProject.standards ?? undefined,
+                }}
+                isWide={panelWide}
+                onToggleWide={() => setPanelWide(w => !w)}
+              />
+            )}
+            {panelMode === 'delete' && panelProject && (
+              <DeletePanel
+                project={panelProject}
+                onConfirm={handleDeleteConfirm}
+                onClose={closePanel}
+                isDeleting={isDeletingPanel}
+              />
+            )}
+          </>
         )}
       </div>
     </div>

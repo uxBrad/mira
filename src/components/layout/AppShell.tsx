@@ -3,7 +3,7 @@ import { Settings, LogOut, Clock, User, LayoutGrid, Layers } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../ui/use-toast'
 import UpdateBanner from '../UpdateBanner'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export default function AppShell() {
   const { session, subscriptionStatus, logout } = useAuth()
@@ -12,10 +12,11 @@ export default function AppShell() {
   const location = useLocation()
   const [ready, setReady] = useState(false)
   const [avatar, setAvatar] = useState<string | null>(() => localStorage.getItem('echo-user-avatar'))
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { const t = setTimeout(() => setReady(true), 30); return () => clearTimeout(t) }, [])
 
-  // Keep avatar in sync when updated in Settings (same tab or another tab)
   useEffect(() => {
     function sync() { setAvatar(localStorage.getItem('echo-user-avatar')) }
     window.addEventListener('echo-avatar-changed', sync)
@@ -26,12 +27,22 @@ export default function AppShell() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!dropdownOpen) return
+    function handler(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setDropdownOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [dropdownOpen])
+
   if (subscriptionStatus?.access === 'expired') {
     navigate('/paywall', { replace: true })
     return null
   }
 
   async function handleLogout() {
+    setDropdownOpen(false)
     await logout()
     navigate('/login', { replace: true })
     toast({ title: 'Signed out' })
@@ -47,18 +58,16 @@ export default function AppShell() {
       style={{ background: '#fcf9f8', opacity: ready ? 1 : 0 }}
     >
 
-      {/* Top navigation bar — minimal icon-based design */}
       <header
         className="flex-shrink-0 flex items-center px-4 titlebar-drag"
         style={{ background: '#ffffff', borderBottom: '1px solid #ebe7e7', height: '40px' }}
         aria-label="Main navigation"
       >
-        {/* Left: Navigation icon buttons */}
+        {/* Left: Navigation */}
         <nav className="flex items-center gap-2 titlebar-no-drag" aria-label="App sections">
           {[
             { to: '/', icon: LayoutGrid, label: 'Projects', matchPrefix: ['/project/'] },
             { to: '/templates', icon: Layers, label: 'Templates', matchPrefix: [] },
-            { to: '/settings', icon: Settings, label: 'Settings', matchPrefix: [] },
           ].map(({ to, icon: Icon, label, matchPrefix }) => {
             const isActive =
               (to === '/' ? location.pathname === '/' : location.pathname.startsWith(to)) ||
@@ -96,16 +105,11 @@ export default function AppShell() {
           })}
         </nav>
 
-        {/* Center: App name (draggable) */}
-        <div className="flex-1 flex items-center justify-center titlebar-drag" style={{ minWidth: 0 }}>
-          <p className="font-sans text-xs font-medium text-[#9a9897]" style={{ pointerEvents: 'none' }}>
-            Echo
-          </p>
-        </div>
+        {/* Center: draggable region (no text) */}
+        <div className="flex-1 titlebar-drag" />
 
-        {/* Right: User controls + Windows controls placeholder */}
-        <div className="flex items-center gap-1 flex-shrink-0 titlebar-no-drag" style={{ paddingRight: '140px' }}>
-          {/* Trial badge */}
+        {/* Right: trial badge + avatar dropdown */}
+        <div className="flex items-center gap-2 flex-shrink-0 titlebar-no-drag" style={{ paddingRight: '140px' }}>
           {trialBanner && (
             <div className="px-2 py-0.5" style={{ background: '#f6f3f2' }} role="status" aria-live="polite">
               <div className="flex items-center gap-1">
@@ -119,32 +123,66 @@ export default function AppShell() {
             </div>
           )}
 
-          {session?.user ? (
+          {/* Avatar + dropdown */}
+          <div ref={dropdownRef} className="relative">
             <button
-              onClick={handleLogout}
+              onClick={() => setDropdownOpen(p => !p)}
               className="flex items-center justify-center w-7 h-7 font-sans text-xs font-bold text-white overflow-hidden flex-shrink-0 transition-opacity hover:opacity-80"
               style={{ borderRadius: '4px', background: '#610000' }}
-              aria-label={`Sign out (${session.user.email})`}
-              title={session.user.email}
+              aria-label="Account menu"
+              aria-haspopup="menu"
+              aria-expanded={dropdownOpen}
             >
               {avatar
                 ? <img src={avatar} alt="" className="w-full h-full object-cover" aria-hidden="true" />
-                : (session.user.email?.[0]?.toUpperCase() ?? <User className="h-4 w-4" />)
+                : (session?.user?.email?.[0]?.toUpperCase() ?? <User className="h-4 w-4" />)
               }
             </button>
-          ) : (
-            <button
-              onClick={handleLogout}
-              className="flex items-center justify-center w-7 h-7 text-[#9a9897] hover:text-primary transition-colors"
-              aria-label="Sign out"
-            >
-              <LogOut className="h-4 w-4" aria-hidden="true" />
-            </button>
-          )}
+
+            {dropdownOpen && (
+              <div
+                role="menu"
+                className="absolute right-0 top-full mt-1 z-50 py-1"
+                style={{
+                  minWidth: '200px',
+                  background: '#fff',
+                  border: '1px solid #e0dbd9',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  borderRadius: '4px',
+                }}
+              >
+                {session?.user?.email && (
+                  <div className="px-3 py-2.5" style={{ borderBottom: '1px solid #e0dbd9' }}>
+                    <p className="font-sans text-xs" style={{ color: '#9a9897' }}>Signed in as</p>
+                    <p className="font-sans text-sm font-semibold truncate" style={{ color: '#1a1a1a' }}>
+                      {session.user.email}
+                    </p>
+                  </div>
+                )}
+                <button
+                  role="menuitem"
+                  onClick={() => { setDropdownOpen(false); navigate('/settings') }}
+                  className="w-full text-left flex items-center gap-2.5 px-3 py-2.5 font-sans text-sm transition-colors hover:bg-[#f6f3f2]"
+                  style={{ color: '#1a1a1a' }}
+                >
+                  <Settings className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                  Settings
+                </button>
+                <button
+                  role="menuitem"
+                  onClick={handleLogout}
+                  className="w-full text-left flex items-center gap-2.5 px-3 py-2.5 font-sans text-sm transition-colors hover:bg-[#f6f3f2]"
+                  style={{ color: '#610000' }}
+                >
+                  <LogOut className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
-      {/* Main content */}
       <main
         id="main-content"
         className="flex-1 flex flex-col overflow-hidden focus:outline-none"

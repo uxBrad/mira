@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { Button } from '../../components/ui/button'
-import { Input } from '../../components/ui/input'
+import { EchoButton } from '../../components/ui/echo-button'
 import { Label } from '../../components/ui/label'
 import { useToast } from '../../components/ui/use-toast'
 
@@ -12,7 +11,6 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Email verification flow
   const [needsVerification, setNeedsVerification] = useState(false)
   const [verifyCode, setVerifyCode] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
@@ -82,6 +80,9 @@ export default function LoginPage() {
     }
   }
 
+  const inputClass = 'w-full h-10 px-3 font-sans text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#610000] transition-colors'
+  const inputStyle = { border: '1px solid #d0cac8' }
+
   return (
     <div className="min-h-screen flex" style={{ background: '#fcf9f8' }}>
       {/* Left brand panel */}
@@ -111,7 +112,6 @@ export default function LoginPage() {
           </div>
 
           {needsVerification ? (
-            /* ── Verify email state ── */
             <>
               <h1 className="text-2xl font-semibold tracking-tight mb-1">Verify your email</h1>
               <p className="font-data text-sm text-muted-foreground mb-8">
@@ -130,9 +130,7 @@ export default function LoginPage() {
                   </div>
                 )}
                 {resendSent && (
-                  <div
-                    className="mb-6 rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-700"
-                  >
+                  <div className="mb-6 px-3 py-2 font-sans text-sm" style={{ background: '#eaf6ee', color: '#2d7a4f', border: '1px solid #c3e6d0' }}>
                     New code sent — check your inbox.
                   </div>
                 )}
@@ -142,7 +140,7 @@ export default function LoginPage() {
                     <Label htmlFor="code" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
                       Verification code
                     </Label>
-                    <Input
+                    <input
                       id="code"
                       type="text"
                       inputMode="numeric"
@@ -152,22 +150,27 @@ export default function LoginPage() {
                       value={verifyCode}
                       onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       placeholder="123456"
-                      className="text-center text-2xl tracking-[0.3em] font-mono"
                       disabled={isVerifying}
                       autoFocus
+                      className={`${inputClass} text-center text-2xl tracking-[0.3em] font-mono`}
+                      style={inputStyle}
                     />
                   </div>
 
-                  <Button
+                  <EchoButton
                     type="submit"
-                    size="lg"
-                    className="w-full"
+                    variant="primary"
+                    fullWidth
                     disabled={isVerifying || verifyCode.length !== 6}
+                    style={{ justifyContent: 'center' }}
                   >
                     {isVerifying ? (
-                      <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />Verifying…</>
+                      <span className="flex items-center gap-2">
+                        <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+                        Verifying…
+                      </span>
                     ) : 'Verify and sign in'}
-                  </Button>
+                  </EchoButton>
 
                   <div className="flex items-center justify-between text-sm">
                     <button
@@ -190,7 +193,6 @@ export default function LoginPage() {
               </form>
             </>
           ) : (
-            /* ── Normal sign-in state ── */
             <>
               <h1 className="text-2xl font-semibold tracking-tight mb-1">Welcome back</h1>
               <p className="font-data text-sm text-muted-foreground mb-8">Sign in to your account</p>
@@ -200,22 +202,33 @@ export default function LoginPage() {
                   <div
                     role="alert"
                     aria-live="assertive"
-                    className="mb-6 rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive"
+                    className="mb-6 px-4 py-3 font-sans text-sm"
+                    style={{ background: '#ebe7e7', color: '#610000' }}
                   >
                     {error}
                   </div>
                 )}
 
                 <div className="space-y-6">
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <Label htmlFor="email" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
                       Email
                     </Label>
-                    <Input id="email" type="email" autoComplete="email" required value={email}
-                      onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" disabled={isLoading} />
+                    <input
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      disabled={isLoading}
+                      className={inputClass}
+                      style={inputStyle}
+                    />
                   </div>
 
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="password" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
                         Password
@@ -224,15 +237,33 @@ export default function LoginPage() {
                         Forgot password?
                       </Link>
                     </div>
-                    <Input id="password" type="password" autoComplete="current-password" required
-                      value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} />
+                    <input
+                      id="password"
+                      type="password"
+                      autoComplete="current-password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={isLoading}
+                      className={inputClass}
+                      style={inputStyle}
+                    />
                   </div>
 
-                  <Button type="submit" size="lg" className="w-full" disabled={isLoading || !email || !password}>
+                  <EchoButton
+                    type="submit"
+                    variant="primary"
+                    fullWidth
+                    disabled={isLoading || !email || !password}
+                    style={{ justifyContent: 'center' }}
+                  >
                     {isLoading ? (
-                      <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />Signing in…</>
+                      <span className="flex items-center gap-2">
+                        <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+                        Signing in…
+                      </span>
                     ) : 'Sign in'}
-                  </Button>
+                  </EchoButton>
                 </div>
               </form>
 
