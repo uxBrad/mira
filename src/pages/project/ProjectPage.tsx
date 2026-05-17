@@ -223,6 +223,16 @@ export default function ProjectPage() {
   const [isScrolling, setIsScrolling] = useState(false)
   const [scrollThumb, setScrollThumb] = useState({ top: 0, height: 0 })
 
+  const pagesBodyRef = useRef<HTMLDivElement>(null)
+  const pagesScrollTimerRef = useRef<ReturnType<typeof setTimeout>>()
+  const [isPagesScrolling, setIsPagesScrolling] = useState(false)
+  const [pagesScrollThumb, setPagesScrollThumb] = useState({ top: 0, height: 0 })
+
+  const componentsBodyRef = useRef<HTMLDivElement>(null)
+  const componentsScrollTimerRef = useRef<ReturnType<typeof setTimeout>>()
+  const [isComponentsScrolling, setIsComponentsScrolling] = useState(false)
+  const [componentsScrollThumb, setComponentsScrollThumb] = useState({ top: 0, height: 0 })
+
   const handleFindingsScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget
     const { scrollTop, scrollHeight, clientHeight } = el
@@ -235,6 +245,32 @@ export default function ProjectPage() {
     clearTimeout(scrollTimerRef.current)
     scrollTimerRef.current = setTimeout(() => setIsScrolling(false), 1200)
   }, [])
+
+  function handlePagesScroll(e: React.UIEvent<HTMLDivElement>) {
+    const el = e.currentTarget
+    const { scrollTop, scrollHeight, clientHeight } = el
+    const max = scrollHeight - clientHeight
+    if (max <= 0) return
+    const thumbH = Math.max(20, (clientHeight / scrollHeight) * 100)
+    const thumbTop = (scrollTop / max) * (100 - thumbH)
+    setPagesScrollThumb({ top: thumbTop, height: thumbH })
+    setIsPagesScrolling(true)
+    clearTimeout(pagesScrollTimerRef.current)
+    pagesScrollTimerRef.current = setTimeout(() => setIsPagesScrolling(false), 1200)
+  }
+
+  function handleComponentsScroll(e: React.UIEvent<HTMLDivElement>) {
+    const el = e.currentTarget
+    const { scrollTop, scrollHeight, clientHeight } = el
+    const max = scrollHeight - clientHeight
+    if (max <= 0) return
+    const thumbH = Math.max(20, (clientHeight / scrollHeight) * 100)
+    const thumbTop = (scrollTop / max) * (100 - thumbH)
+    setComponentsScrollThumb({ top: thumbTop, height: thumbH })
+    setIsComponentsScrolling(true)
+    clearTimeout(componentsScrollTimerRef.current)
+    componentsScrollTimerRef.current = setTimeout(() => setIsComponentsScrolling(false), 1200)
+  }
 
   const { findings, isLoading, error, reload, createFinding, updateFinding, deleteFinding } = useFindings(id!)
   const { templates } = useTemplates()
@@ -330,7 +366,7 @@ export default function ProjectPage() {
     if (!id) return
     const updated = await window.api.projects.update(id, data)
     setProject(updated as Project)
-    setEditProjectOpen(false)
+    setToolkitPanel(null)
     toast({ title: 'Project updated' })
   }
 
@@ -1103,46 +1139,58 @@ export default function ProjectPage() {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-                <p className="font-sans text-sm" style={{ color: '#5f5e5e' }}>Add, rename, or remove pages tracked in this audit.</p>
-                {project.auditUrls.length > 0 && (
-                  <div className="space-y-1">
-                    {project.auditUrls.map((page) => (
-                      <div key={page} className="flex items-center gap-2 px-3 py-2" style={{ background: '#f6f3f2' }}>
-                        {renamingPage === page ? (
-                          <>
-                            <input autoFocus value={renamePageValue} onChange={(e) => setRenamePageValue(e.target.value)}
-                              onKeyDown={(e) => { if (e.key === 'Enter') handleRenamePage(page, renamePageValue); if (e.key === 'Escape') { setRenamingPage(null); setRenamePageValue('') } }}
-                              className="flex-1 h-8 px-2 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
-                              style={{ borderColor: '#d0cac8' }}
-                            />
-                            <button onClick={() => handleRenamePage(page, renamePageValue)} disabled={!renamePageValue.trim()} className="px-2.5 py-1 font-sans text-xs font-bold text-white disabled:opacity-40" style={{ background: '#610000' }}>Save</button>
-                            <button onClick={() => { setRenamingPage(null); setRenamePageValue('') }} className="px-2.5 py-1 font-sans text-xs font-medium" style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}>Cancel</button>
-                          </>
-                        ) : (
-                          <>
-                            <span className="flex-1 font-sans text-sm truncate" style={{ color: '#2b2c2c' }}>{page}</span>
-                            <button onClick={() => { setRenamingPage(page); setRenamePageValue(page) }} className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-[#ede9e7] transition-colors" style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}>Rename</button>
-                            <button onClick={() => handleDeletePage(page)} className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-red-50 transition-colors" style={{ border: '1px solid #d0cac8', color: '#c0392b' }}>Delete</button>
-                          </>
-                        )}
-                      </div>
-                    ))}
+              <div className="flex-1 overflow-hidden relative">
+                <div className="absolute bottom-0 left-0 right-0 pointer-events-none z-10"
+                  style={{ height: '48px', background: 'linear-gradient(to bottom, transparent, #ffffff)' }} />
+                <div className="absolute right-1 z-20 pointer-events-none transition-opacity duration-500"
+                  style={{ top: '8px', bottom: '8px', width: '3px', opacity: isPagesScrolling ? 1 : 0 }}>
+                  <div style={{ position: 'absolute', right: 0, width: '3px', borderRadius: '2px', background: '#c8c3c0', height: `${pagesScrollThumb.height}%`, top: `${pagesScrollThumb.top}%`, transition: 'top 0.1s linear' }} />
+                </div>
+                <div ref={pagesBodyRef} className="no-scrollbar h-full overflow-y-auto px-6 py-5 space-y-4" onScroll={handlePagesScroll}>
+                  <p className="font-sans text-sm" style={{ color: '#5f5e5e' }}>Add, rename, or remove pages tracked in this audit.</p>
+                  {project.auditUrls.length > 0 && (
+                    <div className="space-y-1">
+                      {project.auditUrls.map((page) => (
+                        <div key={page} className="flex items-center gap-2 px-3 py-2" style={{ background: '#f6f3f2' }}>
+                          {renamingPage === page ? (
+                            <>
+                              <input autoFocus value={renamePageValue} onChange={(e) => setRenamePageValue(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') handleRenamePage(page, renamePageValue); if (e.key === 'Escape') { setRenamingPage(null); setRenamePageValue('') } }}
+                                className="flex-1 h-8 px-2 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                                style={{ borderColor: '#d0cac8' }}
+                              />
+                              <button onClick={() => handleRenamePage(page, renamePageValue)} disabled={!renamePageValue.trim()} className="px-2.5 py-1 font-sans text-xs font-bold text-white disabled:opacity-40" style={{ background: '#610000' }}>Save</button>
+                              <button onClick={() => { setRenamingPage(null); setRenamePageValue('') }} className="px-2.5 py-1 font-sans text-xs font-medium" style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}>Cancel</button>
+                            </>
+                          ) : (
+                            <>
+                              <span className="flex-1 font-sans text-sm truncate" style={{ color: '#2b2c2c' }}>{page}</span>
+                              <button onClick={() => { setRenamingPage(page); setRenamePageValue(page) }} className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-[#ede9e7] transition-colors" style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}>Rename</button>
+                              <button onClick={() => handleDeletePage(page)} className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-red-50 transition-colors" style={{ border: '1px solid #d0cac8', color: '#c0392b' }}>Delete</button>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <input value={newPageValue} onChange={(e) => setNewPageValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') confirmAddPage() }}
+                      placeholder="/about or Home"
+                      className="flex-1 h-9 px-3 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                      style={{ borderColor: '#d0cac8' }}
+                    />
+                    <EchoButton variant="primary" onClick={confirmAddPage} disabled={!newPageValue.trim()} style={{ padding: '0 16px' }}>
+                      Add
+                    </EchoButton>
                   </div>
-                )}
-                <div className="flex gap-2">
-                  <input value={newPageValue} onChange={(e) => setNewPageValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') confirmAddPage() }}
-                    placeholder="/about or Home"
-                    className="flex-1 h-9 px-3 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
-                    style={{ borderColor: '#d0cac8' }}
-                  />
-                  <EchoButton variant="primary" onClick={confirmAddPage} disabled={!newPageValue.trim()} style={{ padding: '0 16px' }}>
-                    Add
-                  </EchoButton>
+                  <div style={{ height: '32px' }} />
                 </div>
               </div>
-              <div className="flex-shrink-0 px-6 py-4" style={{ borderTop: '1px solid #e0dbd9', background: '#f6f3f2' }}>
-                <EchoButton fullWidth onClick={() => { setToolkitPanel(null); setNewPageValue(''); setRenamingPage(null); setRenamePageValue('') }} style={{ justifyContent: 'center' }}>
+              <div className="flex-shrink-0 flex items-center justify-end gap-2 px-6 py-4" style={{ borderTop: '1px solid #e0dbd9', background: '#f6f3f2' }}>
+                <EchoButton onClick={() => { setToolkitPanel(null); setNewPageValue(''); setRenamingPage(null); setRenamePageValue('') }}>
+                  Cancel
+                </EchoButton>
+                <EchoButton variant="primary" onClick={() => { setToolkitPanel(null); setNewPageValue(''); setRenamingPage(null); setRenamePageValue('') }}>
                   Done
                 </EchoButton>
               </div>
@@ -1163,46 +1211,58 @@ export default function ProjectPage() {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-                <p className="font-sans text-sm" style={{ color: '#5f5e5e' }}>Add, rename, or remove components tracked in this audit.</p>
-                {project.components.length > 0 && (
-                  <div className="space-y-1">
-                    {project.components.map((comp) => (
-                      <div key={comp} className="flex items-center gap-2 px-3 py-2" style={{ background: '#f6f3f2' }}>
-                        {renamingComponent === comp ? (
-                          <>
-                            <input autoFocus value={renameComponentValue} onChange={(e) => setRenameComponentValue(e.target.value)}
-                              onKeyDown={(e) => { if (e.key === 'Enter') handleRenameComponent(comp, renameComponentValue); if (e.key === 'Escape') { setRenamingComponent(null); setRenameComponentValue('') } }}
-                              className="flex-1 h-8 px-2 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
-                              style={{ borderColor: '#d0cac8' }}
-                            />
-                            <button onClick={() => handleRenameComponent(comp, renameComponentValue)} disabled={!renameComponentValue.trim()} className="px-2.5 py-1 font-sans text-xs font-bold text-white disabled:opacity-40" style={{ background: '#610000' }}>Save</button>
-                            <button onClick={() => { setRenamingComponent(null); setRenameComponentValue('') }} className="px-2.5 py-1 font-sans text-xs font-medium" style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}>Cancel</button>
-                          </>
-                        ) : (
-                          <>
-                            <span className="flex-1 font-sans text-sm truncate" style={{ color: '#2b2c2c' }}>{comp}</span>
-                            <button onClick={() => { setRenamingComponent(comp); setRenameComponentValue(comp) }} className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-[#ede9e7] transition-colors" style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}>Rename</button>
-                            <button onClick={() => handleDeleteComponent(comp)} className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-red-50 transition-colors" style={{ border: '1px solid #d0cac8', color: '#c0392b' }}>Delete</button>
-                          </>
-                        )}
-                      </div>
-                    ))}
+              <div className="flex-1 overflow-hidden relative">
+                <div className="absolute bottom-0 left-0 right-0 pointer-events-none z-10"
+                  style={{ height: '48px', background: 'linear-gradient(to bottom, transparent, #ffffff)' }} />
+                <div className="absolute right-1 z-20 pointer-events-none transition-opacity duration-500"
+                  style={{ top: '8px', bottom: '8px', width: '3px', opacity: isComponentsScrolling ? 1 : 0 }}>
+                  <div style={{ position: 'absolute', right: 0, width: '3px', borderRadius: '2px', background: '#c8c3c0', height: `${componentsScrollThumb.height}%`, top: `${componentsScrollThumb.top}%`, transition: 'top 0.1s linear' }} />
+                </div>
+                <div ref={componentsBodyRef} className="no-scrollbar h-full overflow-y-auto px-6 py-5 space-y-4" onScroll={handleComponentsScroll}>
+                  <p className="font-sans text-sm" style={{ color: '#5f5e5e' }}>Add, rename, or remove components tracked in this audit.</p>
+                  {project.components.length > 0 && (
+                    <div className="space-y-1">
+                      {project.components.map((comp) => (
+                        <div key={comp} className="flex items-center gap-2 px-3 py-2" style={{ background: '#f6f3f2' }}>
+                          {renamingComponent === comp ? (
+                            <>
+                              <input autoFocus value={renameComponentValue} onChange={(e) => setRenameComponentValue(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') handleRenameComponent(comp, renameComponentValue); if (e.key === 'Escape') { setRenamingComponent(null); setRenameComponentValue('') } }}
+                                className="flex-1 h-8 px-2 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                                style={{ borderColor: '#d0cac8' }}
+                              />
+                              <button onClick={() => handleRenameComponent(comp, renameComponentValue)} disabled={!renameComponentValue.trim()} className="px-2.5 py-1 font-sans text-xs font-bold text-white disabled:opacity-40" style={{ background: '#610000' }}>Save</button>
+                              <button onClick={() => { setRenamingComponent(null); setRenameComponentValue('') }} className="px-2.5 py-1 font-sans text-xs font-medium" style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}>Cancel</button>
+                            </>
+                          ) : (
+                            <>
+                              <span className="flex-1 font-sans text-sm truncate" style={{ color: '#2b2c2c' }}>{comp}</span>
+                              <button onClick={() => { setRenamingComponent(comp); setRenameComponentValue(comp) }} className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-[#ede9e7] transition-colors" style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}>Rename</button>
+                              <button onClick={() => handleDeleteComponent(comp)} className="px-2.5 py-1 font-sans text-xs font-medium hover:bg-red-50 transition-colors" style={{ border: '1px solid #d0cac8', color: '#c0392b' }}>Delete</button>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <input value={newComponentValue} onChange={(e) => setNewComponentValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') confirmAddComponent() }}
+                      placeholder="Navigation, Hero, Footer…"
+                      className="flex-1 h-9 px-3 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                      style={{ borderColor: '#d0cac8' }}
+                    />
+                    <EchoButton variant="primary" onClick={confirmAddComponent} disabled={!newComponentValue.trim()} style={{ padding: '0 16px' }}>
+                      Add
+                    </EchoButton>
                   </div>
-                )}
-                <div className="flex gap-2">
-                  <input value={newComponentValue} onChange={(e) => setNewComponentValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') confirmAddComponent() }}
-                    placeholder="Navigation, Hero, Footer…"
-                    className="flex-1 h-9 px-3 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
-                    style={{ borderColor: '#d0cac8' }}
-                  />
-                  <EchoButton variant="primary" onClick={confirmAddComponent} disabled={!newComponentValue.trim()} style={{ padding: '0 16px' }}>
-                    Add
-                  </EchoButton>
+                  <div style={{ height: '32px' }} />
                 </div>
               </div>
-              <div className="flex-shrink-0 px-6 py-4" style={{ borderTop: '1px solid #e0dbd9', background: '#f6f3f2' }}>
-                <EchoButton fullWidth onClick={() => { setToolkitPanel(null); setNewComponentValue(''); setRenamingComponent(null); setRenameComponentValue('') }} style={{ justifyContent: 'center' }}>
+              <div className="flex-shrink-0 flex items-center justify-end gap-2 px-6 py-4" style={{ borderTop: '1px solid #e0dbd9', background: '#f6f3f2' }}>
+                <EchoButton onClick={() => { setToolkitPanel(null); setNewComponentValue(''); setRenamingComponent(null); setRenameComponentValue('') }}>
+                  Cancel
+                </EchoButton>
+                <EchoButton variant="primary" onClick={() => { setToolkitPanel(null); setNewComponentValue(''); setRenamingComponent(null); setRenameComponentValue('') }}>
                   Done
                 </EchoButton>
               </div>
