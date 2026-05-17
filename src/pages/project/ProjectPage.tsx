@@ -117,14 +117,14 @@ function MultiSelectFilter({
           {active && `: ${selectedLabels.slice(0, 2).join(', ')}${selectedLabels.length > 2 ? ` +${selectedLabels.length - 2}` : ''}`}
         </span>
         {active && (
-          <span
-            role="button"
+          <button
+            type="button"
             aria-label={`Clear ${label} filter`}
             onClick={e => { e.stopPropagation(); onClear() }}
             className="ml-0.5 leading-none hover:opacity-80"
           >
             ×
-          </span>
+          </button>
         )}
         <ChevronDown className="h-3 w-3 opacity-60 flex-shrink-0" />
       </button>
@@ -566,19 +566,19 @@ export default function ProjectPage() {
             {/* Audit criteria stats — compact, right-aligned with project name */}
             <div className="flex items-start gap-4 flex-shrink-0 pt-1">
               <div className="text-right">
-                <div className="font-sans text-[10px] font-bold uppercase tracking-wider" style={{ color: '#b0aaa8', letterSpacing: '0.08em' }}>Passed</div>
+                <div className="font-sans text-xs font-bold uppercase tracking-wider" style={{ color: '#5f5e5e', letterSpacing: '0.08em' }}>Passed</div>
                 <div className="font-serif font-bold leading-none mt-1" style={{ color: '#2d7a4f', fontSize: '2.5rem' }}>{passCount}</div>
               </div>
               <div className="text-right">
-                <div className="font-sans text-[10px] font-bold uppercase tracking-wider" style={{ color: '#b0aaa8', letterSpacing: '0.08em' }}>Failed</div>
+                <div className="font-sans text-xs font-bold uppercase tracking-wider" style={{ color: '#5f5e5e', letterSpacing: '0.08em' }}>Failed</div>
                 <div className="font-serif font-bold leading-none mt-1" style={{ color: '#610000', fontSize: '2.5rem' }}>{failCount}</div>
               </div>
               <div className="text-right">
-                <div className="font-sans text-[10px] font-bold uppercase tracking-wider" style={{ color: '#b0aaa8', letterSpacing: '0.08em' }}>Unknown</div>
+                <div className="font-sans text-xs font-bold uppercase tracking-wider" style={{ color: '#5f5e5e', letterSpacing: '0.08em' }}>Unknown</div>
                 <div className="font-serif font-bold leading-none mt-1" style={{ color: '#5f5e5e', fontSize: '2.5rem' }}>{unknownCount}</div>
               </div>
               <div className="text-right pl-4" style={{ borderLeft: '1px solid #e0dbd9' }}>
-                <div className="font-sans text-[10px] font-bold uppercase tracking-wider" style={{ color: '#b0aaa8', letterSpacing: '0.08em' }}>Findings</div>
+                <div className="font-sans text-xs font-bold uppercase tracking-wider" style={{ color: '#5f5e5e', letterSpacing: '0.08em' }}>Findings</div>
                 <div className="font-serif font-bold leading-none mt-1" style={{ color: '#1a1a1a', fontSize: '2.5rem' }}>{findings.length}</div>
               </div>
             </div>
@@ -1104,7 +1104,7 @@ export default function ProjectPage() {
             onClick={handleExportCSV}
             disabled={!!isExporting || findings.length === 0}
             aria-busy={isExporting === 'csv'}
-            className="flex w-full items-center justify-between px-4 py-3 mt-1 font-sans text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-40 hover:bg-[#d8d4d2]"
+            className="flex w-full items-center justify-between px-4 py-3 mt-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-40 hover:bg-[#d8d4d2]"
             style={{ background: '#e5e2e1', color: '#2b2c2c', letterSpacing: '0.1em' }}
           >
             <span>{isExporting === 'csv' ? 'Exporting…' : 'Export CSV'}</span>

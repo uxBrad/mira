@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
-import { Bell, Settings, LogOut, Clock, User, LayoutGrid, Layers } from 'lucide-react'
+import { Settings, LogOut, Clock, User, LayoutGrid, Layers } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../ui/use-toast'
 import UpdateBanner from '../UpdateBanner'
@@ -72,12 +72,19 @@ export default function AppShell() {
                 style={{
                   color: isActive ? '#1a1a1a' : '#9a9897',
                   borderRadius: '4px',
+                  background: isActive ? '#f0ede9' : 'transparent',
                 }}
                 onMouseEnter={(e) => {
-                  if (!isActive) (e.currentTarget as HTMLElement).style.color = '#1a1a1a'
+                  if (!isActive) {
+                    (e.currentTarget as HTMLElement).style.color = '#1a1a1a'
+                    ;(e.currentTarget as HTMLElement).style.background = '#f6f3f2'
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  if (!isActive) (e.currentTarget as HTMLElement).style.color = '#9a9897'
+                  if (!isActive) {
+                    (e.currentTarget as HTMLElement).style.color = '#9a9897'
+                    ;(e.currentTarget as HTMLElement).style.background = 'transparent'
+                  }
                 }}
                 title={label}
                 aria-label={label}
@@ -111,13 +118,6 @@ export default function AppShell() {
               </div>
             </div>
           )}
-
-          <button
-            className="flex items-center justify-center w-7 h-7 text-[#9a9897] hover:text-foreground transition-colors"
-            aria-label="Notifications"
-          >
-            <Bell className="h-4 w-4" aria-hidden="true" />
-          </button>
 
           {session?.user ? (
             <button

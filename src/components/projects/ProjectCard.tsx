@@ -75,13 +75,16 @@ export function ProjectCard({ project, onClick, onUpdate, onDelete }: ProjectCar
   return (
     <>
       <article
-        className="p-5 cursor-pointer group transition-shadow hover:shadow-md"
+        className="p-5 cursor-pointer group transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         style={{
           background: '#ffffff',
           borderRadius: '8px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.06)'
         }}
+        role="button"
+        tabIndex={0}
         onClick={onClick}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }}
         aria-label={`${project.name}${project.clientName ? `, client: ${project.clientName}` : ''}, ${project.findingCount} findings`}
       >
         <div className="flex items-start justify-between gap-4">

@@ -197,17 +197,17 @@ export default function DashboardPage() {
               </p>
               <dl className="flex flex-wrap gap-x-8 gap-y-4">
                 <div>
-                  <dt className="font-sans text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>Projects</dt>
+                  <dt className="font-sans text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>Projects</dt>
                   <dd className="font-serif font-bold text-2xl" style={{ color: '#1a1a1a' }}>{projects.length}</dd>
                 </div>
                 <div>
-                  <dt className="font-sans text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>In progress</dt>
+                  <dt className="font-sans text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>In progress</dt>
                   <dd className="font-serif font-bold text-2xl" style={{ color: '#1a1a1a' }}>
                     {projects.filter((p) => p.status === 'in_progress').length}
                   </dd>
                 </div>
                 <div>
-                  <dt className="font-sans text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>Findings</dt>
+                  <dt className="font-sans text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>Findings</dt>
                   <dd className="font-serif font-bold text-2xl" style={{ color: '#610000' }}>
                     {projects.reduce((sum, p) => sum + (p.findingCount ?? 0), 0)}
                   </dd>

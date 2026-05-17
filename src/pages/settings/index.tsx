@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
 import { useToast } from '../../components/ui/use-toast'
-import { ExternalLink, Clock, CheckCircle, AlertTriangle, Upload, X } from 'lucide-react'
+import { ExternalLink, Clock, CheckCircle, AlertTriangle, Upload, X, Eye, EyeOff } from 'lucide-react'
 
 function SubscriptionBadge({ access, daysRemaining }: { access: string; daysRemaining?: number }) {
   if (access === 'trialing') {
@@ -55,6 +55,9 @@ export default function SettingsPage() {
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [isBillingLoading, setIsBillingLoading] = useState(false)
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   // ─── Branding ────────────────────────────────────────────────────────────
   const [companyLogo, setCompanyLogo] = useState<string | null>(null)
@@ -169,7 +172,7 @@ export default function SettingsPage() {
 
   return (
     <div className="px-6 py-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+      <h1 className="font-serif font-bold mb-6" style={{ fontSize: 'clamp(1.75rem, 3vw, 2.25rem)', letterSpacing: '-0.02em', color: '#1a1a1a' }}>Settings</h1>
 
       {/* ── Branding section ─────────────────────────────────────────────────── */}
       <section aria-labelledby="branding-heading" className="mb-8">
@@ -296,10 +299,10 @@ export default function SettingsPage() {
 
       {/* Account section */}
       <section aria-labelledby="account-heading" className="mb-8">
-        <h2 id="account-heading" className="text-base font-semibold mb-4">
+        <h2 id="account-heading" className="font-serif font-bold text-xl mb-4" style={{ letterSpacing: '-0.01em' }}>
           Account
         </h2>
-        <div className="border rounded-xl p-4 space-y-3">
+        <div className="border p-4 space-y-3" style={{ borderRadius: '8px', borderColor: '#e0dbd9' }}>
           <div>
             <p className="text-xs text-muted-foreground mb-0.5">Name</p>
             <p className="text-sm font-medium">{session?.user.name || '—'}</p>
@@ -313,10 +316,10 @@ export default function SettingsPage() {
 
       {/* Subscription section */}
       <section aria-labelledby="billing-heading" className="mb-8">
-        <h2 id="billing-heading" className="text-base font-semibold mb-4">
+        <h2 id="billing-heading" className="font-serif font-bold text-xl mb-4" style={{ letterSpacing: '-0.01em' }}>
           Subscription
         </h2>
-        <div className="border rounded-xl p-4 space-y-4">
+        <div className="border p-4 space-y-4" style={{ borderRadius: '8px', borderColor: '#e0dbd9' }}>
           {subscriptionStatus && (
             <SubscriptionBadge
               access={subscriptionStatus.access}
@@ -349,10 +352,10 @@ export default function SettingsPage() {
 
       {/* Change password section */}
       <section aria-labelledby="password-heading" className="mb-8">
-        <h2 id="password-heading" className="text-base font-semibold mb-4">
+        <h2 id="password-heading" className="font-serif font-bold text-xl mb-4" style={{ letterSpacing: '-0.01em' }}>
           Change password
         </h2>
-        <div className="border rounded-xl p-4">
+        <div className="border p-4" style={{ borderRadius: '8px', borderColor: '#e0dbd9' }}>
           <form onSubmit={handleChangePassword} noValidate aria-label="Change password form">
             {passwordError && (
               <div role="alert" className="mb-4 rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive">
@@ -362,40 +365,73 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="current-password">Current password</Label>
-                <Input
-                  id="current-password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  disabled={isChangingPassword}
-                />
+                <div className="relative">
+                  <Input
+                    id="current-password"
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    disabled={isChangingPassword}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(v => !v)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9a9897] hover:text-foreground transition-colors"
+                    aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="new-password">New password</Label>
-                <Input
-                  id="new-password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  minLength={8}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  disabled={isChangingPassword}
-                />
+                <div className="relative">
+                  <Input
+                    id="new-password"
+                    type={showNewPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    required
+                    minLength={8}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    disabled={isChangingPassword}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(v => !v)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9a9897] hover:text-foreground transition-colors"
+                    aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="confirm-new-password">Confirm new password</Label>
-                <Input
-                  id="confirm-new-password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={isChangingPassword}
-                />
+                <div className="relative">
+                  <Input
+                    id="confirm-new-password"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isChangingPassword}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(v => !v)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9a9897] hover:text-foreground transition-colors"
+                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
               <Button
                 type="submit"

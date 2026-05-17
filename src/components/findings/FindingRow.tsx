@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil, Trash2, Eye } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { Button } from '../ui/button'
 import {
   Select,
@@ -194,7 +194,7 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
             {/* Status dropdown */}
             <Select value={finding.status || 'open'} onValueChange={handleStatusChange}>
               <SelectTrigger
-                style={{ height: '32px', fontSize: '13px', width: '130px', fontFamily: 'inherit' }}
+                style={{ height: '32px', fontSize: '13px', minWidth: '130px', fontFamily: 'inherit' }}
                 aria-label="Finding status"
               >
                 <span>{STATUS_LABELS[finding.status || 'open'] || finding.status}</span>
@@ -207,17 +207,6 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
                 <SelectItem value="wont_fix">Won&apos;t Fix</SelectItem>
               </SelectContent>
             </Select>
-
-            {/* View Details */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onEdit}
-              aria-label={`View details: ${finding.title}`}
-            >
-              <Eye className="w-4 h-4" aria-hidden="true" />
-              View Details
-            </Button>
 
             {/* Edit */}
             <Button
