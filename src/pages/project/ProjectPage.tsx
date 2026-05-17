@@ -825,13 +825,12 @@ export default function ProjectPage() {
                           <div className="flex items-center gap-3 px-4 py-3 mt-2" style={{ background: '#f0faf4', border: '1px solid #c3e6d0', borderRadius: '6px' }}>
                             <CheckCircle2 className="h-4 w-4 flex-shrink-0" aria-hidden="true" style={{ color: '#2d7a4f' }} />
                             <span className="font-sans text-sm font-semibold" style={{ color: '#2d7a4f' }}>Passed — no findings</span>
-                            <button
+                            <EchoButton
                               onClick={() => openStepAuditAtCriterion(criterion.id)}
-                              className="ml-auto font-sans text-xs font-medium hover:underline"
-                              style={{ color: '#5f5e5e' }}
+                              style={{ marginLeft: 'auto', padding: '5px 12px', fontSize: '12px' }}
                             >
                               Log Finding
-                            </button>
+                            </EchoButton>
                           </div>
                         )}
                         {/* Empty state: not yet assessed */}
@@ -839,21 +838,21 @@ export default function ProjectPage() {
                           <div className="flex items-center gap-3 px-4 py-3.5 mt-2" style={{ background: '#ffffff', border: '1px solid #e0dbd9', borderRadius: '6px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                             <span className="font-sans text-sm font-medium" style={{ color: '#9a9590' }}>No logged findings</span>
                             <div className="ml-auto flex items-center gap-2">
-                              <button
-                                onClick={() => markCriterionPassed(criterion.id)}
-                                className="flex items-center gap-1 font-sans text-xs font-semibold px-3 py-2 transition-colors hover:bg-[#f0ede9]"
-                                style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '4px', background: 'transparent' }}
-                              >
-                                <Check className="h-3 w-3" aria-hidden="true" />
-                                Mark as Passed
-                              </button>
-                              <button
+                              <EchoButton
+                                variant="primary"
                                 onClick={() => openStepAuditAtCriterion(criterion.id)}
-                                className="flex items-center gap-1 font-sans text-xs font-semibold px-3 py-2 transition-colors hover:bg-[#f0ede9]"
-                                style={{ border: '1px solid #d0cac8', color: '#2b2c2c', borderRadius: '4px', background: 'transparent' }}
+                                style={{ padding: '5px 12px', fontSize: '12px' }}
                               >
                                 Log Finding
-                              </button>
+                              </EchoButton>
+                              <EchoButton
+                                icon={<Check className="h-3 w-3" />}
+                                iconPosition="left"
+                                onClick={() => markCriterionPassed(criterion.id)}
+                                style={{ padding: '5px 12px', fontSize: '12px' }}
+                              >
+                                Mark as Passed
+                              </EchoButton>
                             </div>
                           </div>
                         )}
@@ -981,6 +980,7 @@ export default function ProjectPage() {
             findings={findings}
             templates={templates}
             navigateToCriterionId={stepAuditNavCriterionId}
+            onVerdictChange={(verdicts) => setAuditVerdicts(verdicts)}
             onAddFinding={async (data) => {
               await createFinding(data)
               toast({ title: 'Finding logged' })

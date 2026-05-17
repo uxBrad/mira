@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ChevronLeft, ChevronRight, Check, X, Clock, CheckCircle2, AlertCircle, ExternalLink, Maximize2, Minimize2, XCircle } from 'lucide-react'
 import { WCAG_CRITERIA, SEVERITY_OPTIONS, STANDARDS_OPTIONS } from '../../lib/utils'
 import {
@@ -9,6 +9,7 @@ import {
   SelectValue
 } from '../ui/select'
 import { Label } from '../ui/label'
+import { EchoButton } from '../ui/echo-button'
 import type { Template } from '../../hooks/useTemplates'
 
 // ─── Brief descriptions for each WCAG criterion ──────────────────────────────
@@ -96,6 +97,7 @@ interface StepAuditPanelProps {
   isWide?: boolean
   onToggleWide?: () => void
   navigateToCriterionId?: string
+  onVerdictChange?: (verdicts: Record<string, 'pass' | 'fail'>) => void
   onAddFinding: (data: {
     projectId: string
     title: string
@@ -138,6 +140,7 @@ export function StepAuditPanel({
   isWide = false,
   onToggleWide,
   navigateToCriterionId,
+  onVerdictChange,
   onAddFinding
 }: StepAuditPanelProps) {
   const criteria = WCAG_CRITERIA as unknown as Array<{ id: string; name: string; level: string; category: string }>
@@ -204,6 +207,13 @@ export function StepAuditPanel({
       localStorage.setItem(storageKey, JSON.stringify({ index, criteriaVerdict, criteriaProgress }))
     } catch { /* ignore – private browsing may block writes */ }
   }, [index, criteriaVerdict, criteriaProgress, storageKey])
+
+  // ─── Notify parent immediately when verdicts change so grouped view updates ──
+  const isFirstRender = useRef(true)
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return }
+    onVerdictChange?.(criteriaVerdict)
+  }, [criteriaVerdict]) // onVerdictChange is stable from parent — intentionally omitted
 
   // ─── Navigate to a specific criterion when requested from outside ─────────
   useEffect(() => {
@@ -631,14 +641,15 @@ export function StepAuditPanel({
             </div>
 
             {/* Submit finding */}
-            <button
+            <EchoButton
+              variant="primary"
+              fullWidth
               onClick={handleLogFinding}
               disabled={!title.trim() || isSubmitting}
-              className="w-full py-2.5 font-sans text-sm font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-              style={{ background: '#610000', letterSpacing: '0.1em', animation: 'slideDown 0.4s ease-out 480ms both' }}
+              style={{ animation: 'slideDown 0.4s ease-out 480ms both', justifyContent: 'center' }}
             >
               {isSubmitting ? 'Logging…' : 'Log Finding'}
-            </button>
+            </EchoButton>
           </div>
         </div>
       </div>
@@ -650,92 +661,93 @@ export function StepAuditPanel({
       >
         <div className="flex items-center justify-between gap-2">
           {/* Previous */}
-          <button
+          <EchoButton
+            icon={<ChevronLeft className="h-4 w-4" />}
+            iconPosition="left"
             onClick={() => setIndex((i) => Math.max(0, i - 1))}
             disabled={index === 0}
-            className="flex items-center gap-1.5 px-4 py-2.5 font-sans text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-30 flex-shrink-0"
-            style={{ border: '1px solid #d0cac8', color: '#2b2c2c', letterSpacing: '0.08em', borderRadius: '4px' }}
+            style={{ padding: '8px 14px', fontSize: '13px' }}
           >
-            <ChevronLeft className="h-4 w-4" />
             Prev
-          </button>
+          </EchoButton>
 
           {/* Status buttons — two independent groups */}
           <div className="flex items-center gap-1.5 justify-center">
             {/* Verdict group */}
-            <button
+            <EchoButton
+              icon={<CheckCircle2 className="h-3 w-3" />}
+              iconPosition="left"
               onClick={() => setVerdict('pass')}
-              className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
               style={{
-                letterSpacing: '0.06em',
-                borderRadius: '4px',
+                padding: '6px 10px',
+                fontSize: '12px',
                 background: verdict === 'pass' ? '#2d7a4f' : 'transparent',
                 color: verdict === 'pass' ? '#fff' : '#2d7a4f',
                 border: '1px solid #2d7a4f',
               }}
             >
-              <CheckCircle2 className="h-3 w-3" />
               Pass
-            </button>
-            <button
+            </EchoButton>
+            <EchoButton
+              icon={<XCircle className="h-3 w-3" />}
+              iconPosition="left"
               onClick={() => setVerdict('fail')}
-              className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
               style={{
-                letterSpacing: '0.06em',
-                borderRadius: '4px',
+                padding: '6px 10px',
+                fontSize: '12px',
                 background: verdict === 'fail' ? '#610000' : 'transparent',
                 color: verdict === 'fail' ? '#fff' : '#610000',
                 border: '1px solid #610000',
               }}
             >
-              <XCircle className="h-3 w-3" />
               Fail
-            </button>
+            </EchoButton>
 
             {/* Divider */}
             <span style={{ width: '1px', height: '24px', background: '#d0cac8', flexShrink: 0 }} aria-hidden="true" />
 
             {/* Progress group */}
-            <button
+            <EchoButton
+              icon={<Clock className="h-3 w-3" />}
+              iconPosition="left"
               onClick={() => setProgress('in_progress')}
-              className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
               style={{
-                letterSpacing: '0.06em',
-                borderRadius: '4px',
+                padding: '6px 10px',
+                fontSize: '12px',
                 background: progress === 'in_progress' ? '#8b6914' : 'transparent',
                 color: progress === 'in_progress' ? '#fff' : '#8b6914',
                 border: '1px solid #8b6914',
               }}
             >
-              <Clock className="h-3 w-3" />
               In Progress
-            </button>
-            <button
+            </EchoButton>
+            <EchoButton
+              icon={<Check className="h-3 w-3" />}
+              iconPosition="left"
               onClick={() => setProgress('complete')}
-              className="flex items-center gap-1 px-2.5 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors"
               style={{
-                letterSpacing: '0.06em',
-                borderRadius: '4px',
+                padding: '6px 10px',
+                fontSize: '12px',
                 background: progress === 'complete' ? '#2b2c2c' : 'transparent',
                 color: progress === 'complete' ? '#fff' : '#2b2c2c',
                 border: '1px solid #2b2c2c',
               }}
             >
-              <Check className="h-3 w-3" />
               Complete
-            </button>
+            </EchoButton>
           </div>
 
           {/* Next */}
-          <button
+          <EchoButton
+            variant="primary"
+            icon={<ChevronRight className="h-4 w-4" />}
+            iconPosition="right"
             onClick={() => setIndex((i) => Math.min(total - 1, i + 1))}
             disabled={index === total - 1}
-            className="flex items-center gap-1.5 px-4 py-2.5 font-sans text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-30 flex-shrink-0"
-            style={{ background: '#610000', color: '#fff', letterSpacing: '0.08em', borderRadius: '4px' }}
+            style={{ padding: '8px 14px', fontSize: '13px' }}
           >
             Next
-            <ChevronRight className="h-4 w-4" />
-          </button>
+          </EchoButton>
         </div>
       </div>
     </div>
