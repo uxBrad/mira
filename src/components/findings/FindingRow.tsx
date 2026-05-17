@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
-import { Button } from '../ui/button'
+import { EchoButton } from '../ui/echo-button'
+import { EchoPill } from '../ui/echo-pill'
+import { KVTag } from '../ui/kv-tag'
 import {
   Select,
   SelectContent,
@@ -55,35 +57,10 @@ const SEVERITY_COLORS: Record<string, string> = {
   minor: '#2d7a4f'
 }
 
-function FailBadge({ status }: { status: string | null }) {
-  if (status === 'resolved') {
-    return (
-      <span
-        className="inline-block font-sans text-xs font-bold tracking-widest uppercase px-2.5 py-0.5"
-        style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.1em', borderRadius: '2px' }}
-      >
-        PASS
-      </span>
-    )
-  }
-  if (status === 'wont_fix') {
-    return (
-      <span
-        className="inline-block font-sans text-xs font-bold tracking-widest uppercase px-2.5 py-0.5"
-        style={{ background: '#5f5e5e', color: '#fff', letterSpacing: '0.1em', borderRadius: '2px' }}
-      >
-        N/A
-      </span>
-    )
-  }
-  return (
-    <span
-      className="inline-block font-sans text-xs font-bold tracking-widest uppercase px-2.5 py-0.5"
-      style={{ background: '#610000', color: '#fff', letterSpacing: '0.1em', borderRadius: '2px' }}
-    >
-      FAIL
-    </span>
-  )
+function statusPill(status: string | null) {
+  if (status === 'resolved') return <EchoPill variant="pass" label="PASS" />
+  if (status === 'wont_fix') return <EchoPill variant="unknown" label="N/A" />
+  return <EchoPill variant="fail" label="FAIL" />
 }
 
 export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowProps) {
@@ -117,17 +94,12 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
         }}
         aria-label={finding.title}
       >
-        {/* Top row: badges left | criterion + actions right */}
+        {/* Top row: badges left | criterion right */}
         <div className="flex items-start justify-between gap-4 mb-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <FailBadge status={finding.status} />
+            {statusPill(finding.status)}
             {finding.wcagLevel && (
-              <span
-                className="font-sans text-xs font-semibold uppercase"
-                style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}
-              >
-                Level {finding.wcagLevel}
-              </span>
+              <EchoPill variant="level" label={`Level ${finding.wcagLevel}`} />
             )}
             {finding.severity && (
               <span
@@ -170,18 +142,14 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
           </p>
         )}
 
-        {/* Footer: chips + actions */}
+        {/* Footer: tags + actions */}
         <div className="flex items-center justify-between flex-wrap gap-2 pt-3" style={{ borderTop: '1px solid #f0ede9' }}>
           <div className="flex flex-wrap gap-1.5">
             {finding.pageUrl && (
-              <span className="font-sans text-xs px-2 py-0.5" style={{ background: '#f6f3f2', color: '#5f5e5e', borderRadius: '3px' }}>
-                {finding.pageUrl}
-              </span>
+              <KVTag label="Page" value={finding.pageUrl} />
             )}
             {finding.component && (
-              <span className="font-sans text-xs px-2 py-0.5" style={{ background: '#f6f3f2', color: '#5f5e5e', borderRadius: '3px' }}>
-                {finding.component}
-              </span>
+              <KVTag label="Component" value={finding.component} />
             )}
             {finding.standards?.map((s) => (
               <span key={s} className="font-sans text-xs px-2 py-0.5" style={{ background: '#f6f3f2', color: '#5f5e5e', borderRadius: '3px' }}>
@@ -191,7 +159,6 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
           </div>
 
           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-            {/* Status dropdown */}
             <Select value={finding.status || 'open'} onValueChange={handleStatusChange}>
               <SelectTrigger
                 style={{ height: '32px', fontSize: '13px', minWidth: '130px', fontFamily: 'inherit' }}
@@ -208,27 +175,25 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
               </SelectContent>
             </Select>
 
-            {/* Edit */}
-            <Button
-              variant="ghost"
-              size="sm"
+            <EchoButton
+              icon={<Pencil className="w-4 h-4" />}
+              iconPosition="left"
               onClick={onEdit}
               aria-label={`Edit: ${finding.title}`}
+              style={{ padding: '6px 12px', fontSize: '14px' }}
             >
-              <Pencil className="w-4 h-4" aria-hidden="true" />
               Edit
-            </Button>
+            </EchoButton>
 
-            {/* Delete */}
-            <Button
-              variant="ghost"
-              size="sm"
+            <EchoButton
+              icon={<Trash2 className="w-4 h-4" />}
+              iconPosition="left"
               onClick={() => setDeleteOpen(true)}
               aria-label={`Delete: ${finding.title}`}
+              style={{ padding: '6px 12px', fontSize: '14px' }}
             >
-              <Trash2 className="w-4 h-4" aria-hidden="true" />
               Delete
-            </Button>
+            </EchoButton>
           </div>
         </div>
       </article>
@@ -242,19 +207,16 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteOpen(false)}
-            >
+            <EchoButton onClick={() => setDeleteOpen(false)}>
               Cancel
-            </Button>
-            <Button
-              variant="destructive"
+            </EchoButton>
+            <EchoButton
+              variant="primary"
               onClick={handleDelete}
               disabled={isDeleting}
             >
               {isDeleting ? 'Deleting…' : 'Delete'}
-            </Button>
+            </EchoButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

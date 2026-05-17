@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { MoreHorizontal, Pencil, Trash2, ExternalLink } from 'lucide-react'
-import { Button } from '../ui/button'
-import { Badge } from '../ui/badge'
+import { EchoButton } from '../ui/echo-button'
+import { EchoPill } from '../ui/echo-pill'
 import { ProjectFormDialog } from './ProjectFormDialog'
 import {
   Dialog,
@@ -33,12 +33,6 @@ const STATUS_LABELS: Record<string, string> = {
   in_progress: 'In Progress',
   complete: 'Complete',
   archived: 'Archived'
-}
-
-const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'outline'> = {
-  in_progress: 'default',
-  complete: 'secondary',
-  archived: 'outline'
 }
 
 export function ProjectCard({ project, onClick, onUpdate, onDelete }: ProjectCardProps) {
@@ -99,16 +93,15 @@ export function ProjectCard({ project, onClick, onUpdate, onDelete }: ProjectCar
               <p className="font-sans text-sm mb-0" style={{ color: '#5f5e5e' }}>{project.clientName}</p>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="flex-shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100"
+          <button
+            className="flex-shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 flex items-center justify-center w-8 h-8 transition-opacity"
+            style={{ color: '#9a9897' }}
             onClick={(e) => { e.stopPropagation(); setMenuOpen(true) }}
             aria-label={`Options for ${project.name}`}
             aria-haspopup="dialog"
           >
             <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-          </Button>
+          </button>
         </div>
 
         {project.description && (
@@ -116,9 +109,7 @@ export function ProjectCard({ project, onClick, onUpdate, onDelete }: ProjectCar
         )}
 
         <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid #f0ede9' }}>
-          <Badge variant={STATUS_VARIANTS[project.status] || 'outline'} className="text-xs">
-            {STATUS_LABELS[project.status] || project.status}
-          </Badge>
+          <EchoPill variant="level" label={STATUS_LABELS[project.status] || project.status} />
           <div className="flex items-center gap-2">
             <span className="font-sans text-xs" style={{ color: '#5f5e5e' }}>
               {project.findingCount} issue{project.findingCount !== 1 ? 's' : ''}
@@ -138,41 +129,33 @@ export function ProjectCard({ project, onClick, onUpdate, onDelete }: ProjectCar
             <DialogTitle className="text-base truncate">{project.name}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-2">
-            <Button
-              variant="ghost"
-              className="justify-start gap-2"
-              onClick={() => {
-                setMenuOpen(false)
-                setEditOpen(true)
-              }}
+            <EchoButton
+              icon={<Pencil className="h-4 w-4" />}
+              iconPosition="left"
+              fullWidth
+              onClick={() => { setMenuOpen(false); setEditOpen(true) }}
             >
-              <Pencil className="h-4 w-4" aria-hidden="true" />
               Edit project
-            </Button>
+            </EchoButton>
             {project.url && (
-              <Button
-                variant="ghost"
-                className="justify-start gap-2"
-                onClick={() => {
-                  setMenuOpen(false)
-                  window.open(project.url!, '_blank')
-                }}
+              <EchoButton
+                icon={<ExternalLink className="h-4 w-4" />}
+                iconPosition="left"
+                fullWidth
+                onClick={() => { setMenuOpen(false); window.open(project.url!, '_blank') }}
               >
-                <ExternalLink className="h-4 w-4" aria-hidden="true" />
                 Open URL
-              </Button>
+              </EchoButton>
             )}
-            <Button
-              variant="ghost"
-              className="justify-start gap-2 text-destructive hover:text-destructive"
-              onClick={() => {
-                setMenuOpen(false)
-                setDeleteOpen(true)
-              }}
+            <EchoButton
+              icon={<Trash2 className="h-4 w-4" />}
+              iconPosition="left"
+              fullWidth
+              onClick={() => { setMenuOpen(false); setDeleteOpen(true) }}
+              style={{ color: '#610000' }}
             >
-              <Trash2 className="h-4 w-4" aria-hidden="true" />
               Delete project
-            </Button>
+            </EchoButton>
           </div>
         </DialogContent>
       </Dialog>
@@ -210,12 +193,12 @@ export function ProjectCard({ project, onClick, onUpdate, onDelete }: ProjectCar
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
+            <EchoButton onClick={() => setDeleteOpen(false)}>
               Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+            </EchoButton>
+            <EchoButton variant="primary" onClick={handleDelete} disabled={isDeleting}>
               {isDeleting ? 'Deleting…' : 'Delete project'}
-            </Button>
+            </EchoButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

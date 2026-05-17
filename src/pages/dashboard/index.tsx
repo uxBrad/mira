@@ -5,6 +5,8 @@ import { useProjects } from '../../hooks/useProjects'
 import { ProjectCard } from '../../components/projects/ProjectCard'
 import { ProjectFormDialog } from '../../components/projects/ProjectFormDialog'
 import { useToast } from '../../components/ui/use-toast'
+import { EchoButton } from '../../components/ui/echo-button'
+import { KVTag } from '../../components/ui/kv-tag'
 
 const FILTERS = [
   { key: 'in_progress', label: 'In Progress' },
@@ -113,14 +115,14 @@ export default function DashboardPage() {
                   ? 'Try a different filter or create a new project.'
                   : 'Create your first accessibility audit project to get started.'}
               </p>
-              <button
+              <EchoButton
+                variant="primary"
+                icon={<Plus className="h-4 w-4" />}
+                iconPosition="left"
                 onClick={openCreate}
-                className="flex items-center gap-2 px-3 py-2.5 font-sans text-sm font-medium transition-opacity hover:opacity-90"
-                style={{ background: '#610000', color: '#fff', borderRadius: '2px' }}
               >
-                <Plus className="h-4 w-4" aria-hidden="true" />
                 New project
-              </button>
+              </EchoButton>
             </div>
           )}
 
@@ -155,14 +157,16 @@ export default function DashboardPage() {
         aria-hidden={isCreateOpen}
       >
         <div className="flex flex-col h-full overflow-y-auto px-7 py-10" style={{ width: toolkitWidth }}>
-          <button
+          <EchoButton
+            variant="primary"
+            icon={<Plus className="h-4 w-4" />}
+            iconPosition="right"
+            fullWidth
+            className="mb-8"
             onClick={openCreate}
-            className="flex w-full items-center justify-between px-3 py-2.5 font-sans text-sm font-medium mb-8 transition-opacity hover:opacity-90"
-            style={{ background: '#610000', color: '#fff', borderRadius: '2px' }}
           >
-            <span>New Project</span>
-            <Plus className="h-4 w-4" aria-hidden="true" />
-          </button>
+            New Project
+          </EchoButton>
 
           {/* Filter controls */}
           {projects.length > 0 && (
@@ -195,24 +199,11 @@ export default function DashboardPage() {
               <p className="font-sans text-xs font-bold tracking-widest uppercase mb-4" style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}>
                 Summary
               </p>
-              <dl className="flex flex-wrap gap-x-8 gap-y-4">
-                <div>
-                  <dt className="font-sans text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>Projects</dt>
-                  <dd className="font-serif font-bold text-2xl" style={{ color: '#1a1a1a' }}>{projects.length}</dd>
-                </div>
-                <div>
-                  <dt className="font-sans text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>In progress</dt>
-                  <dd className="font-serif font-bold text-2xl" style={{ color: '#1a1a1a' }}>
-                    {projects.filter((p) => p.status === 'in_progress').length}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="font-sans text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#7a7877' }}>Findings</dt>
-                  <dd className="font-serif font-bold text-2xl" style={{ color: '#610000' }}>
-                    {projects.reduce((sum, p) => sum + (p.findingCount ?? 0), 0)}
-                  </dd>
-                </div>
-              </dl>
+              <div className="flex flex-wrap gap-2">
+                <KVTag label="Projects" value={String(projects.length)} />
+                <KVTag label="In Progress" value={String(projects.filter((p) => p.status === 'in_progress').length)} />
+                <KVTag label="Findings" value={String(projects.reduce((sum, p) => sum + (p.findingCount ?? 0), 0))} valueVariant="fail" />
+              </div>
             </div>
           )}
         </div>

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
-import { Button } from '../../components/ui/button'
+import { EchoButton } from '../../components/ui/echo-button'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
 import { useToast } from '../../components/ui/use-toast'
@@ -200,14 +200,14 @@ export default function SettingsPage() {
                 >
                   <img src={companyLogo} alt="Company logo preview" className="max-h-16 max-w-full object-contain" />
                 </div>
-                <button
+                <EchoButton
+                  icon={<X className="h-3 w-3" />}
+                  iconPosition="left"
                   onClick={removeLogo}
-                  className="flex items-center gap-1.5 font-sans text-xs font-medium transition-colors hover:bg-red-50"
-                  style={{ color: '#c0392b', border: '1px solid #d0cac8', borderRadius: '4px', padding: '4px 10px' }}
+                  style={{ padding: '4px 10px', fontSize: '12px', color: '#c0392b' }}
                 >
-                  <X className="h-3 w-3" aria-hidden="true" />
                   Remove
-                </button>
+                </EchoButton>
               </div>
             ) : (
               <div
@@ -226,14 +226,15 @@ export default function SettingsPage() {
               aria-label="Upload company logo"
               onChange={handleLogoUpload}
             />
-            <button
+            <EchoButton
+              icon={<Upload className="h-3.5 w-3.5" />}
+              iconPosition="left"
+              fullWidth
               onClick={() => logoInputRef.current?.click()}
-              className="flex w-full items-center justify-center gap-1.5 px-3 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors hover:bg-[#ede9e7]"
-              style={{ border: '1px solid #d0cac8', color: '#2b2c2c', background: 'transparent', letterSpacing: '0.08em', borderRadius: '4px' }}
+              style={{ justifyContent: 'center' }}
             >
-              <Upload className="h-3.5 w-3.5" aria-hidden="true" />
               {companyLogo ? 'Replace Logo' : 'Upload Logo'}
-            </button>
+            </EchoButton>
           </div>
 
           {/* User Avatar */}
@@ -254,14 +255,14 @@ export default function SettingsPage() {
                     style={{ borderRadius: '9999px' }}
                   />
                 </div>
-                <button
+                <EchoButton
+                  icon={<X className="h-3 w-3" />}
+                  iconPosition="left"
                   onClick={removeAvatar}
-                  className="flex items-center gap-1.5 font-sans text-xs font-medium transition-colors hover:bg-red-50 mx-auto"
-                  style={{ color: '#c0392b', border: '1px solid #d0cac8', borderRadius: '4px', padding: '4px 10px' }}
+                  style={{ padding: '4px 10px', fontSize: '12px', color: '#c0392b', margin: '0 auto' }}
                 >
-                  <X className="h-3 w-3" aria-hidden="true" />
                   Remove
-                </button>
+                </EchoButton>
               </div>
             ) : (
               <div className="flex items-center justify-center mb-3" style={{ minHeight: '80px' }}>
@@ -282,14 +283,15 @@ export default function SettingsPage() {
               aria-label="Upload user avatar"
               onChange={handleAvatarUpload}
             />
-            <button
+            <EchoButton
+              icon={<Upload className="h-3.5 w-3.5" />}
+              iconPosition="left"
+              fullWidth
               onClick={() => avatarInputRef.current?.click()}
-              className="flex w-full items-center justify-center gap-1.5 px-3 py-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors hover:bg-[#ede9e7]"
-              style={{ border: '1px solid #d0cac8', color: '#2b2c2c', background: 'transparent', letterSpacing: '0.08em', borderRadius: '4px' }}
+              style={{ justifyContent: 'center' }}
             >
-              <Upload className="h-3.5 w-3.5" aria-hidden="true" />
               {userAvatar ? 'Replace Avatar' : 'Upload Avatar'}
-            </button>
+            </EchoButton>
           </div>
         </div>
       </section>
@@ -328,23 +330,22 @@ export default function SettingsPage() {
           )}
 
           {subscriptionStatus?.access === 'active' || subscriptionStatus?.access === 'past_due' ? (
-            <Button
-              variant="outline"
+            <EchoButton
+              icon={<ExternalLink className="h-4 w-4" />}
+              iconPosition="left"
               onClick={handleBillingPortal}
               disabled={isBillingLoading}
-              className="gap-2"
             >
-              <ExternalLink className="h-4 w-4" aria-hidden="true" />
               {isBillingLoading ? 'Opening…' : 'Manage billing'}
-            </Button>
+            </EchoButton>
           ) : subscriptionStatus?.access === 'trialing' || subscriptionStatus?.access === 'expired' ? (
             <div className="flex gap-3 flex-wrap">
-              <Button variant="outline" onClick={() => handleSubscribe('monthly')}>
+              <EchoButton onClick={() => handleSubscribe('monthly')}>
                 Subscribe monthly — $19/mo
-              </Button>
-              <Button onClick={() => handleSubscribe('yearly')}>
+              </EchoButton>
+              <EchoButton variant="primary" onClick={() => handleSubscribe('yearly')}>
                 Subscribe yearly — $190/yr
-              </Button>
+              </EchoButton>
             </div>
           ) : null}
         </div>
@@ -433,12 +434,13 @@ export default function SettingsPage() {
                   </button>
                 </div>
               </div>
-              <Button
+              <EchoButton
+                variant="primary"
                 type="submit"
                 disabled={isChangingPassword || !currentPassword || !newPassword || !confirmPassword}
               >
                 {isChangingPassword ? 'Saving…' : 'Change password'}
-              </Button>
+              </EchoButton>
             </div>
           </form>
         </div>

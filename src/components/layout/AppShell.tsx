@@ -68,10 +68,11 @@ export default function AppShell() {
                 key={to}
                 to={to}
                 end={to === '/'}
-                className="flex items-center justify-center w-8 h-8 transition-colors"
+                className="flex items-center gap-[6px] font-sans text-base font-medium transition-colors"
                 style={{
+                  padding: '5px',
+                  borderRadius: '5px',
                   color: isActive ? '#1a1a1a' : '#9a9897',
-                  borderRadius: '4px',
                   background: isActive ? '#f0ede9' : 'transparent',
                 }}
                 onMouseEnter={(e) => {
@@ -86,11 +87,10 @@ export default function AppShell() {
                     ;(e.currentTarget as HTMLElement).style.background = 'transparent'
                   }
                 }}
-                title={label}
-                aria-label={label}
                 aria-current={isActive ? 'page' : undefined}
               >
-                <Icon className="h-4 w-4" aria-hidden="true" />
+                <Icon className="h-6 w-6 flex-shrink-0" aria-hidden="true" />
+                <span>{label}</span>
               </NavLink>
             )
           })}

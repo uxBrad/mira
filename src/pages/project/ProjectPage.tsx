@@ -27,6 +27,8 @@ import { ProjectFormDialog } from '../../components/projects/ProjectFormDialog'
 import { StepAuditPanel } from '../../components/audit/StepAuditPanel'
 import { ImportFindingsDialog } from '../../components/findings/ImportFindingsDialog'
 import { useToast } from '../../components/ui/use-toast'
+import { EchoButton } from '../../components/ui/echo-button'
+import { KVTag } from '../../components/ui/kv-tag'
 import {
   Dialog,
   DialogContent,
@@ -563,24 +565,12 @@ export default function ProjectPage() {
               </div>
             </div>
 
-            {/* Audit criteria stats — compact, right-aligned with project name */}
-            <div className="flex items-start gap-4 flex-shrink-0 pt-1">
-              <div className="text-right">
-                <div className="font-sans text-xs font-bold uppercase tracking-wider" style={{ color: '#5f5e5e', letterSpacing: '0.08em' }}>Passed</div>
-                <div className="font-serif font-bold leading-none mt-1" style={{ color: '#2d7a4f', fontSize: '2.5rem' }}>{passCount}</div>
-              </div>
-              <div className="text-right">
-                <div className="font-sans text-xs font-bold uppercase tracking-wider" style={{ color: '#5f5e5e', letterSpacing: '0.08em' }}>Failed</div>
-                <div className="font-serif font-bold leading-none mt-1" style={{ color: '#610000', fontSize: '2.5rem' }}>{failCount}</div>
-              </div>
-              <div className="text-right">
-                <div className="font-sans text-xs font-bold uppercase tracking-wider" style={{ color: '#5f5e5e', letterSpacing: '0.08em' }}>Unknown</div>
-                <div className="font-serif font-bold leading-none mt-1" style={{ color: '#5f5e5e', fontSize: '2.5rem' }}>{unknownCount}</div>
-              </div>
-              <div className="text-right pl-4" style={{ borderLeft: '1px solid #e0dbd9' }}>
-                <div className="font-sans text-xs font-bold uppercase tracking-wider" style={{ color: '#5f5e5e', letterSpacing: '0.08em' }}>Findings</div>
-                <div className="font-serif font-bold leading-none mt-1" style={{ color: '#1a1a1a', fontSize: '2.5rem' }}>{findings.length}</div>
-              </div>
+            {/* Audit criteria stats */}
+            <div className="flex items-start gap-2 flex-shrink-0 pt-1 flex-wrap">
+              <KVTag label="Passed" value={String(passCount)} valueVariant="pass" />
+              <KVTag label="Failed" value={String(failCount)} valueVariant="fail" />
+              <KVTag label="Unknown" value={String(unknownCount)} />
+              <KVTag label="Findings" value={String(findings.length)} />
             </div>
           </div>
 
@@ -1005,111 +995,105 @@ export default function ProjectPage() {
           </p>
 
           {/* Primary: Add Finding */}
-          <button
-            className="flex w-full items-center justify-between px-4 py-3 mb-2 font-sans text-sm font-bold uppercase tracking-widest text-white transition-opacity hover:opacity-90"
-            style={{ background: '#610000', letterSpacing: '0.1em' }}
+          <EchoButton
+            variant="primary"
+            icon={<Plus className="h-4 w-4" />}
+            iconPosition="right"
+            fullWidth
+            className="mb-2"
             onClick={openBlankFinding}
           >
-            <span>Add Finding</span>
-            <Plus className="h-4 w-4" aria-hidden="true" />
-          </button>
+            Add Finding
+          </EchoButton>
 
           {/* Secondary: Step-by-Step Audit */}
-          <button
-            className="flex w-full items-center justify-between px-4 py-3 mb-2 font-sans text-sm font-bold uppercase tracking-widest transition-colors hover:bg-[#e0dbd9]"
-            style={{ background: '#e5e2e1', color: '#2b2c2c', letterSpacing: '0.1em' }}
+          <EchoButton
+            icon={<ListChecks className="h-4 w-4" />}
+            iconPosition="right"
+            fullWidth
+            className="mb-2"
             onClick={() => setStepAuditOpen(true)}
           >
-            <span>Step-by-Step Audit</span>
-            <ListChecks className="h-4 w-4" aria-hidden="true" />
-          </button>
+            Step-by-Step Audit
+          </EchoButton>
 
           {/* Tertiary buttons */}
           <div className="space-y-2">
-            {/* Pages */}
-            <button
+            <EchoButton
+              icon={<Plus className="h-3.5 w-3.5" />}
+              iconPosition="left"
+              fullWidth
               onClick={() => setPageModalOpen(true)}
-              className="flex w-full items-center justify-between px-3 py-2.5 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
-              style={{ border: '1px solid #d0cac8', color: '#2b2c2c', background: 'transparent' }}
             >
-              <span className="flex items-center gap-2">
-                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-                Pages
-              </span>
+              <span className="flex-1 text-left">Pages</span>
               <span
                 className="flex items-center justify-center font-sans text-xs font-bold text-white"
                 style={{ background: '#610000', borderRadius: '9999px', minWidth: '20px', height: '20px', padding: '0 5px' }}
               >
                 {project.auditUrls.length}
               </span>
-            </button>
+            </EchoButton>
 
-            {/* Components */}
-            <button
+            <EchoButton
+              icon={<Plus className="h-3.5 w-3.5" />}
+              iconPosition="left"
+              fullWidth
               onClick={() => setComponentModalOpen(true)}
-              className="flex w-full items-center justify-between px-3 py-2.5 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
-              style={{ border: '1px solid #d0cac8', color: '#2b2c2c', background: 'transparent' }}
             >
-              <span className="flex items-center gap-2">
-                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-                Components
-              </span>
+              <span className="flex-1 text-left">Components</span>
               <span
                 className="flex items-center justify-center font-sans text-xs font-bold text-white"
                 style={{ background: '#610000', borderRadius: '9999px', minWidth: '20px', height: '20px', padding: '0 5px' }}
               >
                 {project.components.length}
               </span>
-            </button>
+            </EchoButton>
 
-            {/* Import Report */}
-            <button
+            <EchoButton
+              icon={<Upload className="h-3.5 w-3.5" />}
+              iconPosition="left"
+              fullWidth
               onClick={() => setImportOpen(true)}
-              className="flex w-full items-center justify-between px-3 py-2.5 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
-              style={{ border: '1px solid #d0cac8', color: '#2b2c2c', background: 'transparent' }}
             >
-              <span className="flex items-center gap-2">
-                <Upload className="h-3.5 w-3.5" aria-hidden="true" />
-                Import Report
-              </span>
-            </button>
+              Import Report
+            </EchoButton>
 
-            {/* Configure Project */}
-            <button
+            <EchoButton
+              icon={<Settings2 className="h-3.5 w-3.5" />}
+              iconPosition="left"
+              fullWidth
               onClick={() => setEditProjectOpen(true)}
-              className="flex w-full items-center justify-between px-3 py-2.5 font-sans text-sm font-medium transition-colors hover:bg-[#ede9e7]"
-              style={{ border: '1px solid #d0cac8', color: '#2b2c2c', background: 'transparent' }}
             >
-              <span className="flex items-center gap-2">
-                <Settings2 className="h-3.5 w-3.5" aria-hidden="true" />
-                Configure Project
-              </span>
-            </button>
+              Configure Project
+            </EchoButton>
           </div>
 
-          {/* Export PDF */}
-          <button
+          {/* Export PDF — primary */}
+          <EchoButton
+            variant="primary"
+            icon={<Download className="h-4 w-4" />}
+            iconPosition="right"
+            fullWidth
+            className="mt-4"
             onClick={handleClickExportPDF}
             disabled={!!isExporting}
             aria-busy={isExporting === 'pdf'}
-            className="flex w-full items-center justify-between px-4 py-3 mt-4 font-sans text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-40 hover:bg-[#d8d4d2]"
-            style={{ background: '#e5e2e1', color: '#2b2c2c', letterSpacing: '0.1em' }}
           >
-            <span>{isExporting === 'pdf' ? 'Generating…' : 'Export Report (PDF)'}</span>
-            <Download className="h-4 w-4" aria-hidden="true" />
-          </button>
+            {isExporting === 'pdf' ? 'Generating…' : 'Export Report (PDF)'}
+          </EchoButton>
 
           {/* Export CSV */}
-          <button
+          <EchoButton
+            icon={<Download className="h-4 w-4" />}
+            iconPosition="right"
+            fullWidth
+            className="mt-2"
             onClick={handleExportCSV}
             disabled={!!isExporting || findings.length === 0}
             aria-busy={isExporting === 'csv'}
-            className="flex w-full items-center justify-between px-4 py-3 mt-2 font-sans text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-40 hover:bg-[#d8d4d2]"
-            style={{ background: '#e5e2e1', color: '#2b2c2c', letterSpacing: '0.1em' }}
           >
-            <span>{isExporting === 'csv' ? 'Exporting…' : 'Export CSV'}</span>
-            <Download className="h-4 w-4" aria-hidden="true" />
-          </button>
+            {isExporting === 'csv' ? 'Exporting…' : 'Export CSV'}
+          </EchoButton>
         </div>
 
         </div>{/* end fixed-width inner */}
