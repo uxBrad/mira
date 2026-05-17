@@ -1,15 +1,10 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Plus,
   Download,
   ExternalLink,
   AlertCircle,
-  Eye,
-  MousePointer,
-  BookOpen,
-  Shield,
-  LayoutGrid,
   Settings2,
   ListChecks,
   Upload,
@@ -190,7 +185,7 @@ export default function ProjectPage() {
   const [importOpen, setImportOpen] = useState(false)
   const [isExporting, setIsExporting] = useState<'pdf' | 'csv' | null>(null)
   const [showFormatDialog, setShowFormatDialog] = useState(false)
-  const [principleFilter, setPrincipleFilter] = useState<string>('all')
+  const [principleFilter, setPrincipleFilter] = useState<string[]>([])
   const [severityFilter, setSeverityFilter] = useState<string[]>([])
   const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [pageFilter, setPageFilter] = useState<string[]>([])
@@ -225,6 +220,24 @@ export default function ProjectPage() {
   const [renamingComponent, setRenamingComponent] = useState<string | null>(null)
   const [renameComponentValue, setRenameComponentValue] = useState('')
 
+  const findingsScrollRef = useRef<HTMLDivElement>(null)
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout>>()
+  const [isScrolling, setIsScrolling] = useState(false)
+  const [scrollThumb, setScrollThumb] = useState({ top: 0, height: 0 })
+
+  const handleFindingsScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget
+    const { scrollTop, scrollHeight, clientHeight } = el
+    const max = scrollHeight - clientHeight
+    if (max <= 0) return
+    const thumbH = Math.max(20, (clientHeight / scrollHeight) * 100)
+    const thumbTop = (scrollTop / max) * (100 - thumbH)
+    setScrollThumb({ top: thumbTop, height: thumbH })
+    setIsScrolling(true)
+    clearTimeout(scrollTimerRef.current)
+    scrollTimerRef.current = setTimeout(() => setIsScrolling(false), 1200)
+  }, [])
+
   const { findings, isLoading, error, reload, createFinding, updateFinding, deleteFinding } = useFindings(id!)
   const { templates } = useTemplates()
 
@@ -247,9 +260,9 @@ export default function ProjectPage() {
   )
 
   const filtered = findings.filter((f) => {
-    if (principleFilter !== 'all') {
+    if (principleFilter.length > 0) {
       const prefix = f.wcagCriterion?.split('.')[0]
-      if (prefix !== principleFilter) return false
+      if (!prefix || !principleFilter.includes(prefix)) return false
     }
     if (severityFilter.length > 0 && !severityFilter.includes(f.severity ?? '')) return false
     if (statusFilter.length > 0 && !statusFilter.includes(f.status ?? '')) return false
@@ -259,8 +272,7 @@ export default function ProjectPage() {
   })
 
   const activeFilterCount =
-    (principleFilter !== 'all' ? 1 : 0) +
-    severityFilter.length + statusFilter.length + pageFilter.length + componentFilter.length
+    principleFilter.length + severityFilter.length + statusFilter.length + pageFilter.length + componentFilter.length
 
   function toggleFilter(
     value: string,
@@ -476,14 +488,6 @@ export default function ProjectPage() {
   const failCount = Object.values(auditVerdicts).filter(v => v === 'fail').length
   const unknownCount = WCAG_CRITERIA.length - passCount - failCount
 
-  const PRINCIPLES = [
-    { key: 'all', label: 'All', icon: LayoutGrid },
-    { key: '1', label: 'Perceivable', icon: Eye },
-    { key: '2', label: 'Operable', icon: MousePointer },
-    { key: '3', label: 'Understandable', icon: BookOpen },
-    { key: '4', label: 'Robust', icon: Shield },
-  ]
-
   const anySidebarOpen = sidebarOpen || stepAuditOpen
   // margin-right is included so the gap smoothly closes when going to wide mode
   const tr = layoutReady ? 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none'
@@ -565,47 +569,19 @@ export default function ProjectPage() {
               </div>
             </div>
 
-            {/* Audit criteria stats */}
-            <div className="flex items-start gap-2 flex-shrink-0 pt-1 flex-wrap">
-              <KVTag label="Passed" value={String(passCount)} valueVariant="pass" />
-              <KVTag label="Failed" value={String(failCount)} valueVariant="fail" />
-              <KVTag label="Unknown" value={String(unknownCount)} />
-              <KVTag label="Findings" value={String(findings.length)} />
+            {/* Audit criteria stats — 2-column layout matching Figma */}
+            <div className="flex items-start gap-3 flex-shrink-0 pt-1">
+              <div className="flex flex-col gap-2">
+                <KVTag label="Findings" value={String(findings.length)} />
+                <KVTag label="Unknown" value={String(unknownCount)} />
+              </div>
+              <div className="flex flex-col gap-2">
+                <KVTag label="Passed" value={String(passCount)} valueVariant="pass" />
+                <KVTag label="Failed" value={String(failCount)} valueVariant="fail" />
+              </div>
             </div>
           </div>
 
-          {/* Separator */}
-          <div style={{ height: '1px', background: '#e0dbd9', marginBottom: 0 }} />
-
-          {/* WCAG Principle tabs */}
-          <div
-            className="flex items-center gap-0 -mb-px overflow-x-auto"
-            role="tablist"
-            aria-label="Filter by WCAG principle"
-            style={{ scrollbarWidth: 'none' }}
-          >
-            {PRINCIPLES.map(({ key, label, icon: Icon }) => {
-              const active = principleFilter === key
-              return (
-                <button
-                  key={key}
-                  role="tab"
-                  aria-selected={active}
-                  onClick={() => setPrincipleFilter(key)}
-                  className="flex items-center gap-1.5 px-4 py-3 font-sans text-xs font-bold uppercase tracking-widest transition-colors whitespace-nowrap flex-shrink-0"
-                  style={{
-                    letterSpacing: '0.1em',
-                    background: active ? '#610000' : 'transparent',
-                    color: active ? '#ffffff' : '#5f5e5e',
-                    borderBottom: active ? 'none' : '2px solid transparent',
-                  }}
-                >
-                  <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                  {label}
-                </button>
-              )
-            })}
-          </div>
         </div>
 
         {/* Findings list */}
@@ -615,6 +591,18 @@ export default function ProjectPage() {
           <div className="flex-shrink-0 flex items-center gap-2 flex-wrap px-10 py-3" style={{ borderBottom: '1px solid #e0dbd9', background: '#fcf9f8' }}>
             {findings.length > 0 && (
               <>
+                <MultiSelectFilter
+                  label="Principle"
+                  options={[
+                    { key: '1', label: 'Perceivable' },
+                    { key: '2', label: 'Operable' },
+                    { key: '3', label: 'Understandable' },
+                    { key: '4', label: 'Robust' },
+                  ]}
+                  selected={principleFilter}
+                  onToggle={v => toggleFilter(v, principleFilter, setPrincipleFilter)}
+                  onClear={() => setPrincipleFilter([])}
+                />
                 <MultiSelectFilter
                   label="Severity"
                   options={[
@@ -660,7 +648,7 @@ export default function ProjectPage() {
                 {activeFilterCount > 0 && (
                   <button
                     onClick={() => {
-                      setPrincipleFilter('all')
+                      setPrincipleFilter([])
                       setSeverityFilter([])
                       setStatusFilter([])
                       setPageFilter([])
@@ -696,7 +684,36 @@ export default function ProjectPage() {
           </div>
 
           {/* Scrollable findings area */}
-          <div className="flex-1 overflow-y-auto py-6" style={{ paddingLeft: '40px', paddingRight: '40px' }}>
+          <div className="flex-1 overflow-hidden relative">
+          {/* Bottom fade — always shown to hint scrollability */}
+          <div
+            className="absolute bottom-0 left-0 right-0 pointer-events-none z-10"
+            style={{ height: '64px', background: 'linear-gradient(to bottom, transparent, #fcf9f8)' }}
+          />
+          {/* Custom scroll indicator — visible only while scrolling */}
+          <div
+            className="absolute right-1 z-20 pointer-events-none transition-opacity duration-500"
+            style={{ top: '8px', bottom: '8px', width: '3px', opacity: isScrolling ? 1 : 0 }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                right: 0,
+                width: '3px',
+                borderRadius: '2px',
+                background: '#c8c3c0',
+                height: `${scrollThumb.height}%`,
+                top: `${scrollThumb.top}%`,
+                transition: 'top 0.1s linear',
+              }}
+            />
+          </div>
+          <div
+            ref={findingsScrollRef}
+            className="no-scrollbar h-full overflow-y-auto py-6"
+            style={{ paddingLeft: '40px', paddingRight: '44px' }}
+            onScroll={handleFindingsScroll}
+          >
 
           {error && (
             <div
@@ -745,9 +762,9 @@ export default function ProjectPage() {
                 findingsByCriterion[f.wcagCriterion].push(f)
               }
               // Respect the principle tab filter in grouped mode
-              const criteriaToShow = principleFilter === 'all'
+              const criteriaToShow = principleFilter.length === 0
                 ? WCAG_CRITERIA
-                : WCAG_CRITERIA.filter(c => c.id.startsWith(principleFilter + '.'))
+                : WCAG_CRITERIA.filter(c => principleFilter.some(p => c.id.startsWith(p + '.')))
               return (
                 <div className="space-y-6" style={{ paddingBottom: '2rem' }}>
                   {criteriaToShow.map(criterion => {
@@ -844,7 +861,7 @@ export default function ProjectPage() {
                     )
                   })}
                   {/* Findings with no criterion assigned — only in All view */}
-                  {principleFilter === 'all' && unassigned.length > 0 && (
+                  {principleFilter.length === 0 && unassigned.length > 0 && (
                     <div>
                       <div className="flex items-center gap-2 mb-1 pb-2" style={{ borderBottom: '1px solid #e0dbd9' }}>
                         <span className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.1em' }}>
@@ -872,7 +889,8 @@ export default function ProjectPage() {
               )
             })()
           )}
-          </div>{/* end scrollable findings area */}
+          </div>{/* end scrollable inner */}
+          </div>{/* end scroll wrapper */}
         </main>
       </div>
 
@@ -985,117 +1003,116 @@ export default function ProjectPage() {
         aria-hidden={anySidebarOpen}
       >
         {/* Fixed-width inner prevents content reflow during the width transition */}
-        <div className="flex flex-col h-full overflow-y-auto" style={{ width: toolkitWidth }}>
-        <div className="px-6 pt-8 pb-6">
-          <h2 className="font-serif font-bold text-xl mb-1" style={{ letterSpacing: '-0.01em' }}>
-            Audit Toolkit
-          </h2>
-          <p className="font-sans text-xs leading-relaxed mb-6" style={{ color: '#5f5e5e' }}>
-            Precision tools for modern accessibility compliance workflows.
-          </p>
+        <div className="no-scrollbar flex flex-col h-full overflow-y-auto" style={{ width: toolkitWidth }}>
+        <div className="px-5 pt-8 pb-8 flex flex-col gap-6">
 
-          {/* Primary: Add Finding */}
-          <EchoButton
-            variant="primary"
-            icon={<Plus className="h-4 w-4" />}
-            iconPosition="right"
-            fullWidth
-            className="mb-2"
-            onClick={openBlankFinding}
-          >
-            Add Finding
-          </EchoButton>
-
-          {/* Secondary: Step-by-Step Audit */}
-          <EchoButton
-            icon={<ListChecks className="h-4 w-4" />}
-            iconPosition="right"
-            fullWidth
-            className="mb-2"
-            onClick={() => setStepAuditOpen(true)}
-          >
-            Step-by-Step Audit
-          </EchoButton>
-
-          {/* Tertiary buttons */}
-          <div className="space-y-2">
-            <EchoButton
-              icon={<Plus className="h-3.5 w-3.5" />}
-              iconPosition="left"
-              fullWidth
-              onClick={() => setPageModalOpen(true)}
-            >
-              <span className="flex-1 text-left">Pages</span>
-              <span
-                className="flex items-center justify-center font-sans text-xs font-bold text-white"
-                style={{ background: '#610000', borderRadius: '9999px', minWidth: '20px', height: '20px', padding: '0 5px' }}
+          {/* ── Section: Audit Toolkit ── */}
+          <div>
+            <h2 className="font-serif font-bold text-2xl mb-1" style={{ letterSpacing: '-0.01em' }}>
+              Audit Toolkit
+            </h2>
+            <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>
+              Log and review accessibility findings.
+            </p>
+            <div className="space-y-2">
+              <EchoButton
+                variant="primary"
+                icon={<Plus className="h-4 w-4" />}
+                iconPosition="right"
+                fullWidth
+                onClick={openBlankFinding}
               >
-                {project.auditUrls.length}
-              </span>
-            </EchoButton>
-
-            <EchoButton
-              icon={<Plus className="h-3.5 w-3.5" />}
-              iconPosition="left"
-              fullWidth
-              onClick={() => setComponentModalOpen(true)}
-            >
-              <span className="flex-1 text-left">Components</span>
-              <span
-                className="flex items-center justify-center font-sans text-xs font-bold text-white"
-                style={{ background: '#610000', borderRadius: '9999px', minWidth: '20px', height: '20px', padding: '0 5px' }}
+                Add Finding
+              </EchoButton>
+              <EchoButton
+                icon={<ListChecks className="h-4 w-4" />}
+                iconPosition="right"
+                fullWidth
+                onClick={() => setStepAuditOpen(true)}
               >
-                {project.components.length}
-              </span>
-            </EchoButton>
-
-            <EchoButton
-              icon={<Upload className="h-3.5 w-3.5" />}
-              iconPosition="left"
-              fullWidth
-              onClick={() => setImportOpen(true)}
-            >
-              Import Report
-            </EchoButton>
-
-            <EchoButton
-              icon={<Settings2 className="h-3.5 w-3.5" />}
-              iconPosition="left"
-              fullWidth
-              onClick={() => setEditProjectOpen(true)}
-            >
-              Configure Project
-            </EchoButton>
+                Step-by-step Audit
+              </EchoButton>
+              <EchoButton
+                icon={<Upload className="h-4 w-4" />}
+                iconPosition="right"
+                fullWidth
+                onClick={() => setImportOpen(true)}
+              >
+                Import Findings
+              </EchoButton>
+            </div>
           </div>
 
-          {/* Export PDF — primary */}
-          <EchoButton
-            variant="primary"
-            icon={<Download className="h-4 w-4" />}
-            iconPosition="right"
-            fullWidth
-            className="mt-4"
-            onClick={handleClickExportPDF}
-            disabled={!!isExporting}
-            aria-busy={isExporting === 'pdf'}
-          >
-            {isExporting === 'pdf' ? 'Generating…' : 'Export Report (PDF)'}
-          </EchoButton>
+          {/* ── Section: Reports ── */}
+          <div>
+            <h2 className="font-serif font-bold text-2xl mb-1" style={{ letterSpacing: '-0.01em' }}>
+              Reports
+            </h2>
+            <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>
+              Export your audit results.
+            </p>
+            <div className="space-y-2">
+              <EchoButton
+                variant="primary"
+                icon={<Download className="h-4 w-4" />}
+                iconPosition="right"
+                fullWidth
+                onClick={handleClickExportPDF}
+                disabled={!!isExporting}
+                aria-busy={isExporting === 'pdf'}
+              >
+                {isExporting === 'pdf' ? 'Generating…' : 'Export Report (PDF)'}
+              </EchoButton>
+              <EchoButton
+                icon={<Download className="h-4 w-4" />}
+                iconPosition="right"
+                fullWidth
+                onClick={handleExportCSV}
+                disabled={!!isExporting || findings.length === 0}
+                aria-busy={isExporting === 'csv'}
+              >
+                {isExporting === 'csv' ? 'Exporting…' : 'Export Report (CSV)'}
+              </EchoButton>
+            </div>
+          </div>
 
-          {/* Export CSV */}
-          <EchoButton
-            icon={<Download className="h-4 w-4" />}
-            iconPosition="right"
-            fullWidth
-            className="mt-2"
-            onClick={handleExportCSV}
-            disabled={!!isExporting || findings.length === 0}
-            aria-busy={isExporting === 'csv'}
-          >
-            {isExporting === 'csv' ? 'Exporting…' : 'Export CSV'}
-          </EchoButton>
+          {/* ── Section: Settings ── */}
+          <div>
+            <h2 className="font-serif font-bold text-2xl mb-1" style={{ letterSpacing: '-0.01em' }}>
+              Settings
+            </h2>
+            <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>
+              Configure your project scope.
+            </p>
+            <div className="space-y-2">
+              <EchoButton
+                icon={<Settings2 className="h-4 w-4" />}
+                iconPosition="right"
+                fullWidth
+                onClick={() => setEditProjectOpen(true)}
+              >
+                Configure Project
+              </EchoButton>
+              <EchoButton
+                icon={<Plus className="h-4 w-4" />}
+                iconPosition="right"
+                fullWidth
+                onClick={() => setPageModalOpen(true)}
+              >
+                Pages
+              </EchoButton>
+              <EchoButton
+                icon={<Plus className="h-4 w-4" />}
+                iconPosition="right"
+                fullWidth
+                onClick={() => setComponentModalOpen(true)}
+              >
+                Components
+              </EchoButton>
+            </div>
+          </div>
+
         </div>
-
         </div>{/* end fixed-width inner */}
       </aside>
 

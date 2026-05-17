@@ -4,12 +4,6 @@ import { EchoButton } from '../ui/echo-button'
 import { EchoPill } from '../ui/echo-pill'
 import { KVTag } from '../ui/kv-tag'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from '../ui/select'
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -42,34 +36,15 @@ interface FindingRowProps {
   onDelete: (id: string) => Promise<void>
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  open: 'Open',
-  in_progress: 'In Progress',
-  needs_review: 'Needs Review',
-  resolved: 'Resolved',
-  wont_fix: "Won't Fix"
-}
-
-const SEVERITY_COLORS: Record<string, string> = {
-  critical: '#c0392b',
-  serious: '#c0392b',
-  moderate: '#8b6914',
-  minor: '#2d7a4f'
-}
-
 function statusPill(status: string | null) {
   if (status === 'resolved') return <EchoPill variant="pass" label="PASS" />
   if (status === 'wont_fix') return <EchoPill variant="unknown" label="N/A" />
   return <EchoPill variant="fail" label="FAIL" />
 }
 
-export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowProps) {
+export function FindingRow({ finding, onEdit, onDelete }: FindingRowProps) {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-
-  async function handleStatusChange(status: string) {
-    await onUpdate(finding.id, { status })
-  }
 
   async function handleDelete() {
     setIsDeleting(true)
@@ -81,7 +56,7 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
     }
   }
 
-  const severityColor = SEVERITY_COLORS[finding.severity ?? ''] ?? '#5f5e5e'
+  const hasTags = finding.pageUrl || finding.component || finding.standards?.length > 0
 
   return (
     <>
@@ -94,87 +69,19 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
         }}
         aria-label={finding.title}
       >
-        {/* Top row: badges left | criterion right */}
-        <div className="flex items-start justify-between gap-4 mb-3">
-          <div className="flex items-center gap-2 flex-wrap">
+        {/* Top row: title + status pill — then action buttons flush right */}
+        <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap">
+            <h3
+              className="font-serif font-bold leading-snug"
+              style={{ fontSize: '1.2rem', letterSpacing: '-0.01em', color: '#1a1a1a' }}
+            >
+              {finding.title}
+            </h3>
             {statusPill(finding.status)}
-            {finding.wcagLevel && (
-              <EchoPill variant="level" label={`Level ${finding.wcagLevel}`} />
-            )}
-            {finding.severity && (
-              <span
-                className="font-sans text-xs font-semibold"
-                style={{ color: severityColor }}
-              >
-                · {finding.severity.charAt(0).toUpperCase() + finding.severity.slice(1)}
-              </span>
-            )}
           </div>
 
-          <div className="flex items-center gap-3 flex-shrink-0">
-            {finding.wcagCriterion && (
-              <span className="font-serif italic text-sm" style={{ color: '#5f5e5e' }}>
-                Criterion {finding.wcagCriterion}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Title */}
-        <h3
-          className="font-serif font-bold leading-snug mb-3"
-          style={{ fontSize: '1.2rem', letterSpacing: '-0.01em', color: '#1a1a1a' }}
-        >
-          {finding.title}
-        </h3>
-
-        {/* Description */}
-        {finding.description && (
-          <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>
-            {finding.description}
-          </p>
-        )}
-
-        {/* Notes */}
-        {finding.notes && (
-          <p className="font-sans text-xs italic mb-3" style={{ color: '#5f5e5e' }}>
-            Note: {finding.notes}
-          </p>
-        )}
-
-        {/* Footer: tags + actions */}
-        <div className="flex items-center justify-between flex-wrap gap-2 pt-3" style={{ borderTop: '1px solid #f0ede9' }}>
-          <div className="flex flex-wrap gap-1.5">
-            {finding.pageUrl && (
-              <KVTag label="Page" value={finding.pageUrl} />
-            )}
-            {finding.component && (
-              <KVTag label="Component" value={finding.component} />
-            )}
-            {finding.standards?.map((s) => (
-              <span key={s} className="font-sans text-xs px-2 py-0.5" style={{ background: '#f6f3f2', color: '#5f5e5e', borderRadius: '3px' }}>
-                {s}
-              </span>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-            <Select value={finding.status || 'open'} onValueChange={handleStatusChange}>
-              <SelectTrigger
-                style={{ height: '32px', fontSize: '13px', minWidth: '130px', fontFamily: 'inherit' }}
-                aria-label="Finding status"
-              >
-                <span>{STATUS_LABELS[finding.status || 'open'] || finding.status}</span>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="needs_review">Needs Review</SelectItem>
-                <SelectItem value="resolved">Resolved</SelectItem>
-                <SelectItem value="wont_fix">Won&apos;t Fix</SelectItem>
-              </SelectContent>
-            </Select>
-
+          <div className="flex items-center gap-2 flex-shrink-0">
             <EchoButton
               icon={<Pencil className="w-4 h-4" />}
               iconPosition="left"
@@ -184,7 +91,6 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
             >
               Edit
             </EchoButton>
-
             <EchoButton
               icon={<Trash2 className="w-4 h-4" />}
               iconPosition="left"
@@ -196,6 +102,33 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
             </EchoButton>
           </div>
         </div>
+
+        {/* Description */}
+        {finding.description && (
+          <p className="font-sans text-sm leading-relaxed mb-2" style={{ color: '#5f5e5e' }}>
+            {finding.description}
+          </p>
+        )}
+
+        {/* Notes */}
+        {finding.notes && (
+          <p className="font-sans text-xs italic mb-2" style={{ color: '#5f5e5e' }}>
+            Note: {finding.notes}
+          </p>
+        )}
+
+        {/* Tags */}
+        {hasTags && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {finding.pageUrl && <KVTag label="Page" value={finding.pageUrl} />}
+            {finding.component && <KVTag label="Component" value={finding.component} />}
+            {finding.standards?.map((s) => (
+              <span key={s} className="font-sans text-xs px-2 py-0.5" style={{ background: '#f6f3f2', color: '#5f5e5e', borderRadius: '3px' }}>
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
       </article>
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
@@ -207,14 +140,8 @@ export function FindingRow({ finding, onEdit, onUpdate, onDelete }: FindingRowPr
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <EchoButton onClick={() => setDeleteOpen(false)}>
-              Cancel
-            </EchoButton>
-            <EchoButton
-              variant="primary"
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
+            <EchoButton onClick={() => setDeleteOpen(false)}>Cancel</EchoButton>
+            <EchoButton variant="primary" onClick={handleDelete} disabled={isDeleting}>
               {isDeleting ? 'Deleting…' : 'Delete'}
             </EchoButton>
           </DialogFooter>

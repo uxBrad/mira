@@ -131,6 +131,15 @@
     text-wrap: balance;
   }
 
+  /* Hide native scrollbar, keep scroll functional */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Glass effect for floating palettes */
   .glass {
     background: rgba(229, 226, 225, 0.7);
