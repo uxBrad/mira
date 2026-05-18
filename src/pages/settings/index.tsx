@@ -341,10 +341,10 @@ export default function SettingsPage() {
           ) : subscriptionStatus?.access === 'trialing' || subscriptionStatus?.access === 'expired' ? (
             <div className="flex gap-3 flex-wrap">
               <EchoButton onClick={() => handleSubscribe('monthly')}>
-                Subscribe monthly — $19/mo
+                Subscribe monthly — $4.99/mo
               </EchoButton>
               <EchoButton variant="primary" onClick={() => handleSubscribe('yearly')}>
-                Subscribe yearly — $190/yr
+                Subscribe yearly — $49.99/yr
               </EchoButton>
             </div>
           ) : null}

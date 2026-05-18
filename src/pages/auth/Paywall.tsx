@@ -80,7 +80,7 @@ export default function PaywallPage() {
           <div className="border rounded-xl p-6">
             <h3 className="font-semibold mb-1">Monthly</h3>
             <div className="flex items-baseline gap-1 mb-4">
-              <span className="text-3xl font-bold">$19</span>
+              <span className="text-3xl font-bold">$4.99</span>
               <span className="text-muted-foreground">/month</span>
             </div>
             <Button
@@ -98,15 +98,15 @@ export default function PaywallPage() {
           <div className="border-2 border-primary rounded-xl p-6 relative">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
               <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
-                Save 16%
+                Save 17%
               </span>
             </div>
             <h3 className="font-semibold mb-1">Yearly</h3>
             <div className="flex items-baseline gap-1 mb-1">
-              <span className="text-3xl font-bold">$190</span>
+              <span className="text-3xl font-bold">$49.99</span>
               <span className="text-muted-foreground">/year</span>
             </div>
-            <p className="text-xs text-muted-foreground mb-4">~$15.83/month</p>
+            <p className="text-xs text-muted-foreground mb-4">~$4.17/month</p>
             <Button
               className="w-full"
               onClick={() => handleCheckout('yearly')}
