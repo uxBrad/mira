@@ -47,7 +47,7 @@ function SubscriptionBadge({ access, daysRemaining }: { access: string; daysRema
 }
 
 export default function SettingsPage() {
-  const { session, subscriptionStatus } = useAuth()
+  const { session, subscriptionStatus, refreshSubscriptionStatus } = useAuth()
   const { toast } = useToast()
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -161,6 +161,10 @@ export default function SettingsPage() {
         title: 'Checkout opened',
         description: 'Complete your subscription in the browser window that opened.'
       })
+      const pollInterval = setInterval(async () => {
+        await refreshSubscriptionStatus()
+      }, 5000)
+      setTimeout(() => clearInterval(pollInterval), 5 * 60 * 1000)
     } catch (err) {
       toast({
         variant: 'destructive',
