@@ -35,8 +35,8 @@ export async function POST(request: NextRequest) {
               stripeSubscriptionId: stripeSubscription.id,
               status: stripeSubscription.status,
               plan: (session.metadata?.plan as 'monthly' | 'yearly') || null,
-              currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
-              cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end
+              currentPeriodEnd: stripeSubscription.current_period_end ? new Date(stripeSubscription.current_period_end * 1000) : null,
+              cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end ?? false
             }
           })
         }
@@ -46,14 +46,14 @@ export async function POST(request: NextRequest) {
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
-
-        await prisma.subscription.update({
+        const periodEnd = (subscription as unknown as Record<string, unknown>).current_period_end
+        await prisma.subscription.updateMany({
           where: { stripeCustomerId: customerId },
           data: {
             stripeSubscriptionId: subscription.id,
             status: subscription.status,
-            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-            cancelAtPeriodEnd: subscription.cancel_at_period_end
+            currentPeriodEnd: typeof periodEnd === 'number' ? new Date(periodEnd * 1000) : null,
+            cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false
           }
         })
         break
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
 
-        await prisma.subscription.update({
+        await prisma.subscription.updateMany({
           where: { stripeCustomerId: customerId },
           data: {
             status: 'canceled',
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
         const invoice = event.data.object as Stripe.Invoice
         const customerId = invoice.customer as string
 
-        await prisma.subscription.update({
+        await prisma.subscription.updateMany({
           where: { stripeCustomerId: customerId },
           data: { status: 'past_due' }
         })
@@ -101,12 +101,5 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Webhook processing error:', error)
     return NextResponse.json({ error: 'Webhook processing failed.' }, { status: 500 })
-  }
-}
-
-// Stripe needs raw body for webhook signature verification
-export const config = {
-  api: {
-    bodyParser: false
   }
 }
