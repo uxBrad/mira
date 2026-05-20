@@ -128,7 +128,7 @@ export default function AppShell() {
             <button
               onClick={() => setDropdownOpen(p => !p)}
               className="flex items-center justify-center w-7 h-7 font-sans text-xs font-bold text-white overflow-hidden flex-shrink-0 transition-opacity hover:opacity-80"
-              style={{ borderRadius: '4px', background: '#610000' }}
+              style={{ borderRadius: '4px', background: '#1d4ed8' }}
               aria-label="Account menu"
               aria-haspopup="menu"
               aria-expanded={dropdownOpen}
@@ -172,7 +172,7 @@ export default function AppShell() {
                   role="menuitem"
                   onClick={handleLogout}
                   className="w-full text-left flex items-center gap-2.5 px-3 py-2.5 font-sans text-sm transition-colors hover:bg-[#f6f3f2]"
-                  style={{ color: '#610000' }}
+                  style={{ color: '#1d4ed8' }}
                 >
                   <LogOut className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                   Sign out

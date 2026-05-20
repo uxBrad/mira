@@ -272,7 +272,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-center mb-3" style={{ minHeight: '80px' }}>
                 <div
                   className="flex items-center justify-center w-16 h-16 font-serif font-bold text-2xl text-white"
-                  style={{ background: '#610000', borderRadius: '9999px' }}
+                  style={{ background: '#1d4ed8', borderRadius: '9999px' }}
                 >
                   {session?.user.email?.[0]?.toUpperCase() ?? '?'}
                 </div>

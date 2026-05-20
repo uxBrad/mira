@@ -28,7 +28,7 @@ export const EchoButton = forwardRef<HTMLButtonElement, EchoButtonProps>(
         className={[
           'inline-flex items-center gap-[10px] font-sans text-base transition-opacity',
           'hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#610000]',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1d4ed8]',
           fullWidth ? 'w-full' : '',
           className,
         ]
@@ -38,7 +38,7 @@ export const EchoButton = forwardRef<HTMLButtonElement, EchoButtonProps>(
           padding: '10px 15px',
           borderRadius: '5px',
           border: '1px solid #5f5e80',
-          background: variant === 'primary' ? '#610000' : '#fcf9f8',
+          background: variant === 'primary' ? '#1d4ed8' : '#fcf9f8',
           color: variant === 'primary' ? '#ffffff' : '#1a1a1a',
           ...style,
         }}

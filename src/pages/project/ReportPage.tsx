@@ -258,7 +258,7 @@ export default function ReportPage() {
           <button
             onClick={() => navigate(`/project/${id}`)}
             className="font-sans text-xs font-bold uppercase tracking-widest inline-flex items-center gap-1.5 hover:opacity-70 transition-opacity"
-            style={{ color: '#610000', letterSpacing: '0.12em' }}
+            style={{ color: '#1d4ed8', letterSpacing: '0.12em' }}
           >
             ← Back to Project
           </button>
@@ -269,7 +269,7 @@ export default function ReportPage() {
               onClick={handleClickExportPdf}
               disabled={isExportingPdf || isExportingCsv}
               className="font-sans text-xs font-bold uppercase tracking-widest inline-flex items-center gap-1.5 px-3 py-2 rounded hover:opacity-70 transition-opacity disabled:opacity-50"
-              style={{ color: '#fff', background: '#610000', letterSpacing: '0.12em' }}
+              style={{ color: '#fff', background: '#1d4ed8', letterSpacing: '0.12em' }}
             >
               <Download size={14} />
               {isExportingPdf ? 'Exporting...' : 'PDF'}
@@ -278,7 +278,7 @@ export default function ReportPage() {
               onClick={handleExportCsv}
               disabled={isExportingPdf || isExportingCsv}
               className="font-sans text-xs font-bold uppercase tracking-widest inline-flex items-center gap-1.5 px-3 py-2 rounded hover:opacity-70 transition-opacity disabled:opacity-50"
-              style={{ color: '#fff', background: '#610000', letterSpacing: '0.12em' }}
+              style={{ color: '#fff', background: '#1d4ed8', letterSpacing: '0.12em' }}
             >
               <Download size={14} />
               {isExportingCsv ? 'Exporting...' : 'CSV'}
@@ -289,7 +289,7 @@ export default function ReportPage() {
         <div className="flex items-end justify-between gap-8">
           <div>
             {project.standards && (
-              <p className="font-sans text-xs font-bold uppercase mb-2" style={{ color: '#610000', letterSpacing: '0.12em' }}>
+              <p className="font-sans text-xs font-bold uppercase mb-2" style={{ color: '#1d4ed8', letterSpacing: '0.12em' }}>
                 {project.standards} Audit Report
               </p>
             )}
@@ -409,7 +409,7 @@ export default function ReportPage() {
                           ) : (
                             <span style={{ width: '16px', flexShrink: 0 }} />
                           )}
-                          <span className="font-sans text-xs font-bold flex-shrink-0" style={{ color: '#610000', minWidth: '2.8rem' }}>{c.id}</span>
+                          <span className="font-sans text-xs font-bold flex-shrink-0" style={{ color: '#1d4ed8', minWidth: '2.8rem' }}>{c.id}</span>
                           <span className="font-sans text-sm" style={{ color: '#2b2c2c' }}>{c.name}</span>
                           <span
                             className="font-sans text-xs flex-shrink-0"
@@ -515,7 +515,7 @@ export default function ReportPage() {
               className="w-full flex flex-col items-start p-4 border rounded-lg hover:bg-slate-50 transition-colors text-left"
               style={{ borderColor: '#e0dbd9' }}
             >
-              <span className="font-semibold" style={{ color: '#610000' }}>Summary Report</span>
+              <span className="font-semibold" style={{ color: '#1d4ed8' }}>Summary Report</span>
               <span className="text-xs text-gray-600 mt-1">Executive overview with findings grouped by severity</span>
             </button>
             <button
@@ -524,7 +524,7 @@ export default function ReportPage() {
               className="w-full flex flex-col items-start p-4 border rounded-lg hover:bg-slate-50 transition-colors text-left"
               style={{ borderColor: '#e0dbd9' }}
             >
-              <span className="font-semibold" style={{ color: '#610000' }}>VPAT Report</span>
+              <span className="font-semibold" style={{ color: '#1d4ed8' }}>VPAT Report</span>
               <span className="text-xs text-gray-600 mt-1">Voluntary Product Accessibility Template with criterion-by-criterion assessment</span>
             </button>
           </div>

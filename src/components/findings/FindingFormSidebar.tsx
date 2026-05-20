@@ -297,7 +297,7 @@ export function FindingFormSidebar({
       >
         <span
           className="font-sans text-sm font-bold uppercase tracking-widest"
-          style={{ color: '#610000', letterSpacing: '0.12em' }}
+          style={{ color: '#1d4ed8', letterSpacing: '0.12em' }}
         >
           {heading}
         </span>
@@ -369,7 +369,7 @@ export function FindingFormSidebar({
             {/* Title */}
             <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 80ms both' }}>
               <Label htmlFor="sf-title" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
-                Title <span aria-hidden="true" style={{ color: '#610000' }}>*</span>
+                Title <span aria-hidden="true" style={{ color: '#1d4ed8' }}>*</span>
               </Label>
               <Input
                 id="sf-title"
@@ -738,9 +738,9 @@ export function FindingFormSidebar({
           disabled={isLoading || !title.trim()}
           style={{
             ...btnBase,
-            background: '#610000',
+            background: '#1d4ed8',
             color: '#fff',
-            border: '1px solid #610000',
+            border: '1px solid #1d4ed8',
             opacity: (isLoading || !title.trim()) ? 0.4 : 1,
           }}
         >

@@ -31,7 +31,7 @@ interface ProjectFormDialogProps {
   onToggleWide?: () => void
 }
 
-const inputClass = 'w-full h-9 px-3 font-sans text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#610000]'
+const inputClass = 'w-full h-9 px-3 font-sans text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#1d4ed8]'
 const inputStyle = { border: '1px solid #d0cac8' }
 
 export function ProjectFormDialog({
@@ -155,7 +155,7 @@ export function ProjectFormDialog({
       >
         <span
           className="font-sans text-sm font-bold uppercase tracking-widest"
-          style={{ color: '#610000', letterSpacing: '0.12em' }}
+          style={{ color: '#1d4ed8', letterSpacing: '0.12em' }}
         >
           {heading}
         </span>
@@ -228,7 +228,7 @@ export function ProjectFormDialog({
               {/* Name */}
               <div className="space-y-1.5">
                 <Label htmlFor="ps-name" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
-                  Project name <span aria-hidden="true" style={{ color: '#610000' }}>*</span>
+                  Project name <span aria-hidden="true" style={{ color: '#1d4ed8' }}>*</span>
                 </Label>
                 <input
                   id="ps-name"
@@ -353,7 +353,7 @@ export function ProjectFormDialog({
                   placeholder="Audit scope, context, or notes about this project…"
                   rows={3}
                   disabled={isLoading}
-                  className="w-full px-3 py-2 font-sans text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#610000] resize-none"
+                  className="w-full px-3 py-2 font-sans text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#1d4ed8] resize-none"
                   style={{ border: '1px solid #d0cac8' }}
                 />
               </div>

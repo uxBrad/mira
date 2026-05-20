@@ -42,7 +42,7 @@ function ArchivePanel({
         className="flex-shrink-0 flex items-center justify-between px-6"
         style={{ borderBottom: '1px solid #e0dbd9', background: '#f6f3f2', minHeight: '60px' }}
       >
-        <span className="font-sans text-sm font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.12em' }}>
+        <span className="font-sans text-sm font-bold uppercase tracking-widest" style={{ color: '#1d4ed8', letterSpacing: '0.12em' }}>
           Archive Project
         </span>
         <button
@@ -183,7 +183,7 @@ export default function DashboardPage() {
       >
         {/* Header */}
         <div className="flex-shrink-0 px-10 pt-10 pb-5" style={{ background: '#fcf9f8' }}>
-          <p className="font-sans text-xs font-bold tracking-widest uppercase mb-1" style={{ color: '#610000', letterSpacing: '0.12em' }}>
+          <p className="font-sans text-xs font-bold tracking-widest uppercase mb-1" style={{ color: '#1d4ed8', letterSpacing: '0.12em' }}>
             Audit Management
           </p>
           <h1 className="font-serif font-bold leading-none" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em', color: '#1a1a1a' }}>
@@ -203,8 +203,8 @@ export default function DashboardPage() {
               aria-pressed={statusFilter === f.key}
               className="font-sans text-xs font-semibold px-3 py-1.5 whitespace-nowrap transition-colors"
               style={{
-                border: `1px solid ${statusFilter === f.key ? '#610000' : '#d0cac8'}`,
-                background: statusFilter === f.key ? '#610000' : 'transparent',
+                border: `1px solid ${statusFilter === f.key ? '#1d4ed8' : '#d0cac8'}`,
+                background: statusFilter === f.key ? '#1d4ed8' : 'transparent',
                 color: statusFilter === f.key ? '#fff' : '#2b2c2c',
               }}
             >

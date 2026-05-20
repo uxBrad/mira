@@ -80,7 +80,7 @@ export default function LoginPage() {
     }
   }
 
-  const inputClass = 'w-full h-10 px-3 font-sans text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#610000] transition-colors'
+  const inputClass = 'w-full h-10 px-3 font-sans text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1d4ed8] transition-colors'
   const inputStyle = { border: '1px solid #d0cac8' }
 
   return (
@@ -203,7 +203,7 @@ export default function LoginPage() {
                     role="alert"
                     aria-live="assertive"
                     className="mb-6 px-4 py-3 font-sans text-sm"
-                    style={{ background: '#ebe7e7', color: '#610000' }}
+                    style={{ background: '#ebe7e7', color: '#1d4ed8' }}
                   >
                     {error}
                   </div>

@@ -14,8 +14,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 2% 11%;
 
-    /* Primary: velvet red */
-    --primary: 0 100% 19%;             /* #610000 */
+    /* Primary: Jecture blue */
+    --primary: 224 76% 48%;            /* #1d4ed8 */
     --primary-foreground: 0 0% 100%;  /* #ffffff */
 
     /* Secondary: surface-highest */
@@ -37,10 +37,9 @@
     /* No-line rule: ghost border at very low opacity */
     --border: 0 0% 78%;                /* #c6c6c6 — used sparingly */
     --input: 10 4% 89%;                /* surface-highest */
-    --ring: 0 100% 19%;                /* velvet red focus ring */
+    --ring: 224 76% 48%;               /* Jecture blue focus ring */
 
-    /* 0px radius everywhere — architectural permanence */
-    --radius: 0rem;
+    --radius: 0.375rem;
 
     /* Severity — keep legible */
     --severity-critical: 0 100% 38%;

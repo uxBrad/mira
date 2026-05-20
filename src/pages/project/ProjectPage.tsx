@@ -102,8 +102,8 @@ function MultiSelectFilter({
         onClick={() => setOpen(p => !p)}
         className="flex items-center gap-1.5 font-sans text-xs font-semibold px-3 py-1.5 whitespace-nowrap transition-colors"
         style={{
-          border: `1px solid ${active ? '#610000' : '#d0cac8'}`,
-          background: active ? '#610000' : 'transparent',
+          border: `1px solid ${active ? '#1d4ed8' : '#d0cac8'}`,
+          background: active ? '#1d4ed8' : 'transparent',
           color: active ? '#fff' : '#2b2c2c',
         }}
         aria-haspopup="listbox"
@@ -157,8 +157,8 @@ function MultiSelectFilter({
                 <span
                   className="flex-shrink-0 w-4 h-4 flex items-center justify-center"
                   style={{
-                    border: `1.5px solid ${checked ? '#610000' : '#d0cac8'}`,
-                    background: checked ? '#610000' : 'transparent',
+                    border: `1.5px solid ${checked ? '#1d4ed8' : '#d0cac8'}`,
+                    background: checked ? '#1d4ed8' : 'transparent',
                     borderRadius: '2px',
                   }}
                 >
@@ -570,7 +570,7 @@ export default function ProjectPage() {
               {project.standards && (
                 <p
                   className="font-sans text-xs font-bold uppercase mb-3"
-                  style={{ color: '#610000', letterSpacing: '0.12em' }}
+                  style={{ color: '#1d4ed8', letterSpacing: '0.12em' }}
                 >
                   {project.standards} Audit
                 </p>
@@ -690,7 +690,7 @@ export default function ProjectPage() {
                       setComponentFilter([])
                     }}
                     className="font-sans text-xs underline underline-offset-2"
-                    style={{ color: '#610000' }}
+                    style={{ color: '#1d4ed8' }}
                   >
                     Clear all
                   </button>
@@ -700,7 +700,7 @@ export default function ProjectPage() {
             {/* Group by criteria toggle — always visible */}
             <label
               className="flex items-center gap-1.5 font-sans text-xs font-semibold px-3 py-1.5 cursor-pointer select-none ml-auto"
-              style={{ border: `1px solid ${groupByCriteria ? '#610000' : '#d0cac8'}`, background: groupByCriteria ? '#610000' : 'transparent', color: groupByCriteria ? '#fff' : '#2b2c2c' }}
+              style={{ border: `1px solid ${groupByCriteria ? '#1d4ed8' : '#d0cac8'}`, background: groupByCriteria ? '#1d4ed8' : 'transparent', color: groupByCriteria ? '#fff' : '#2b2c2c' }}
             >
               <input
                 type="checkbox"
@@ -712,7 +712,7 @@ export default function ProjectPage() {
                 className="flex-shrink-0 w-3.5 h-3.5 flex items-center justify-center"
                 style={{ border: `1.5px solid ${groupByCriteria ? '#fff' : '#d0cac8'}`, background: groupByCriteria ? '#fff' : 'transparent', borderRadius: '2px' }}
               >
-                {groupByCriteria && <Check className="h-2 w-2" style={{ color: '#610000' }} />}
+                {groupByCriteria && <Check className="h-2 w-2" style={{ color: '#1d4ed8' }} />}
               </span>
               Group by criteria
             </label>
@@ -810,7 +810,7 @@ export default function ProjectPage() {
                       <div key={criterion.id}>
                         {/* Criterion heading row */}
                         <div className="flex items-center gap-2 mb-2 pb-2.5" style={{ borderBottom: '1px solid #e0dbd9' }}>
-                          <span className="font-sans text-sm font-bold uppercase tracking-widest flex-shrink-0" style={{ color: '#610000', letterSpacing: '0.1em' }}>
+                          <span className="font-sans text-sm font-bold uppercase tracking-widest flex-shrink-0" style={{ color: '#1d4ed8', letterSpacing: '0.1em' }}>
                             {criterion.id}
                           </span>
                           <span className="font-serif font-bold text-base truncate" style={{ color: '#1a1a1a' }}>
@@ -897,7 +897,7 @@ export default function ProjectPage() {
                   {principleFilter.length === 0 && unassigned.length > 0 && (
                     <div>
                       <div className="flex items-center gap-2 mb-1 pb-2" style={{ borderBottom: '1px solid #e0dbd9' }}>
-                        <span className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.1em' }}>
+                        <span className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#1d4ed8', letterSpacing: '0.1em' }}>
                           Unassigned
                         </span>
                         <span className="font-sans text-xs ml-auto" style={{ color: '#5f5e5e' }}>
@@ -1129,7 +1129,7 @@ export default function ProjectPage() {
           {toolkitPanel === 'pages' && (
             <div className="flex flex-col h-full overflow-hidden" style={{ borderLeft: '1px solid #e0dbd9' }}>
               <div className="flex-shrink-0 flex items-center justify-between px-6" style={{ borderBottom: '1px solid #e0dbd9', background: '#f6f3f2', minHeight: '60px' }}>
-                <span className="font-sans text-sm font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.12em' }}>Pages</span>
+                <span className="font-sans text-sm font-bold uppercase tracking-widest" style={{ color: '#1d4ed8', letterSpacing: '0.12em' }}>Pages</span>
                 <button
                   onClick={() => { setToolkitPanel(null); setNewPageValue(''); setRenamingPage(null); setRenamePageValue('') }}
                   className="flex items-center justify-center hover:text-foreground transition-colors"
@@ -1159,7 +1159,7 @@ export default function ProjectPage() {
                                 className="flex-1 h-8 px-2 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
                                 style={{ borderColor: '#d0cac8' }}
                               />
-                              <button onClick={() => handleRenamePage(page, renamePageValue)} disabled={!renamePageValue.trim()} className="px-2.5 py-1 font-sans text-xs font-bold text-white disabled:opacity-40" style={{ background: '#610000' }}>Save</button>
+                              <button onClick={() => handleRenamePage(page, renamePageValue)} disabled={!renamePageValue.trim()} className="px-2.5 py-1 font-sans text-xs font-bold text-white disabled:opacity-40" style={{ background: '#1d4ed8' }}>Save</button>
                               <button onClick={() => { setRenamingPage(null); setRenamePageValue('') }} className="px-2.5 py-1 font-sans text-xs font-medium" style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}>Cancel</button>
                             </>
                           ) : (
@@ -1201,7 +1201,7 @@ export default function ProjectPage() {
           {toolkitPanel === 'components' && (
             <div className="flex flex-col h-full overflow-hidden" style={{ borderLeft: '1px solid #e0dbd9' }}>
               <div className="flex-shrink-0 flex items-center justify-between px-6" style={{ borderBottom: '1px solid #e0dbd9', background: '#f6f3f2', minHeight: '60px' }}>
-                <span className="font-sans text-sm font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.12em' }}>Components</span>
+                <span className="font-sans text-sm font-bold uppercase tracking-widest" style={{ color: '#1d4ed8', letterSpacing: '0.12em' }}>Components</span>
                 <button
                   onClick={() => { setToolkitPanel(null); setNewComponentValue(''); setRenamingComponent(null); setRenameComponentValue('') }}
                   className="flex items-center justify-center hover:text-foreground transition-colors"
@@ -1231,7 +1231,7 @@ export default function ProjectPage() {
                                 className="flex-1 h-8 px-2 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
                                 style={{ borderColor: '#d0cac8' }}
                               />
-                              <button onClick={() => handleRenameComponent(comp, renameComponentValue)} disabled={!renameComponentValue.trim()} className="px-2.5 py-1 font-sans text-xs font-bold text-white disabled:opacity-40" style={{ background: '#610000' }}>Save</button>
+                              <button onClick={() => handleRenameComponent(comp, renameComponentValue)} disabled={!renameComponentValue.trim()} className="px-2.5 py-1 font-sans text-xs font-bold text-white disabled:opacity-40" style={{ background: '#1d4ed8' }}>Save</button>
                               <button onClick={() => { setRenamingComponent(null); setRenameComponentValue('') }} className="px-2.5 py-1 font-sans text-xs font-medium" style={{ border: '1px solid #d0cac8', color: '#2b2c2c' }}>Cancel</button>
                             </>
                           ) : (
@@ -1301,7 +1301,7 @@ export default function ProjectPage() {
                   className="w-full flex flex-col items-start p-4 border rounded-lg hover:bg-slate-50 transition-colors text-left"
                   style={{ borderColor: '#e0dbd9' }}
                 >
-                  <span className="font-semibold" style={{ color: '#610000' }}>Summary Report</span>
+                  <span className="font-semibold" style={{ color: '#1d4ed8' }}>Summary Report</span>
                   <span className="text-xs text-gray-600 mt-1">Executive overview with findings grouped by severity</span>
                 </button>
                 <button
@@ -1310,7 +1310,7 @@ export default function ProjectPage() {
                   className="w-full flex flex-col items-start p-4 border rounded-lg hover:bg-slate-50 transition-colors text-left"
                   style={{ borderColor: '#e0dbd9' }}
                 >
-                  <span className="font-semibold" style={{ color: '#610000' }}>VPAT Report</span>
+                  <span className="font-semibold" style={{ color: '#1d4ed8' }}>VPAT Report</span>
                   <span className="text-xs text-gray-600 mt-1">Voluntary Product Accessibility Template with criterion-by-criterion assessment</span>
                 </button>
               </div>

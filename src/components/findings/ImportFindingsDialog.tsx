@@ -228,7 +228,7 @@ export function ImportFindingsDialog({
                 width: 56, height: 56, borderRadius: '50%',
                 background: '#f6f3f2', display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}>
-                <FileSpreadsheet className="h-6 w-6" style={{ color: '#610000' }} />
+                <FileSpreadsheet className="h-6 w-6" style={{ color: '#1d4ed8' }} />
               </div>
               <div className="text-center">
                 <p className="font-sans font-semibold text-sm" style={{ color: '#1a1a1a' }}>
@@ -247,7 +247,7 @@ export function ImportFindingsDialog({
               <Button
                 onClick={handleChooseFile}
                 disabled={isLoading}
-                style={{ background: '#610000', color: '#fff', borderRadius: '4px' }}
+                style={{ background: '#1d4ed8', color: '#fff', borderRadius: '4px' }}
               >
                 <Upload className="h-4 w-4 mr-2" />
                 {isLoading ? 'Reading file…' : 'Choose file'}
@@ -300,7 +300,7 @@ export function ImportFindingsDialog({
                         type="checkbox"
                         checked={val}
                         onChange={e => set(e.target.checked)}
-                        style={{ accentColor: '#610000', width: 14, height: 14 }}
+                        style={{ accentColor: '#1d4ed8', width: 14, height: 14 }}
                       />
                       {label}
                       <span style={{ color: '#5f5e5e', fontSize: '11px' }}>({count})</span>
@@ -336,7 +336,7 @@ export function ImportFindingsDialog({
                       type="checkbox"
                       checked={allVisibleSelected}
                       onChange={() => toggleAll(visible)}
-                      style={{ accentColor: '#610000', width: 14, height: 14, flexShrink: 0 }}
+                      style={{ accentColor: '#1d4ed8', width: 14, height: 14, flexShrink: 0 }}
                     />
                     <span className="font-sans text-xs font-bold uppercase" style={{ color: '#5f5e5e', letterSpacing: '0.08em', flex: 1 }}>
                       Finding ({selectedVisible.length} of {visible.length} selected)
@@ -370,13 +370,13 @@ export function ImportFindingsDialog({
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => toggleOne(f.previewId)}
-                            style={{ accentColor: '#610000', width: 14, height: 14, flexShrink: 0 }}
+                            style={{ accentColor: '#1d4ed8', width: 14, height: 14, flexShrink: 0 }}
                           />
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div className="flex items-center gap-2 flex-wrap">
                               <span
                                 className="font-sans text-xs font-bold flex-shrink-0"
-                                style={{ color: '#610000' }}
+                                style={{ color: '#1d4ed8' }}
                               >
                                 {f.wcagCriterion}
                               </span>
@@ -475,7 +475,7 @@ export function ImportFindingsDialog({
           {step === 'importing' && (
             <div className="flex flex-col items-center justify-center py-16 gap-4">
               <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
-                style={{ borderColor: '#610000', borderTopColor: 'transparent' }} />
+                style={{ borderColor: '#1d4ed8', borderTopColor: 'transparent' }} />
               <p className="font-sans text-sm" style={{ color: '#5f5e5e' }}>Importing findings…</p>
             </div>
           )}
@@ -507,7 +507,7 @@ export function ImportFindingsDialog({
                 </Button>
                 <Button
                   onClick={() => handleClose(false)}
-                  style={{ background: '#610000', color: '#fff', borderRadius: '4px' }}
+                  style={{ background: '#1d4ed8', color: '#fff', borderRadius: '4px' }}
                 >
                   Done
                 </Button>
@@ -535,7 +535,7 @@ export function ImportFindingsDialog({
                   onClick={handleImport}
                   disabled={selectedVisible.length === 0}
                   style={{
-                    background: selectedVisible.length === 0 ? '#e0dbd9' : '#610000',
+                    background: selectedVisible.length === 0 ? '#e0dbd9' : '#1d4ed8',
                     color: selectedVisible.length === 0 ? '#5f5e5e' : '#fff',
                     borderRadius: '4px'
                   }}

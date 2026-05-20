@@ -338,7 +338,7 @@ export function StepAuditPanel({
         style={{ borderBottom: '1px solid #e0dbd9', background: '#f6f3f2', minHeight: '60px' }}
       >
         <div className="flex items-center gap-3">
-          <span className="font-sans text-sm font-bold uppercase tracking-widest" style={{ color: '#610000', letterSpacing: '0.12em' }}>
+          <span className="font-sans text-sm font-bold uppercase tracking-widest" style={{ color: '#1d4ed8', letterSpacing: '0.12em' }}>
             Step-by-Step Audit
           </span>
           <span className="font-sans text-sm font-semibold" style={{ color: '#3a3a3a' }}>
@@ -410,7 +410,7 @@ export function StepAuditPanel({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 font-sans text-xs font-semibold hover:underline"
-                  style={{ color: '#610000' }}
+                  style={{ color: '#1d4ed8' }}
                 >
                   Understanding {criterion.id}
                   <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -420,7 +420,7 @@ export function StepAuditPanel({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 font-sans text-xs font-semibold hover:underline"
-                  style={{ color: '#610000' }}
+                  style={{ color: '#1d4ed8' }}
                 >
                   How to Meet
                   <ExternalLink className="h-3 w-3" aria-hidden="true" />

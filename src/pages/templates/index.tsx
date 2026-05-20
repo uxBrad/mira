@@ -548,8 +548,8 @@ export default function TemplatesPage() {
 
                   {/* Recommendation */}
                   {template.recommendations && (
-                    <div className="mb-3" style={{ borderLeft: '3px solid #610000', paddingLeft: '12px' }}>
-                      <p className="font-sans text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#610000', letterSpacing: '0.1em' }}>
+                    <div className="mb-3" style={{ borderLeft: '3px solid #1d4ed8', paddingLeft: '12px' }}>
+                      <p className="font-sans text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#1d4ed8', letterSpacing: '0.1em' }}>
                         Recommendation
                       </p>
                       <p className="font-sans text-sm leading-relaxed" style={{ color: '#2b2c2c' }}>
