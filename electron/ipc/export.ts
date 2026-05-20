@@ -305,7 +305,7 @@ function buildReportHtml(
         </div>
       `).join('')}
     </div>
-    <p style="font-family:-apple-system,sans-serif; font-size:12px; color:#aaa;">Generated ${date} · Echo</p>
+    <p style="font-family:-apple-system,sans-serif; font-size:12px; color:#aaa;">Generated ${date} · manuA11y</p>
   </div>
 </div>
 
@@ -637,7 +637,7 @@ function buildVpatHtml(
   </div>
 
   <div style="padding-top: 40px; border-top: 1px solid #e0dbd9;">
-    <p style="font-size: 10px; color: #999;">Echo Accessibility Audit Tool</p>
+    <p style="font-size: 10px; color: #999;">manuA11y Accessibility Audit Tool</p>
   </div>
 </div>
 
@@ -765,7 +765,7 @@ function buildVpatHtml(
   </p>
 
   <p style="font-size: 11px; color: #666; line-height: 1.8;">
-    This assessment was generated on ${date} using Echo, an accessibility auditing tool. For the most current information about product accessibility, please contact the organization directly.
+    This assessment was generated on ${date} using manuA11y, an accessibility auditing tool. For the most current information about product accessibility, please contact the organization directly.
   </p>
 
   <div class="page-number">Page 16 of 16</div>

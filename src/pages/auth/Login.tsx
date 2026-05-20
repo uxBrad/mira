@@ -90,7 +90,7 @@ export default function LoginPage() {
         className="hidden lg:flex w-2/5 flex-col justify-between px-12 py-12"
         style={{ background: '#f6f3f2' }}
       >
-        <span className="font-display text-xl font-bold text-foreground">Echo</span>
+        <span className="font-display text-xl font-bold text-foreground">manuA11y</span>
         <div>
           <p className="font-display text-3xl font-semibold leading-snug text-foreground mb-4">
             The professional tool for accessibility auditing.
@@ -100,7 +100,7 @@ export default function LoginPage() {
           </p>
         </div>
         <p className="font-data text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Echo
+          © {new Date().getFullYear()} manuA11y
         </p>
       </div>
 
@@ -108,7 +108,7 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center px-8">
         <div className="w-full max-w-sm">
           <div className="mb-10 lg:hidden">
-            <span className="font-display text-xl font-bold">Echo</span>
+            <span className="font-display text-xl font-bold">manuA11y</span>
           </div>
 
           {needsVerification ? (

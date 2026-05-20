@@ -4,7 +4,7 @@
   "description": "Accessibility audit management tool",
   "main": "./out/main/index.js",
   "author": {
-    "name": "Echo"
+    "name": "manuA11y"
   },
   "homepage": "https://helloecho.app",
   "scripts": {

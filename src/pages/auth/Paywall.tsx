@@ -53,11 +53,11 @@ export default function PaywallPage() {
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
           <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mx-auto mb-4" aria-hidden="true">
-            <span className="text-primary-foreground font-bold text-xl">E</span>
+            <span className="text-primary-foreground font-bold text-xl">m</span>
           </div>
           <h1 className="text-3xl font-bold mb-2">Your trial has ended</h1>
           <p className="text-muted-foreground text-lg">
-            Subscribe to continue using Echo.
+            Subscribe to continue using manuA11y.
           </p>
         </div>
 
