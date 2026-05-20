@@ -1,5 +1,5 @@
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
-import { Settings, LogOut, Clock, User, LayoutGrid, Layers, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { Settings, LogOut, Clock, User, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../ui/use-toast'
 import UpdateBanner from '../UpdateBanner'
@@ -174,17 +174,11 @@ export default function AppShell() {
   const isOnProject = /^\/project\/[^/]+$/.test(location.pathname)
 
   const FILE_MENU: MenuEntry[] = [
-    {
-      label: 'New Project',
-      shortcut: 'Ctrl+N',
-      action: () => { navigate('/'); window.dispatchEvent(new CustomEvent('menu:newProject')) },
-    },
-    {
-      label: 'New Finding',
-      shortcut: 'Ctrl+Shift+N',
-      action: () => window.dispatchEvent(new CustomEvent('menu:newFinding')),
-      disabled: !isOnProject,
-    },
+    { label: 'New Project', shortcut: 'Ctrl+N', action: () => { navigate('/'); window.dispatchEvent(new CustomEvent('menu:newProject')) } },
+    { label: 'New Finding', shortcut: 'Ctrl+Shift+N', action: () => window.dispatchEvent(new CustomEvent('menu:newFinding')), disabled: !isOnProject },
+    'separator',
+    { label: 'Projects', action: () => navigate('/') },
+    { label: 'Templates', action: () => navigate('/templates') },
     'separator',
     { label: 'Settings', shortcut: 'Ctrl+,', action: () => navigate('/settings') },
     'separator',
@@ -224,47 +218,29 @@ export default function AppShell() {
     >
       <header
         className="flex-shrink-0 flex items-center px-2 titlebar-drag"
-        style={{ background: '#ffffff', borderBottom: '1px solid #ebe7e7', height: '40px' }}
+        style={{ background: '#ffffff', borderBottom: '1px solid #ebe7e7', height: '48px' }}
         aria-label="Main navigation"
       >
-        {/* Left: app mark, back/forward, menus, nav */}
+        {/* Left: app mark + menus */}
         <div className="flex items-center gap-1 titlebar-no-drag">
           {/* App mark */}
           <div
             className="flex items-center justify-center flex-shrink-0 font-sans font-bold text-white select-none"
             style={{
-              width: '22px',
-              height: '22px',
+              width: '24px',
+              height: '24px',
               background: '#1d4ed8',
               borderRadius: '4px',
-              fontSize: '11px',
-              marginRight: '2px',
+              fontSize: '12px',
+              marginRight: '4px',
             }}
             aria-hidden="true"
           >
             m
           </div>
 
-          {/* Back / Forward */}
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center justify-center transition-colors hover:bg-[#f6f3f2]"
-            style={{ width: '26px', height: '26px', borderRadius: '4px', color: '#9a9897' }}
-            aria-label="Go back"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => navigate(1)}
-            className="flex items-center justify-center transition-colors hover:bg-[#f6f3f2]"
-            style={{ width: '26px', height: '26px', borderRadius: '4px', color: '#9a9897' }}
-            aria-label="Go forward"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-
           {/* Menu bar */}
-          <div ref={menuBarRef} className="flex items-center gap-0.5 ml-1">
+          <div ref={menuBarRef} className="flex items-center gap-0.5">
             {MENUS.map(({ key, label, items }) => (
               <MenuDropdown
                 key={key}
@@ -275,60 +251,15 @@ export default function AppShell() {
               />
             ))}
           </div>
-
-          {/* Divider */}
-          <div style={{ width: '1px', height: '20px', background: '#e0dbd9', margin: '0 6px' }} aria-hidden="true" />
-
-          {/* Nav links */}
-          <nav className="flex items-center gap-1" aria-label="App sections">
-            {[
-              { to: '/', icon: LayoutGrid, label: 'Projects', matchPrefix: ['/project/'] },
-              { to: '/templates', icon: Layers, label: 'Templates', matchPrefix: [] },
-            ].map(({ to, icon: Icon, label, matchPrefix }) => {
-              const isActive =
-                (to === '/' ? location.pathname === '/' : location.pathname.startsWith(to)) ||
-                matchPrefix.some((p) => location.pathname.startsWith(p))
-              return (
-                <NavLink
-                  key={to}
-                  to={to}
-                  end={to === '/'}
-                  className="flex items-center gap-[5px] font-sans text-sm font-medium transition-colors"
-                  style={{
-                    padding: '4px 7px',
-                    borderRadius: '4px',
-                    color: isActive ? '#1a1a1a' : '#9a9897',
-                    background: isActive ? '#f0ede9' : 'transparent',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      ;(e.currentTarget as HTMLElement).style.color = '#1a1a1a'
-                      ;(e.currentTarget as HTMLElement).style.background = '#f6f3f2'
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      ;(e.currentTarget as HTMLElement).style.color = '#9a9897'
-                      ;(e.currentTarget as HTMLElement).style.background = 'transparent'
-                    }
-                  }}
-                  aria-current={isActive ? 'page' : undefined}
-                >
-                  <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                  <span>{label}</span>
-                </NavLink>
-              )
-            })}
-          </nav>
         </div>
 
         {/* Center: draggable region */}
         <div className="flex-1 titlebar-drag" />
 
-        {/* Right: trial badge + avatar dropdown */}
-        <div className="flex items-center gap-2 flex-shrink-0 titlebar-no-drag" style={{ paddingRight: '140px' }}>
+        {/* Right: trial badge + back/forward + avatar */}
+        <div className="flex items-center gap-1 flex-shrink-0 titlebar-no-drag" style={{ paddingRight: '140px' }}>
           {trialBanner && (
-            <div className="px-2 py-0.5" style={{ background: '#f6f3f2' }} role="status" aria-live="polite">
+            <div className="px-2 py-0.5 mr-1" style={{ background: '#f6f3f2' }} role="status" aria-live="polite">
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3 text-primary flex-shrink-0" aria-hidden="true" />
                 <p className="font-sans text-xs font-medium text-foreground whitespace-nowrap">
@@ -340,8 +271,26 @@ export default function AppShell() {
             </div>
           )}
 
+          {/* Back / Forward */}
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center justify-center transition-colors hover:bg-[#f6f3f2]"
+            style={{ width: '28px', height: '28px', borderRadius: '4px', color: '#9a9897' }}
+            aria-label="Go back"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => navigate(1)}
+            className="flex items-center justify-center transition-colors hover:bg-[#f6f3f2]"
+            style={{ width: '28px', height: '28px', borderRadius: '4px', color: '#9a9897' }}
+            aria-label="Go forward"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+
           {/* Avatar + dropdown */}
-          <div ref={dropdownRef} className="relative">
+          <div ref={dropdownRef} className="relative ml-1">
             <button
               onClick={() => setDropdownOpen((p) => !p)}
               className="flex items-center justify-center w-7 h-7 font-sans text-xs font-bold text-white overflow-hidden flex-shrink-0 transition-opacity hover:opacity-80"
