@@ -89,6 +89,12 @@ export default function DashboardPage() {
 
   const panelOpen = panelMode !== null
 
+  useEffect(() => {
+    function handleMenuNewProject() { openCreate() }
+    window.addEventListener('menu:newProject', handleMenuNewProject)
+    return () => window.removeEventListener('menu:newProject', handleMenuNewProject)
+  }, [])
+
   const filtered =
     statusFilter === 'all' ? projects : projects.filter((p) => p.status === statusFilter)
 

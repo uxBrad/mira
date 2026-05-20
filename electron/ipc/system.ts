@@ -1,4 +1,4 @@
-import { IpcMain } from 'electron'
+import { IpcMain, app } from 'electron'
 import { shell } from 'electron'
 
 type _GetMainWindow = () => any // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -13,5 +13,9 @@ export function registerSystemHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
       console.error('[System] Error opening file:', message)
       throw error
     }
+  })
+
+  ipcMain.handle('system:quit', () => {
+    app.quit()
   })
 }

@@ -308,9 +308,9 @@ export default function ReportPage() {
               {[
                 { label: 'Total', value: total, color: '#1a1a1a' },
                 { label: 'Pass', value: verdictCounts.pass ?? 0, color: '#2d7a4f' },
-                { label: 'Fail', value: verdictCounts.fail ?? 0, color: '#610000' },
+                { label: 'Fail', value: verdictCounts.fail ?? 0, color: '#dc2626' },
                 { label: 'No Verdict', value: total - withVerdict, color: '#5f5e5e' },
-                { label: 'Pass Rate', value: `${passRate}%`, color: passRate >= 80 ? '#2d7a4f' : passRate >= 50 ? '#8b6914' : '#610000' },
+                { label: 'Pass Rate', value: `${passRate}%`, color: passRate >= 80 ? '#2d7a4f' : passRate >= 50 ? '#8b6914' : '#dc2626' },
               ].map(({ label, value, color }, i) => (
                 <div key={label} className="flex flex-col items-center justify-center px-4 py-2.5"
                   style={{ background: '#fff', borderLeft: i > 0 ? '1px solid #e0dbd9' : 'none', minWidth: '66px' }}>
@@ -342,7 +342,7 @@ export default function ReportPage() {
             <div className="flex-1 h-2" style={{ background: '#e0dbd9', borderRadius: '2px', overflow: 'hidden' }}>
               <div style={{ display: 'flex', height: '100%' }}>
                 <div style={{ width: `${((verdictCounts.pass ?? 0) / total) * 100}%`, background: '#2d7a4f', transition: 'width 0.3s' }} />
-                <div style={{ width: `${((verdictCounts.fail ?? 0) / total) * 100}%`, background: '#610000', transition: 'width 0.3s' }} />
+                <div style={{ width: `${((verdictCounts.fail ?? 0) / total) * 100}%`, background: '#dc2626', transition: 'width 0.3s' }} />
               </div>
             </div>
             <span className="font-sans text-xs flex-shrink-0 w-24 text-right" style={{ color: '#5f5e5e' }}>
@@ -380,7 +380,7 @@ export default function ReportPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   {catVerdicts.pass ? <span className="font-sans text-xs font-bold px-2 py-0.5" style={{ background: '#2d7a4f', color: '#fff', borderRadius: '3px' }}>{catVerdicts.pass} Pass</span> : null}
-                  {catVerdicts.fail ? <span className="font-sans text-xs font-bold px-2 py-0.5" style={{ background: '#610000', color: '#fff', borderRadius: '3px' }}>{catVerdicts.fail} Fail</span> : null}
+                  {catVerdicts.fail ? <span className="font-sans text-xs font-bold px-2 py-0.5" style={{ background: '#dc2626', color: '#fff', borderRadius: '3px' }}>{catVerdicts.fail} Fail</span> : null}
                   {catComplete > 0 ? <span className="font-sans text-xs font-bold px-2 py-0.5" style={{ background: '#2b2c2c', color: '#fff', borderRadius: '3px' }}>{catComplete} Complete</span> : null}
                 </div>
               </div>
@@ -426,7 +426,7 @@ export default function ReportPage() {
                         {/* Two independent status badges */}
                         <div className="flex-shrink-0 flex items-center gap-1.5">
                           {v === 'pass' && <span className="flex items-center gap-1 font-sans text-xs font-bold uppercase px-2.5 py-1" style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.08em', borderRadius: '3px' }}><CheckCircle2 className="h-3 w-3" />Pass</span>}
-                          {v === 'fail' && <span className="flex items-center gap-1 font-sans text-xs font-bold uppercase px-2.5 py-1" style={{ background: '#610000', color: '#fff', letterSpacing: '0.08em', borderRadius: '3px' }}><AlertCircle className="h-3 w-3" />Fail</span>}
+                          {v === 'fail' && <span className="flex items-center gap-1 font-sans text-xs font-bold uppercase px-2.5 py-1" style={{ background: '#dc2626', color: '#fff', letterSpacing: '0.08em', borderRadius: '3px' }}><AlertCircle className="h-3 w-3" />Fail</span>}
                           {!v && <span className="font-sans text-xs px-2.5 py-1" style={{ background: '#f0ede9', color: '#5f5e5e', borderRadius: '3px' }}>No Verdict</span>}
                           {p === 'complete' ? (
                             <span className="flex items-center gap-1 font-sans text-xs font-bold uppercase px-2.5 py-1" style={{ background: '#2b2c2c', color: '#fff', letterSpacing: '0.08em', borderRadius: '3px' }}><Check className="h-3 w-3" />Complete</span>
@@ -478,7 +478,7 @@ export default function ReportPage() {
                               <span
                                 className="flex-shrink-0 font-sans text-xs font-bold uppercase px-2 py-0.5"
                                 style={{
-                                  background: f.status === 'resolved' ? '#2d7a4f' : f.status === 'needs_review' ? '#8b6914' : '#610000',
+                                  background: f.status === 'resolved' ? '#2d7a4f' : f.status === 'needs_review' ? '#8b6914' : '#dc2626',
                                   color: '#fff',
                                   letterSpacing: '0.06em',
                                   borderRadius: '3px',

@@ -187,6 +187,7 @@ interface Window {
     }
     system: {
       openFile: (filePath: string) => Promise<{ success: boolean }>
+      quit: () => Promise<void>
     }
   }
 }

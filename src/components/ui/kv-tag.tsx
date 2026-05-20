@@ -8,7 +8,7 @@ interface KVTagProps {
 const VALUE_STYLES = {
   default: { background: '#e9e9e9', color: '#1a1a1a' },
   pass:    { background: '#005503', color: '#ffffff' },
-  fail:    { background: '#610000', color: '#ffffff' },
+  fail:    { background: '#dc2626', color: '#ffffff' },
 }
 
 export function KVTag({ label, value, valueVariant = 'default', className = '' }: KVTagProps) {

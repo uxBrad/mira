@@ -5,7 +5,7 @@ interface EchoPillProps {
 }
 
 const STYLES = {
-  fail:    { background: '#610000', color: '#ffffff' },
+  fail:    { background: '#dc2626', color: '#ffffff' },
   pass:    { background: '#005503', color: '#ffffff' },
   unknown: { background: '#edc2b3', color: '#1a1a1a' },
   level:   { background: '#e5e2e1', color: '#1a1a1a' },

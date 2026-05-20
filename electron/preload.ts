@@ -124,7 +124,8 @@ const exportAPI = {
 
 // System API
 const systemAPI = {
-  openFile: (filePath: string) => ipcRenderer.invoke('system:openFile', filePath)
+  openFile: (filePath: string) => ipcRenderer.invoke('system:openFile', filePath),
+  quit: () => ipcRenderer.invoke('system:quit')
 }
 
 if (process.contextIsolated) {

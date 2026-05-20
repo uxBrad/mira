@@ -436,7 +436,7 @@ export function StepAuditPanel({
                 </span>
               )}
               {verdict === 'fail' && (
-                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#610000', color: '#fff', letterSpacing: '0.08em', borderRadius: '3px' }}>
+                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#dc2626', color: '#fff', letterSpacing: '0.08em', borderRadius: '3px' }}>
                   <AlertCircle className="h-3 w-3" /> Fail {criterionFindings.length > 0 && `(${criterionFindings.length})`}
                 </span>
               )}
@@ -467,7 +467,7 @@ export function StepAuditPanel({
                   <span
                     className="font-sans text-xs font-bold uppercase px-1.5 py-0.5 flex-shrink-0"
                     style={{
-                      background: f.status === 'resolved' ? '#2d7a4f' : '#610000',
+                      background: f.status === 'resolved' ? '#2d7a4f' : '#dc2626',
                       color: '#fff',
                       letterSpacing: '0.08em'
                     }}
@@ -695,9 +695,9 @@ export function StepAuditPanel({
               style={{
                 padding: '6px 10px',
                 fontSize: '12px',
-                background: verdict === 'fail' ? '#610000' : 'transparent',
-                color: verdict === 'fail' ? '#fff' : '#610000',
-                border: '1px solid #610000',
+                background: verdict === 'fail' ? '#dc2626' : 'transparent',
+                color: verdict === 'fail' ? '#fff' : '#dc2626',
+                border: '1px solid #dc2626',
               }}
             >
               Fail

@@ -37,7 +37,7 @@ export const EchoButton = forwardRef<HTMLButtonElement, EchoButtonProps>(
         style={{
           padding: '10px 15px',
           borderRadius: '5px',
-          border: '1px solid #5f5e80',
+          border: '1px solid #d0cac8',
           background: variant === 'primary' ? '#1d4ed8' : '#fcf9f8',
           color: variant === 'primary' ? '#ffffff' : '#1a1a1a',
           ...style,

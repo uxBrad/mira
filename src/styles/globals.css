@@ -35,7 +35,7 @@
     --destructive-foreground: 0 0% 100%;
 
     /* No-line rule: ghost border at very low opacity */
-    --border: 0 0% 78%;                /* #c6c6c6 — used sparingly */
+    --border: 10 10% 80%;              /* #d1c9c7 — warm gray */
     --input: 10 4% 89%;                /* surface-highest */
     --ring: 224 76% 48%;               /* Jecture blue focus ring */
 

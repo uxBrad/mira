@@ -822,7 +822,7 @@ export default function ProjectPage() {
                             </span>
                           )}
                           {criterionVerdict === 'fail' && (
-                            <span className="font-sans text-xs font-bold px-2 py-0.5 uppercase flex-shrink-0" style={{ background: '#610000', color: '#fff', letterSpacing: '0.06em', borderRadius: '3px' }}>
+                            <span className="font-sans text-xs font-bold px-2 py-0.5 uppercase flex-shrink-0" style={{ background: '#dc2626', color: '#fff', letterSpacing: '0.06em', borderRadius: '3px' }}>
                               Fail
                             </span>
                           )}
