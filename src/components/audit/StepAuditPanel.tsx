@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { ChevronLeft, ChevronRight, Check, X, Clock, CheckCircle2, AlertCircle, ExternalLink, Maximize2, Minimize2, XCircle, Clipboard } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, X, Clock, CheckCircle2, AlertCircle, ExternalLink, Maximize2, Minimize2, XCircle, Clipboard, Plus } from 'lucide-react'
 import { WCAG_CRITERIA, STANDARDS_OPTIONS } from '../../lib/utils'
 import {
   Select,
@@ -606,22 +606,24 @@ export function StepAuditPanel({
 
             {/* Screenshot */}
             <div>
-              <button
-                type="button"
+              <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
+                Screenshot
+              </Label>
+              <EchoButton
+                icon={<Clipboard className="h-3.5 w-3.5" />}
+                iconPosition="left"
                 onClick={async () => {
                   try {
                     const filePath = await window.api.system.readClipboardImage()
                     if (filePath) setScreenshotPath(filePath)
                   } catch { /* silent */ }
                 }}
-                className="flex items-center gap-1.5 font-sans text-xs px-3 py-1.5 transition-colors hover:bg-[#f0ede9]"
-                style={{ border: '1px solid #d0cac8', borderRadius: '4px', color: '#2b2c2c', background: 'white' }}
+                style={{ fontSize: '13px', padding: '6px 12px' }}
               >
-                <Clipboard className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
-                {screenshotPath ? 'Replace Screenshot' : 'Paste Screenshot from Clipboard'}
-              </button>
+                {screenshotPath ? 'Replace Screenshot' : 'Paste from Clipboard'}
+              </EchoButton>
               {screenshotPath && (
-                <div className="flex items-center gap-1.5 mt-1">
+                <div className="flex items-center gap-1.5 mt-1.5">
                   <span className="font-sans text-xs truncate" style={{ color: '#5f5e5e' }}>
                     {screenshotPath.split('/').pop() || screenshotPath.split('\\').pop()}
                   </span>
@@ -641,8 +643,10 @@ export function StepAuditPanel({
             <EchoButton
               variant="primary"
               fullWidth
+              icon={<Plus className="h-4 w-4" />}
+              iconPosition="left"
               onClick={handleLogFinding}
-              disabled={!title.trim() || isSubmitting}
+              disabled={isSubmitting}
               style={{ justifyContent: 'center' }}
             >
               {isSubmitting ? 'Logging…' : 'Log Finding'}
