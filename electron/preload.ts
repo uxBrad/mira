@@ -125,7 +125,8 @@ const exportAPI = {
 // System API
 const systemAPI = {
   openFile: (filePath: string) => ipcRenderer.invoke('system:openFile', filePath),
-  quit: () => ipcRenderer.invoke('system:quit')
+  quit: () => ipcRenderer.invoke('system:quit'),
+  saveClipboardImage: (base64: string) => ipcRenderer.invoke('system:saveClipboardImage', base64)
 }
 
 if (process.contextIsolated) {

@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, Image, Plus, Check, Maximize2, Minimize2 } from 'lucide-react'
-import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { Textarea } from '../ui/textarea'
 import {
@@ -11,7 +10,10 @@ import {
   SelectValue
 } from '../ui/select'
 import { Badge } from '../ui/badge'
-import { WCAG_CRITERIA, SEVERITY_OPTIONS, CATEGORY_OPTIONS, STANDARDS_OPTIONS } from '../../lib/utils'
+import { WCAG_CRITERIA } from '../../lib/utils'
+
+const inputClass = 'w-full h-9 px-3 font-sans text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#1d4ed8]'
+const inputStyle = { border: '1px solid #d0cac8' }
 
 interface FindingFormData {
   projectId: string
@@ -78,9 +80,6 @@ export function FindingFormSidebar({
   const [description, setDescription] = useState(initialData?.description || '')
   const [wcagCriterion, setWcagCriterion] = useState(initialData?.wcagCriterion || '')
   const [wcagLevel, setWcagLevel] = useState(initialData?.wcagLevel || '')
-  const [standards, setStandards] = useState<string[]>(initialData?.standards || [])
-  const [category, setCategory] = useState(initialData?.category || '')
-  const [severity, setSeverity] = useState(initialData?.severity || 'moderate')
   const [status, setStatus] = useState(initialData?.status || 'open')
   const [pageUrl, setPageUrl] = useState(initialData?.pageUrl || '')
   const [component, setComponent] = useState(initialData?.component || '')
@@ -91,7 +90,6 @@ export function FindingFormSidebar({
   const [error, setError] = useState<string | null>(null)
   const [criterionSearch, setCriterionSearch] = useState('')
 
-  // Inline add page/component state
   const [addingPage, setAddingPage] = useState(false)
   const [newPageValue, setNewPageValue] = useState('')
   const [addingComponent, setAddingComponent] = useState(false)
@@ -104,13 +102,8 @@ export function FindingFormSidebar({
   const newPageRef = useRef<HTMLInputElement>(null)
   const newComponentRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    setLocalPages(auditPages)
-  }, [auditPages])
-
-  useEffect(() => {
-    setLocalComponents(auditComponents)
-  }, [auditComponents])
+  useEffect(() => { setLocalPages(auditPages) }, [auditPages])
+  useEffect(() => { setLocalComponents(auditComponents) }, [auditComponents])
 
   useEffect(() => {
     if (open) {
@@ -118,9 +111,6 @@ export function FindingFormSidebar({
       setDescription(initialData?.description || '')
       setWcagCriterion(initialData?.wcagCriterion || '')
       setWcagLevel(initialData?.wcagLevel || '')
-      setStandards(initialData?.standards || [])
-      setCategory(initialData?.category || '')
-      setSeverity(initialData?.severity || 'moderate')
       setStatus(initialData?.status || 'open')
       setPageUrl(initialData?.pageUrl || '')
       setComponent(initialData?.component || '')
@@ -155,18 +145,40 @@ export function FindingFormSidebar({
     if (addingComponent) setTimeout(() => newComponentRef.current?.focus(), 50)
   }, [addingComponent])
 
+  useEffect(() => {
+    if (!open) return
+    async function handlePaste(e: ClipboardEvent) {
+      const items = e.clipboardData?.items
+      if (!items) return
+      for (const item of Array.from(items)) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault()
+          const blob = item.getAsFile()
+          if (!blob) return
+          const reader = new FileReader()
+          reader.onload = async () => {
+            const dataUrl = reader.result as string
+            const base64 = dataUrl.split(',')[1]
+            try {
+              const path = await window.api.system.saveClipboardImage(base64)
+              setScreenshotPath(path)
+            } catch {
+              // silent
+            }
+          }
+          reader.readAsDataURL(blob)
+          return
+        }
+      }
+    }
+    window.addEventListener('paste', handlePaste)
+    return () => window.removeEventListener('paste', handlePaste)
+  }, [open])
+
   function handleCriterionSelect(criterion: typeof WCAG_CRITERIA[number]) {
     setWcagCriterion(criterion.id)
     setWcagLevel(criterion.level)
-    setCategory(criterion.category)
     setCriterionSearch('')
-    const matchingWcag = STANDARDS_OPTIONS
-      .filter((s) => s.value.startsWith('WCAG') && s.value.endsWith(` ${criterion.level}`))
-      .map((s) => s.value)
-    setStandards((prev) => {
-      const nonWcag = prev.filter((s) => !s.startsWith('WCAG'))
-      return [...nonWcag, ...matchingWcag]
-    })
   }
 
   function applyTemplateById(templateId: string) {
@@ -177,18 +189,9 @@ export function FindingFormSidebar({
     setDescription(t.description ?? '')
     setWcagCriterion(t.wcagCriterion ?? '')
     setWcagLevel(t.wcagLevel ?? '')
-    setStandards(t.standards ?? [])
-    setCategory(t.category ?? '')
-    setSeverity(t.severity ?? 'moderate')
     setRecommendations(t.recommendations ?? '')
     setNotes(t.notes ?? '')
     setCriterionSearch('')
-  }
-
-  function toggleStandard(std: string) {
-    setStandards((prev) =>
-      prev.includes(std) ? prev.filter((s) => s !== std) : [...prev, std]
-    )
   }
 
   async function chooseScreenshot() {
@@ -237,9 +240,6 @@ export function FindingFormSidebar({
         description: description.trim() || undefined,
         wcagCriterion: wcagCriterion || undefined,
         wcagLevel: wcagLevel || undefined,
-        standards: standards.length > 0 ? standards : undefined,
-        category: category || undefined,
-        severity,
         status,
         pageUrl: pageUrl || undefined,
         component: component.trim() || undefined,
@@ -264,7 +264,6 @@ export function FindingFormSidebar({
 
   const heading = mode === 'create' ? 'Add Finding' : 'Edit Finding'
 
-  // Shared button style (consistent 32px height)
   const btnBase: React.CSSProperties = {
     border: '1px solid #d0cac8',
     borderRadius: '4px',
@@ -290,7 +289,7 @@ export function FindingFormSidebar({
       className="flex flex-col h-full overflow-hidden"
       style={{ background: '#ffffff', borderLeft: '1px solid #e0dbd9' }}
     >
-      {/* ── Header — matches StepAuditPanel style ── */}
+      {/* Header */}
       <div
         className="flex-shrink-0 flex items-center justify-between px-6"
         style={{ borderBottom: '1px solid #e0dbd9', background: '#f6f3f2', minHeight: '60px' }}
@@ -325,7 +324,7 @@ export function FindingFormSidebar({
         </div>
       </div>
 
-      {/* ── Form body ── */}
+      {/* Form body */}
       <div className="flex-1 overflow-y-auto px-6 py-5">
         <form onSubmit={handleSubmit} id="finding-sidebar-form" noValidate aria-label={heading}>
           {error && (
@@ -337,17 +336,16 @@ export function FindingFormSidebar({
                 color: '#c0392b',
                 border: '1px solid #fecaca',
                 borderRadius: '4px',
-                animation: 'fadeIn 0.3s ease-out',
               }}
             >
               {error}
             </div>
           )}
 
-          <div className="space-y-5" style={{ '--stagger-index': 0 } as React.CSSProperties}>
+          <div className="space-y-5">
             {/* Load from template */}
             {mode === 'create' && templates.length > 0 && (
-              <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 0ms both' }}>
+              <div className="space-y-1.5">
                 <Label htmlFor="sf-template" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                   Load from template
                 </Label>
@@ -367,55 +365,22 @@ export function FindingFormSidebar({
             )}
 
             {/* Title */}
-            <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 80ms both' }}>
+            <div className="space-y-1.5">
               <Label htmlFor="sf-title" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Title <span aria-hidden="true" style={{ color: '#1d4ed8' }}>*</span>
               </Label>
-              <Input
+              <input
                 id="sf-title"
                 ref={titleRef}
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Images missing alternative text"
+                aria-required="true"
                 disabled={isLoading}
+                className={inputClass}
+                style={inputStyle}
               />
-            </div>
-
-            {/* Severity + Status */}
-            <div className="grid grid-cols-2 gap-3" style={{ animation: 'slideDown 0.4s ease-out 160ms both' }}>
-              <div className="space-y-1.5">
-                <Label htmlFor="sf-severity" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
-                  Severity
-                </Label>
-                <Select value={severity} onValueChange={setSeverity} disabled={isLoading}>
-                  <SelectTrigger id="sf-severity">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SEVERITY_OPTIONS.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="sf-status" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
-                  Status
-                </Label>
-                <Select value={status} onValueChange={setStatus} disabled={isLoading}>
-                  <SelectTrigger id="sf-status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="needs_review">Needs Review</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                    <SelectItem value="wont_fix">Won&apos;t Fix</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
             {/* Page */}
@@ -435,31 +400,46 @@ export function FindingFormSidebar({
                   </SelectContent>
                 </Select>
               ) : (
-                <Input
+                <input
                   id="sf-page"
                   value={pageUrl}
                   onChange={(e) => setPageUrl(e.target.value)}
                   placeholder="/home"
                   disabled={isLoading}
+                  className={inputClass}
+                  style={inputStyle}
                 />
               )}
               {addingPage ? (
                 <div className="flex items-center gap-1.5 mt-1">
-                  <Input
+                  <input
                     ref={newPageRef}
                     value={newPageValue}
                     onChange={(e) => setNewPageValue(e.target.value)}
                     placeholder="/about"
-                    className="h-7 text-xs"
+                    className="flex-1 h-7 px-2 font-sans text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#1d4ed8]"
+                    style={{ border: '1px solid #d0cac8' }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') { e.preventDefault(); confirmAddPage() }
                       if (e.key === 'Escape') { setAddingPage(false); setNewPageValue('') }
                     }}
                   />
-                  <button type="button" onClick={confirmAddPage} className="flex-shrink-0 text-primary hover:opacity-80" aria-label="Confirm add page">
+                  <button
+                    type="button"
+                    onClick={confirmAddPage}
+                    className="flex-shrink-0 flex items-center justify-center text-primary hover:opacity-80"
+                    aria-label="Confirm add page"
+                    style={{ width: '22px', height: '22px' }}
+                  >
                     <Check className="h-4 w-4" />
                   </button>
-                  <button type="button" onClick={() => { setAddingPage(false); setNewPageValue('') }} className="flex-shrink-0 text-muted-foreground hover:text-foreground" aria-label="Cancel">
+                  <button
+                    type="button"
+                    onClick={() => { setAddingPage(false); setNewPageValue('') }}
+                    className="flex-shrink-0 flex items-center justify-center text-muted-foreground hover:text-foreground"
+                    aria-label="Cancel"
+                    style={{ width: '22px', height: '22px' }}
+                  >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
@@ -477,7 +457,7 @@ export function FindingFormSidebar({
             </div>
 
             {/* Component */}
-            <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 360ms both' }}>
+            <div className="space-y-1.5">
               <Label htmlFor="sf-component" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Component
               </Label>
@@ -493,31 +473,46 @@ export function FindingFormSidebar({
                   </SelectContent>
                 </Select>
               ) : (
-                <Input
+                <input
                   id="sf-component"
                   value={component}
                   onChange={(e) => setComponent(e.target.value)}
                   placeholder="Navigation"
                   disabled={isLoading}
+                  className={inputClass}
+                  style={inputStyle}
                 />
               )}
               {addingComponent ? (
                 <div className="flex items-center gap-1.5 mt-1">
-                  <Input
+                  <input
                     ref={newComponentRef}
                     value={newComponentValue}
                     onChange={(e) => setNewComponentValue(e.target.value)}
                     placeholder="Login form"
-                    className="h-7 text-xs"
+                    className="flex-1 h-7 px-2 font-sans text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#1d4ed8]"
+                    style={{ border: '1px solid #d0cac8' }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') { e.preventDefault(); confirmAddComponent() }
                       if (e.key === 'Escape') { setAddingComponent(false); setNewComponentValue('') }
                     }}
                   />
-                  <button type="button" onClick={confirmAddComponent} className="flex-shrink-0 text-primary hover:opacity-80" aria-label="Confirm add component">
+                  <button
+                    type="button"
+                    onClick={confirmAddComponent}
+                    className="flex-shrink-0 flex items-center justify-center text-primary hover:opacity-80"
+                    aria-label="Confirm add component"
+                    style={{ width: '22px', height: '22px' }}
+                  >
                     <Check className="h-4 w-4" />
                   </button>
-                  <button type="button" onClick={() => { setAddingComponent(false); setNewComponentValue('') }} className="flex-shrink-0 text-muted-foreground hover:text-foreground" aria-label="Cancel">
+                  <button
+                    type="button"
+                    onClick={() => { setAddingComponent(false); setNewComponentValue('') }}
+                    className="flex-shrink-0 flex items-center justify-center text-muted-foreground hover:text-foreground"
+                    aria-label="Cancel"
+                    style={{ width: '22px', height: '22px' }}
+                  >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
@@ -534,30 +529,13 @@ export function FindingFormSidebar({
               )}
             </div>
 
-            {/* Category */}
-            <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 240ms both' }}>
-              <Label htmlFor="sf-category" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
-                Category
-              </Label>
-              <Select value={category} onValueChange={setCategory} disabled={isLoading}>
-                <SelectTrigger id="sf-category">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORY_OPTIONS.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* WCAG criterion */}
-            <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 320ms both' }}>
+            {/* WCAG Criterion */}
+            <div className="space-y-1.5">
               <Label htmlFor="sf-wcag" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 WCAG Criterion
               </Label>
               <div className="relative">
-                <Input
+                <input
                   id="sf-wcag"
                   value={wcagCriterion
                     ? `${wcagCriterion} — ${WCAG_CRITERIA.find(c => c.id === wcagCriterion)?.name || ''}`
@@ -570,11 +548,14 @@ export function FindingFormSidebar({
                   disabled={isLoading}
                   aria-autocomplete="list"
                   aria-controls="sf-criterion-list"
+                  className={inputClass}
+                  style={inputStyle}
                 />
                 {wcagCriterion && (
                   <button
                     type="button"
-                    className="absolute right-2 top-1/2 -translate-y-1/2"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center"
+                    style={{ width: '22px', height: '22px' }}
                     onClick={() => { setWcagCriterion(''); setWcagLevel('') }}
                     aria-label="Clear WCAG criterion"
                   >
@@ -613,33 +594,8 @@ export function FindingFormSidebar({
               )}
             </div>
 
-            {/* Standards */}
-            <div className="space-y-1.5">
-              <Label className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
-                Standards
-              </Label>
-              <div className="flex flex-wrap gap-2" role="group" aria-label="Select applicable standards">
-                {STANDARDS_OPTIONS.map((std) => (
-                  <button
-                    key={std.value}
-                    type="button"
-                    onClick={() => toggleStandard(std.value)}
-                    aria-pressed={standards.includes(std.value)}
-                    disabled={isLoading}
-                    className={`px-2.5 py-1 text-xs font-medium border transition-colors ${
-                      standards.includes(std.value)
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'text-muted-foreground border-[#ebe7e7] hover:bg-[#ebe7e7] hover:text-foreground'
-                    }`}
-                  >
-                    {std.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Description */}
-            <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 440ms both' }}>
+            <div className="space-y-1.5">
               <Label htmlFor="sf-description" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Issue description
               </Label>
@@ -654,7 +610,7 @@ export function FindingFormSidebar({
             </div>
 
             {/* Recommendations */}
-            <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 500ms both' }}>
+            <div className="space-y-1.5">
               <Label htmlFor="sf-recommendations" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Recommendation
               </Label>
@@ -699,10 +655,13 @@ export function FindingFormSidebar({
                   </div>
                 )}
               </div>
+              <p className="font-sans text-xs" style={{ color: '#9b9695' }}>
+                Or press Ctrl+V to paste from clipboard
+              </p>
             </div>
 
             {/* Notes */}
-            <div className="space-y-1.5" style={{ animation: 'slideDown 0.4s ease-out 560ms both' }}>
+            <div className="space-y-1.5">
               <Label htmlFor="sf-notes" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Notes
               </Label>
@@ -719,35 +678,58 @@ export function FindingFormSidebar({
         </form>
       </div>
 
-      {/* ── Footer: Cancel + Save ── */}
+      {/* Footer: Status (left) + Cancel/Save (right) */}
       <div
-        className="flex items-center justify-end gap-2 px-6 py-4 flex-shrink-0"
+        className="flex items-center justify-between px-6 py-4 flex-shrink-0"
         style={{ borderTop: '1px solid #e0dbd9', background: '#f6f3f2' }}
       >
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={isLoading}
-          style={{ ...btnBase, color: '#2b2c2c' }}
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          form="finding-sidebar-form"
-          disabled={isLoading || !title.trim()}
-          style={{
-            ...btnBase,
-            background: '#1d4ed8',
-            color: '#fff',
-            border: '1px solid #1d4ed8',
-            opacity: (isLoading || !title.trim()) ? 0.4 : 1,
-          }}
-        >
-          {isLoading
-            ? mode === 'create' ? 'Adding…' : 'Saving…'
-            : mode === 'create' ? 'Add Finding' : 'Save Changes'}
-        </button>
+        <div className="flex items-center gap-2">
+          <label
+            htmlFor="sf-status-footer"
+            className="font-sans text-xs font-bold uppercase tracking-widest"
+            style={{ color: '#5f5e5e', letterSpacing: '0.1em', whiteSpace: 'nowrap' }}
+          >
+            Status
+          </label>
+          <Select value={status} onValueChange={setStatus} disabled={isLoading}>
+            <SelectTrigger id="sf-status-footer" style={{ width: '140px', height: '32px', fontSize: '13px' }}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="open">Open</SelectItem>
+              <SelectItem value="in_progress">In Progress</SelectItem>
+              <SelectItem value="needs_review">Needs Review</SelectItem>
+              <SelectItem value="resolved">Resolved</SelectItem>
+              <SelectItem value="wont_fix">Won&apos;t Fix</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isLoading}
+            style={{ ...btnBase, color: '#2b2c2c' }}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="finding-sidebar-form"
+            disabled={isLoading || !title.trim()}
+            style={{
+              ...btnBase,
+              background: '#1d4ed8',
+              color: '#fff',
+              border: '1px solid #1d4ed8',
+              opacity: (isLoading || !title.trim()) ? 0.4 : 1,
+            }}
+          >
+            {isLoading
+              ? mode === 'create' ? 'Adding…' : 'Saving…'
+              : mode === 'create' ? 'Add Finding' : 'Save Changes'}
+          </button>
+        </div>
       </div>
     </div>
   )
