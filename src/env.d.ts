@@ -189,6 +189,7 @@ interface Window {
       openFile: (filePath: string) => Promise<{ success: boolean }>
       quit: () => Promise<void>
       saveClipboardImage: (base64: string) => Promise<string>
+      readClipboardImage: () => Promise<string | null>
     }
   }
 }

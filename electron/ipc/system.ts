@@ -1,4 +1,4 @@
-import { IpcMain, app } from 'electron'
+import { IpcMain, app, clipboard } from 'electron'
 import { shell } from 'electron'
 import fs from 'fs'
 import path from 'path'
@@ -26,6 +26,17 @@ export function registerSystemHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
     const fileName = `echo-screenshot-${Date.now()}.png`
     const filePath = path.join(tempDir, fileName)
     fs.writeFileSync(filePath, Buffer.from(base64, 'base64'))
+    return filePath
+  })
+
+  ipcMain.handle('system:readClipboardImage', async () => {
+    const image = clipboard.readImage()
+    if (image.isEmpty()) return null
+    const pngBuffer = image.toPNG()
+    const tempDir = app.getPath('temp')
+    const fileName = `echo-screenshot-${Date.now()}.png`
+    const filePath = path.join(tempDir, fileName)
+    fs.writeFileSync(filePath, pngBuffer)
     return filePath
   })
 }

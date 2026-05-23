@@ -147,32 +147,18 @@ export function FindingFormSidebar({
 
   useEffect(() => {
     if (!open) return
-    async function handlePaste(e: ClipboardEvent) {
-      const items = e.clipboardData?.items
-      if (!items) return
-      for (const item of Array.from(items)) {
-        if (item.type.startsWith('image/')) {
-          e.preventDefault()
-          const blob = item.getAsFile()
-          if (!blob) return
-          const reader = new FileReader()
-          reader.onload = async () => {
-            const dataUrl = reader.result as string
-            const base64 = dataUrl.split(',')[1]
-            try {
-              const path = await window.api.system.saveClipboardImage(base64)
-              setScreenshotPath(path)
-            } catch {
-              // silent
-            }
-          }
-          reader.readAsDataURL(blob)
-          return
-        }
+    async function handleKeyDown(e: KeyboardEvent) {
+      const isV = (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key === 'v'
+      if (!isV) return
+      try {
+        const filePath = await window.api.system.readClipboardImage()
+        if (filePath) setScreenshotPath(filePath)
+      } catch {
+        // silent — let normal text paste proceed
       }
     }
-    window.addEventListener('paste', handlePaste)
-    return () => window.removeEventListener('paste', handlePaste)
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [open])
 
   function handleCriterionSelect(criterion: typeof WCAG_CRITERIA[number]) {
