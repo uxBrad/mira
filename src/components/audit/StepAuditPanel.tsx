@@ -657,7 +657,7 @@ export function StepAuditPanel({
               variant="primary"
               fullWidth
               icon={<Plus className="h-4 w-4" />}
-              iconPosition="left"
+              iconPosition="right"
               onClick={handleLogFinding}
               disabled={isSubmitting}
               style={{ justifyContent: 'center' }}
