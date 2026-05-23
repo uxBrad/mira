@@ -6,9 +6,9 @@ interface EchoPillProps {
 
 const STYLES = {
   fail:    { background: '#dc2626', color: '#ffffff' },
-  pass:    { background: '#005503', color: '#ffffff' },
+  pass:    { background: '#2d7a4f', color: '#ffffff' },
   unknown: { background: '#edc2b3', color: '#1a1a1a' },
-  level:   { background: '#e5e2e1', color: '#1a1a1a' },
+  level:   { background: '#f0ede9', color: '#5f5e5e' },
 }
 
 const DEFAULT_LABELS = {
@@ -28,6 +28,7 @@ export function EchoPill({ variant, label, className = '' }: EchoPillProps) {
         fontSize: '14px',
         padding: '3px 5px',
         borderRadius: '5px',
+        border: '1px solid rgba(0,0,0,0.1)',
       }}
     >
       {text}

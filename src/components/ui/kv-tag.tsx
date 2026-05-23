@@ -3,26 +3,34 @@ interface KVTagProps {
   value: string
   valueVariant?: 'default' | 'pass' | 'fail'
   className?: string
+  stretch?: boolean
 }
 
 const VALUE_STYLES = {
-  default: { background: '#e9e9e9', color: '#1a1a1a' },
-  pass:    { background: '#005503', color: '#ffffff' },
+  default: { background: '#f0ede9', color: '#5f5e5e' },
+  pass:    { background: '#2d7a4f', color: '#ffffff' },
   fail:    { background: '#dc2626', color: '#ffffff' },
 }
 
-export function KVTag({ label, value, valueVariant = 'default', className = '' }: KVTagProps) {
+export function KVTag({ label, value, valueVariant = 'default', className = '', stretch = false }: KVTagProps) {
   return (
     <div
-      className={`inline-flex items-center font-sans font-bold flex-shrink-0 ${className}`}
-      style={{ fontSize: '14px' }}
+      className={`items-center font-sans font-bold flex-shrink-0 ${className}`}
+      style={{
+        display: stretch ? 'flex' : 'inline-flex',
+        width: stretch ? '100%' : undefined,
+        fontSize: '14px',
+        border: '1px solid rgba(0,0,0,0.1)',
+        borderRadius: '5px',
+        overflow: 'hidden',
+      }}
     >
       <span
         style={{
-          background: '#d7d7d7',
-          color: '#1a1a1a',
+          background: '#ede9e7',
+          color: '#5f5e5e',
           padding: '3px 10px',
-          borderRadius: '5px 0 0 5px',
+          ...(stretch ? { flex: 1 } : {}),
         }}
       >
         {label}
@@ -30,8 +38,9 @@ export function KVTag({ label, value, valueVariant = 'default', className = '' }
       <span
         style={{
           ...VALUE_STYLES[valueVariant],
-          padding: '3px 10px',
-          borderRadius: '0 5px 5px 0',
+          padding: '3px 8px',
+          minWidth: '2rem',
+          textAlign: 'center' as const,
         }}
       >
         {value}

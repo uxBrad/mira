@@ -26,7 +26,7 @@ export const EchoButton = forwardRef<HTMLButtonElement, EchoButtonProps>(
       <button
         ref={ref}
         className={[
-          'inline-flex items-center gap-[10px] font-sans text-base transition-opacity',
+          'inline-flex items-center gap-[5px] font-sans text-base transition-opacity',
           'hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1d4ed8]',
           fullWidth ? 'w-full' : '',
@@ -45,7 +45,7 @@ export const EchoButton = forwardRef<HTMLButtonElement, EchoButtonProps>(
         {...props}
       >
         {iconPosition === 'left' && icon && (
-          <span className="flex-shrink-0 flex items-center justify-center w-6 h-6" aria-hidden="true">
+          <span className="flex-shrink-0 flex items-center justify-center" aria-hidden="true">
             {icon}
           </span>
         )}
@@ -53,7 +53,7 @@ export const EchoButton = forwardRef<HTMLButtonElement, EchoButtonProps>(
           <span className="flex-1 min-w-0 text-left leading-normal">{children}</span>
         )}
         {iconPosition === 'right' && icon && (
-          <span className="flex-shrink-0 flex items-center justify-center w-6 h-6" aria-hidden="true">
+          <span className="flex-shrink-0 flex items-center justify-center" aria-hidden="true">
             {icon}
           </span>
         )}

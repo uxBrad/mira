@@ -150,6 +150,11 @@ export default function DashboardPage() {
     toast({ title: 'Project updated' })
   }
 
+  async function handleComplete(project: ProjectWithCount) {
+    await updateProject(project.id, { status: 'complete' })
+    toast({ title: 'Project completed', description: `"${project.name}" marked as complete.` })
+  }
+
   async function handleArchiveConfirm() {
     if (!panelProject) return
     setIsArchivingPanel(true)
@@ -267,6 +272,7 @@ export default function DashboardPage() {
                     onClick={() => navigate(`/project/${project.id}`)}
                     onEdit={openEdit}
                     onArchive={openArchive}
+                    onComplete={handleComplete}
                   />
                 </li>
               ))}

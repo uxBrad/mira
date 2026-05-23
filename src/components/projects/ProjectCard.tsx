@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Pencil, Archive } from 'lucide-react'
+import { Pencil, Archive, CheckCircle2 } from 'lucide-react'
 import { EchoButton } from '../ui/echo-button'
 import { EchoPill } from '../ui/echo-pill'
 import { KVTag } from '../ui/kv-tag'
@@ -15,6 +15,7 @@ interface ProjectCardProps {
   onClick: () => void
   onEdit: (project: ProjectWithCount) => void
   onArchive: (project: ProjectWithCount) => void
+  onComplete: (project: ProjectWithCount) => void
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -23,7 +24,7 @@ const STATUS_LABELS: Record<string, string> = {
   archived: 'Archived'
 }
 
-export function ProjectCard({ project, onClick, onEdit, onArchive }: ProjectCardProps) {
+export function ProjectCard({ project, onClick, onEdit, onArchive, onComplete }: ProjectCardProps) {
   const auditStats = useMemo(() => {
     try {
       const saved = localStorage.getItem(`echo-step-audit-${project.id}`)
@@ -74,6 +75,17 @@ export function ProjectCard({ project, onClick, onEdit, onArchive }: ProjectCard
           >
             Edit
           </EchoButton>
+          {project.status !== 'complete' && (
+            <EchoButton
+              icon={<CheckCircle2 className="h-3.5 w-3.5" />}
+              iconPosition="left"
+              onClick={(e) => { e.stopPropagation(); onComplete(project) }}
+              aria-label={`Mark ${project.name} as complete`}
+              style={{ padding: '5px 10px', fontSize: '13px' }}
+            >
+              Complete
+            </EchoButton>
+          )}
           <EchoButton
             icon={<Archive className="h-3.5 w-3.5" />}
             iconPosition="left"
@@ -90,7 +102,7 @@ export function ProjectCard({ project, onClick, onEdit, onArchive }: ProjectCard
         <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>{project.description}</p>
       )}
 
-      {/* Bottom: status pill + 4 metrics + date */}
+      {/* Bottom: status pill + metrics + date */}
       <div className="flex items-center justify-between pt-3 flex-wrap gap-2" style={{ borderTop: '1px solid #f0ede9' }}>
         <div className="flex items-center gap-2">
           <EchoPill variant="level" label={STATUS_LABELS[project.status] || project.status} />
@@ -99,13 +111,13 @@ export function ProjectCard({ project, onClick, onEdit, onArchive }: ProjectCard
           </span>
         </div>
         <div className="flex items-start gap-2">
-          <div className="flex flex-col gap-1">
-            <KVTag label="Findings" value={String(project.findingCount)} />
-            <KVTag label="Unknown" value={String(auditStats.unknown)} />
+          <div className="flex flex-col gap-1" style={{ minWidth: '130px' }}>
+            <KVTag label="Findings" value={String(project.findingCount)} stretch />
+            <KVTag label="Unknown" value={String(auditStats.unknown)} stretch />
           </div>
-          <div className="flex flex-col gap-1">
-            <KVTag label="Passed" value={String(auditStats.pass)} valueVariant="pass" />
-            <KVTag label="Failed" value={String(auditStats.fail)} valueVariant="fail" />
+          <div className="flex flex-col gap-1" style={{ minWidth: '120px' }}>
+            <KVTag label="Passed" value={String(auditStats.pass)} valueVariant="pass" stretch />
+            <KVTag label="Failed" value={String(auditStats.fail)} valueVariant="fail" stretch />
           </div>
         </div>
       </div>
