@@ -50,7 +50,7 @@ export const EchoButton = forwardRef<HTMLButtonElement, EchoButtonProps>(
           </span>
         )}
         {children != null && (
-          <span className="flex-1 min-w-0 text-left leading-normal">{children}</span>
+          <span className="flex-1 min-w-0 text-center leading-normal">{children}</span>
         )}
         {iconPosition === 'right' && icon && (
           <span className="flex-shrink-0 flex items-center justify-center" aria-hidden="true">

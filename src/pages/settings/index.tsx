@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { EchoButton } from '../../components/ui/echo-button'
-import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
 import { useToast } from '../../components/ui/use-toast'
 import { ExternalLink, Clock, CheckCircle, AlertTriangle, Upload, X, Eye, EyeOff } from 'lucide-react'
@@ -205,10 +204,11 @@ export default function SettingsPage() {
                   <img src={companyLogo} alt="Company logo preview" className="max-h-16 max-w-full object-contain" />
                 </div>
                 <EchoButton
-                  icon={<X className="h-3 w-3" />}
+                  icon={<X className="h-3.5 w-3.5" />}
                   iconPosition="left"
+                  fullWidth
                   onClick={removeLogo}
-                  style={{ padding: '4px 10px', fontSize: '12px', color: '#c0392b' }}
+                  style={{ justifyContent: 'center', color: '#c0392b' }}
                 >
                   Remove
                 </EchoButton>
@@ -260,10 +260,11 @@ export default function SettingsPage() {
                   />
                 </div>
                 <EchoButton
-                  icon={<X className="h-3 w-3" />}
+                  icon={<X className="h-3.5 w-3.5" />}
                   iconPosition="left"
+                  fullWidth
                   onClick={removeAvatar}
-                  style={{ padding: '4px 10px', fontSize: '12px', color: '#c0392b', margin: '0 auto' }}
+                  style={{ justifyContent: 'center', color: '#c0392b' }}
                 >
                   Remove
                 </EchoButton>
@@ -371,7 +372,7 @@ export default function SettingsPage() {
               <div className="space-y-1.5">
                 <Label htmlFor="current-password">Current password</Label>
                 <div className="relative">
-                  <Input
+                  <input
                     id="current-password"
                     type={showCurrentPassword ? 'text' : 'password'}
                     autoComplete="current-password"
@@ -379,7 +380,8 @@ export default function SettingsPage() {
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     disabled={isChangingPassword}
-                    className="pr-10"
+                    className="w-full h-9 px-3 font-sans text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#1d4ed8] pr-10"
+                    style={{ border: '1px solid #d0cac8' }}
                   />
                   <button
                     type="button"
@@ -394,7 +396,7 @@ export default function SettingsPage() {
               <div className="space-y-1.5">
                 <Label htmlFor="new-password">New password</Label>
                 <div className="relative">
-                  <Input
+                  <input
                     id="new-password"
                     type={showNewPassword ? 'text' : 'password'}
                     autoComplete="new-password"
@@ -403,7 +405,8 @@ export default function SettingsPage() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     disabled={isChangingPassword}
-                    className="pr-10"
+                    className="w-full h-9 px-3 font-sans text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#1d4ed8] pr-10"
+                    style={{ border: '1px solid #d0cac8' }}
                   />
                   <button
                     type="button"
@@ -418,7 +421,7 @@ export default function SettingsPage() {
               <div className="space-y-1.5">
                 <Label htmlFor="confirm-new-password">Confirm new password</Label>
                 <div className="relative">
-                  <Input
+                  <input
                     id="confirm-new-password"
                     type={showConfirmPassword ? 'text' : 'password'}
                     autoComplete="new-password"
@@ -426,7 +429,8 @@ export default function SettingsPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={isChangingPassword}
-                    className="pr-10"
+                    className="w-full h-9 px-3 font-sans text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#1d4ed8] pr-10"
+                    style={{ border: '1px solid #d0cac8' }}
                   />
                   <button
                     type="button"

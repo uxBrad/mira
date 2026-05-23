@@ -70,7 +70,7 @@ function createWindow(): void {
       titleBarOverlay: {
         color: '#ffffff',
         symbolColor: '#1a1a1a',
-        height: 40
+        height: 48
       }
     }),
     webPreferences: {

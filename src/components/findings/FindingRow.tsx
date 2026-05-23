@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import { EchoButton } from '../ui/echo-button'
 import { EchoPill } from '../ui/echo-pill'
-import { KVTag } from '../ui/kv-tag'
 import {
   Dialog,
   DialogContent,
@@ -56,7 +55,7 @@ export function FindingRow({ finding, onEdit, onDelete }: FindingRowProps) {
     }
   }
 
-  const hasTags = finding.pageUrl || finding.component || finding.standards?.length > 0
+  const hasTags = finding.pageUrl || finding.component
 
   return (
     <>
@@ -120,13 +119,16 @@ export function FindingRow({ finding, onEdit, onDelete }: FindingRowProps) {
         {/* Tags */}
         {hasTags && (
           <div className="flex flex-wrap gap-1.5 mt-2">
-            {finding.pageUrl && <KVTag label="Page" value={finding.pageUrl} />}
-            {finding.component && <KVTag label="Component" value={finding.component} />}
-            {finding.standards?.map((s) => (
-              <span key={s} className="font-sans text-xs px-2 py-0.5" style={{ background: '#f6f3f2', color: '#5f5e5e', borderRadius: '3px' }}>
-                {s}
+            {finding.pageUrl && (
+              <span className="font-sans text-xs font-normal px-2 py-0.5" style={{ background: '#f0ede9', color: '#5f5e5e', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.06)' }}>
+                Page: {finding.pageUrl}
               </span>
-            ))}
+            )}
+            {finding.component && (
+              <span className="font-sans text-xs font-normal px-2 py-0.5" style={{ background: '#f0ede9', color: '#5f5e5e', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.06)' }}>
+                Component: {finding.component}
+              </span>
+            )}
           </div>
         )}
       </article>

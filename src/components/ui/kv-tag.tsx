@@ -15,9 +15,10 @@ const VALUE_STYLES = {
 export function KVTag({ label, value, valueVariant = 'default', className = '', stretch = false }: KVTagProps) {
   return (
     <div
-      className={`items-center font-sans font-bold flex-shrink-0 ${className}`}
+      className={`font-sans font-bold flex-shrink-0 ${className}`}
       style={{
         display: stretch ? 'flex' : 'inline-flex',
+        alignItems: 'stretch',
         width: stretch ? '100%' : undefined,
         fontSize: '14px',
         border: '1px solid rgba(0,0,0,0.1)',
@@ -30,6 +31,8 @@ export function KVTag({ label, value, valueVariant = 'default', className = '', 
           background: '#ede9e7',
           color: '#5f5e5e',
           padding: '3px 10px',
+          display: 'flex',
+          alignItems: 'center',
           ...(stretch ? { flex: 1 } : {}),
         }}
       >
@@ -40,7 +43,9 @@ export function KVTag({ label, value, valueVariant = 'default', className = '', 
           ...VALUE_STYLES[valueVariant],
           padding: '3px 8px',
           minWidth: '2rem',
-          textAlign: 'center' as const,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         {value}

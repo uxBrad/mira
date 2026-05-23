@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { ChevronLeft, ChevronRight, Check, X, Clock, CheckCircle2, AlertCircle, ExternalLink, Maximize2, Minimize2, XCircle } from 'lucide-react'
-import { WCAG_CRITERIA, SEVERITY_OPTIONS, STANDARDS_OPTIONS } from '../../lib/utils'
+import { WCAG_CRITERIA, STANDARDS_OPTIONS } from '../../lib/utils'
 import {
   Select,
   SelectContent,
@@ -112,13 +112,6 @@ interface StepAuditPanelProps {
   }) => Promise<void>
 }
 
-const SEVERITY_COLORS: Record<string, string> = {
-  critical: '#c0392b',
-  serious: '#c0392b',
-  moderate: '#8b6914',
-  minor: '#2d7a4f'
-}
-
 // Convert a WCAG criterion name to its URL slug
 function toWcagSlug(name: string): string {
   return name
@@ -195,7 +188,6 @@ export function StepAuditPanel({
   // ─── Inline finding form state ────────────────────────────────────────────
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [severity, setSeverity] = useState('serious')
   const [recommendations, setRecommendations] = useState('')
   const [pageUrl, setPageUrl] = useState('__none__')
   const [component, setComponent] = useState('__none__')
@@ -241,7 +233,6 @@ export function StepAuditPanel({
   useEffect(() => {
     setTitle('')
     setDescription('')
-    setSeverity('serious')
     setRecommendations('')
     setPageUrl('__none__')
     setComponent('__none__')
@@ -254,7 +245,6 @@ export function StepAuditPanel({
     if (templateId === '__none__') {
       setTitle('')
       setDescription('')
-      setSeverity('serious')
       setRecommendations('')
       return
     }
@@ -262,7 +252,6 @@ export function StepAuditPanel({
     if (!tpl) return
     setTitle(tpl.title)
     setDescription(tpl.description ?? '')
-    setSeverity(tpl.severity ?? 'serious')
     setRecommendations(tpl.recommendations ?? '')
   }
 
@@ -303,7 +292,6 @@ export function StepAuditPanel({
         wcagCriterion: criterion.id,
         wcagLevel: criterion.level,
         standards: matchingWcag,
-        severity,
         recommendations: recommendations.trim() || undefined,
         pageUrl: pageUrl && pageUrl !== '__none__' ? pageUrl : undefined,
         component: component && component !== '__none__' ? component : undefined,
@@ -431,21 +419,21 @@ export function StepAuditPanel({
             {/* Status badges — two independent dimensions */}
             <div className="flex-shrink-0 flex items-center gap-1.5">
               {verdict === 'pass' && (
-                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.08em', borderRadius: '3px' }}>
+                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.08em', borderRadius: '20px' }}>
                   <CheckCircle2 className="h-3 w-3" /> Pass
                 </span>
               )}
               {verdict === 'fail' && (
-                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#dc2626', color: '#fff', letterSpacing: '0.08em', borderRadius: '3px' }}>
+                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#dc2626', color: '#fff', letterSpacing: '0.08em', borderRadius: '20px' }}>
                   <AlertCircle className="h-3 w-3" /> Fail {criterionFindings.length > 0 && `(${criterionFindings.length})`}
                 </span>
               )}
               {progress === 'complete' ? (
-                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#2b2c2c', color: '#fff', letterSpacing: '0.08em', borderRadius: '3px' }}>
+                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.08em', borderRadius: '20px' }}>
                   <Check className="h-3 w-3" /> Complete
                 </span>
               ) : (
-                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#e5e2e1', color: '#5f5e5e', letterSpacing: '0.08em', borderRadius: '3px' }}>
+                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#e5e2e1', color: '#5f5e5e', letterSpacing: '0.08em', borderRadius: '20px' }}>
                   <Clock className="h-3 w-3" /> In Progress
                 </span>
               )}
@@ -469,7 +457,8 @@ export function StepAuditPanel({
                     style={{
                       background: f.status === 'resolved' ? '#2d7a4f' : '#dc2626',
                       color: '#fff',
-                      letterSpacing: '0.08em'
+                      letterSpacing: '0.08em',
+                      borderRadius: '20px',
                     }}
                   >
                     {f.status === 'resolved' ? 'Pass' : 'Fail'}
@@ -495,42 +484,37 @@ export function StepAuditPanel({
           )}
 
           <div className="space-y-4">
-            {/* Template picker */}
-            {templates.length > 0 && (
-              <div style={{ animation: 'slideDown 0.4s ease-out 0ms both' }}>
-                <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
-                  Choose from template
-                </Label>
-                <Select value={selectedTemplateId} onValueChange={applyTemplate}>
-                  <SelectTrigger className="h-9 text-sm font-sans">
-                    <SelectValue placeholder="Select a template…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">No template</SelectItem>
-                    {templates.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Title */}
-            <div style={{ animation: 'slideDown 0.4s ease-out 80ms both' }}>
+            {/* Title + template (side by side) */}
+            <div>
               <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Issue Title
               </Label>
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder={`${criterion.name} issue…`}
-                className="w-full h-9 px-3 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
-                style={{ borderColor: '#d0cac8' }}
-              />
+              <div className="flex items-center gap-2">
+                {templates.length > 0 && (
+                  <Select value={selectedTemplateId} onValueChange={applyTemplate}>
+                    <SelectTrigger style={{ width: '140px', height: '36px', fontSize: '12px', flexShrink: 0 }}>
+                      <SelectValue placeholder="Template…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">No template</SelectItem>
+                      {templates.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder={`${criterion.name} issue…`}
+                  className="flex-1 h-9 px-3 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                  style={{ borderColor: '#d0cac8' }}
+                />
+              </div>
             </div>
 
             {/* Description */}
-            <div style={{ animation: 'slideDown 0.4s ease-out 160ms both' }}>
+            <div>
               <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Description
               </Label>
@@ -544,33 +528,8 @@ export function StepAuditPanel({
               />
             </div>
 
-            {/* Severity */}
-            <div style={{ animation: 'slideDown 0.4s ease-out 240ms both' }}>
-              <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
-                Severity
-              </Label>
-              <div className="flex gap-2 flex-wrap">
-                {SEVERITY_OPTIONS.map((s) => (
-                  <button
-                    key={s.value}
-                    type="button"
-                    onClick={() => setSeverity(s.value)}
-                    className="px-3 py-1.5 font-sans text-xs font-semibold transition-colors"
-                    style={{
-                      borderRadius: '3px',
-                      border: `1px solid ${severity === s.value ? SEVERITY_COLORS[s.value] ?? '#5f5e5e' : '#d0cac8'}`,
-                      background: severity === s.value ? (SEVERITY_COLORS[s.value] ?? '#5f5e5e') + '18' : 'transparent',
-                      color: severity === s.value ? (SEVERITY_COLORS[s.value] ?? '#5f5e5e') : '#5f5e5e',
-                    }}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Recommendations */}
-            <div style={{ animation: 'slideDown 0.4s ease-out 320ms both' }}>
+            <div>
               <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Recommendation
               </Label>
@@ -585,7 +544,7 @@ export function StepAuditPanel({
             </div>
 
             {/* Page + Component */}
-            <div className="grid grid-cols-2 gap-3" style={{ animation: 'slideDown 0.4s ease-out 400ms both' }}>
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                   Page
@@ -646,7 +605,7 @@ export function StepAuditPanel({
               fullWidth
               onClick={handleLogFinding}
               disabled={!title.trim() || isSubmitting}
-              style={{ animation: 'slideDown 0.4s ease-out 480ms both', justifyContent: 'center' }}
+              style={{ justifyContent: 'center' }}
             >
               {isSubmitting ? 'Logging…' : 'Log Finding'}
             </EchoButton>
@@ -728,9 +687,9 @@ export function StepAuditPanel({
               style={{
                 padding: '6px 10px',
                 fontSize: '12px',
-                background: progress === 'complete' ? '#2b2c2c' : 'transparent',
-                color: progress === 'complete' ? '#fff' : '#2b2c2c',
-                border: '1px solid #2b2c2c',
+                background: progress === 'complete' ? '#2d7a4f' : 'transparent',
+                color: progress === 'complete' ? '#fff' : '#2d7a4f',
+                border: '1px solid #2d7a4f',
               }}
             >
               Complete

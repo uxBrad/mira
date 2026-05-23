@@ -320,9 +320,10 @@ export function ProjectFormDialog({
                         <button
                           type="button"
                           onClick={() => removeAuditUrl(index)}
-                          className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                          className="flex-shrink-0 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
                           aria-label={`Remove URL ${index + 1}`}
                           disabled={isLoading}
+                          style={{ width: '22px', height: '22px' }}
                         >
                           <Trash2 className="h-4 w-4" aria-hidden="true" />
                         </button>
