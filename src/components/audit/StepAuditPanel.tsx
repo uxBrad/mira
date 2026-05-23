@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { ChevronLeft, ChevronRight, Check, X, Clock, CheckCircle2, AlertCircle, ExternalLink, Maximize2, Minimize2, XCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, X, Clock, CheckCircle2, AlertCircle, ExternalLink, Maximize2, Minimize2, XCircle, Clipboard } from 'lucide-react'
 import { WCAG_CRITERIA, STANDARDS_OPTIONS } from '../../lib/utils'
 import {
   Select,
@@ -109,6 +109,7 @@ interface StepAuditPanelProps {
     recommendations?: string
     pageUrl?: string
     component?: string
+    screenshotPath?: string
   }) => Promise<void>
 }
 
@@ -192,6 +193,7 @@ export function StepAuditPanel({
   const [pageUrl, setPageUrl] = useState('__none__')
   const [component, setComponent] = useState('__none__')
   const [selectedTemplateId, setSelectedTemplateId] = useState('__none__')
+  const [screenshotPath, setScreenshotPath] = useState('')
 
   // ─── Persist position + status whenever anything changes ────────────────
   useEffect(() => {
@@ -237,6 +239,7 @@ export function StepAuditPanel({
     setPageUrl('__none__')
     setComponent('__none__')
     setSelectedTemplateId('__none__')
+    setScreenshotPath('')
     setSubmitSuccess(false)
   }, [index])
 
@@ -295,6 +298,7 @@ export function StepAuditPanel({
         recommendations: recommendations.trim() || undefined,
         pageUrl: pageUrl && pageUrl !== '__none__' ? pageUrl : undefined,
         component: component && component !== '__none__' ? component : undefined,
+        screenshotPath: screenshotPath || undefined,
       })
       setSubmitSuccess(true)
       setTitle('')
@@ -303,6 +307,7 @@ export function StepAuditPanel({
       setPageUrl('__none__')
       setComponent('__none__')
       setSelectedTemplateId('__none__')
+      setScreenshotPath('')
       // Auto-mark verdict as fail when a finding is logged
       setCriteriaVerdict((prev) => ({ ...prev, [criterion.id]: 'fail' }))
       setTimeout(() => setSubmitSuccess(false), 2000)
@@ -597,6 +602,39 @@ export function StepAuditPanel({
                   />
                 )}
               </div>
+            </div>
+
+            {/* Screenshot */}
+            <div>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const filePath = await window.api.system.readClipboardImage()
+                    if (filePath) setScreenshotPath(filePath)
+                  } catch { /* silent */ }
+                }}
+                className="flex items-center gap-1.5 font-sans text-xs px-3 py-1.5 transition-colors hover:bg-[#f0ede9]"
+                style={{ border: '1px solid #d0cac8', borderRadius: '4px', color: '#2b2c2c', background: 'white' }}
+              >
+                <Clipboard className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                {screenshotPath ? 'Replace Screenshot' : 'Paste Screenshot from Clipboard'}
+              </button>
+              {screenshotPath && (
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="font-sans text-xs truncate" style={{ color: '#5f5e5e' }}>
+                    {screenshotPath.split('/').pop() || screenshotPath.split('\\').pop()}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setScreenshotPath('')}
+                    aria-label="Remove screenshot"
+                    className="flex-shrink-0"
+                  >
+                    <X className="h-3 w-3" style={{ color: '#9a9897' }} aria-hidden="true" />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Submit finding */}

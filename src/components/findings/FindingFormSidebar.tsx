@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Image, Plus, Check, Maximize2, Minimize2 } from 'lucide-react'
+import { X, Image, Clipboard, Plus, Check, Maximize2, Minimize2 } from 'lucide-react'
 import { Label } from '../ui/label'
 import { Textarea } from '../ui/textarea'
 import {
@@ -145,21 +145,14 @@ export function FindingFormSidebar({
     if (addingComponent) setTimeout(() => newComponentRef.current?.focus(), 50)
   }, [addingComponent])
 
-  useEffect(() => {
-    if (!open) return
-    async function handleKeyDown(e: KeyboardEvent) {
-      const isV = (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key === 'v'
-      if (!isV) return
-      try {
-        const filePath = await window.api.system.readClipboardImage()
-        if (filePath) setScreenshotPath(filePath)
-      } catch {
-        // silent — let normal text paste proceed
-      }
+  async function handlePasteFromClipboard() {
+    try {
+      const filePath = await window.api.system.readClipboardImage()
+      if (filePath) setScreenshotPath(filePath)
+    } catch {
+      // silent
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [open])
+  }
 
   function handleCriterionSelect(criterion: typeof WCAG_CRITERIA[number]) {
     setWcagCriterion(criterion.id)
@@ -625,25 +618,31 @@ export function FindingFormSidebar({
                   <Image style={{ width: '14px', height: '14px' }} aria-hidden="true" />
                   {screenshotPath ? 'Change' : 'Add Screenshot'}
                 </button>
-                {screenshotPath && (
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="font-sans text-xs text-muted-foreground truncate">
-                      {screenshotPath.split('/').pop() || screenshotPath.split('\\').pop()}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setScreenshotPath('')}
-                      aria-label="Remove screenshot"
-                      className="flex-shrink-0"
-                    >
-                      <X className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-                    </button>
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={handlePasteFromClipboard}
+                  disabled={isLoading}
+                  style={{ ...btnBase, color: '#2b2c2c' }}
+                >
+                  <Clipboard style={{ width: '14px', height: '14px' }} aria-hidden="true" />
+                  Paste from Clipboard
+                </button>
               </div>
-              <p className="font-sans text-xs" style={{ color: '#9b9695' }}>
-                Or press Ctrl+V (Cmd+V on Mac) to paste from clipboard
-              </p>
+              {screenshotPath && (
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="font-sans text-xs text-muted-foreground truncate">
+                    {screenshotPath.split('/').pop() || screenshotPath.split('\\').pop()}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setScreenshotPath('')}
+                    aria-label="Remove screenshot"
+                    className="flex-shrink-0"
+                  >
+                    <X className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Notes */}

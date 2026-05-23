@@ -565,57 +565,51 @@ export default function ProjectPage() {
 
         {/* Project header */}
         <div className="flex-shrink-0 px-10 pt-8 pb-0" style={{ background: '#fcf9f8' }}>
-          {/* Top row: project info (left) + audit stats (right) */}
-          <div className="flex items-start justify-between gap-6 mb-5">
-            <div className="flex-1 min-w-0">
-              {/* Standards label */}
-              {project.standards && (
-                <p
-                  className="font-sans text-xs font-bold uppercase mb-3"
-                  style={{ color: '#1d4ed8', letterSpacing: '0.12em' }}
-                >
-                  {project.standards} Audit
-                </p>
-              )}
-
-              {/* Project name — large serif */}
-              <h1
-                className="font-serif font-bold leading-none mb-1"
-                style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em', color: '#1a1a1a' }}
+          {/* Project info */}
+          <div className="mb-5">
+            {/* Standards label */}
+            {project.standards && (
+              <p
+                className="font-sans text-xs font-bold uppercase mb-3"
+                style={{ color: '#1d4ed8', letterSpacing: '0.12em' }}
               >
-                {project.name}
-              </h1>
+                {project.standards} Audit
+              </p>
+            )}
 
-              {/* Client + URL */}
-              <div className="flex items-center gap-3 mt-2 flex-wrap">
-                {project.clientName && (
-                  <span className="font-sans text-sm" style={{ color: '#5f5e5e' }}>{project.clientName}</span>
-                )}
-                {project.url && (
-                  <a
-                    href={project.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 font-sans text-xs hover:underline"
-                    style={{ color: '#5f5e5e' }}
-                  >
-                    {project.url}
-                    <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                  </a>
-                )}
-              </div>
+            {/* Project name — large serif */}
+            <h1
+              className="font-serif font-bold leading-none"
+              style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em', color: '#1a1a1a' }}
+            >
+              {project.name}
+            </h1>
+
+            {/* Audit stats — horizontal row below title */}
+            <div className="flex items-center gap-2 mt-3 flex-wrap">
+              <KVTag label="Findings" value={String(findings.length)} />
+              <KVTag label="Unknown" value={String(unknownCount)} />
+              <KVTag label="Passed" value={String(passCount)} valueVariant="pass" />
+              <KVTag label="Failed" value={String(failCount)} valueVariant="fail" />
             </div>
 
-            {/* Audit criteria stats — 2-column layout matching Figma */}
-            <div className="flex items-start gap-3 flex-shrink-0 pt-1">
-              <div className="flex flex-col gap-2" style={{ width: '130px' }}>
-                <KVTag label="Findings" value={String(findings.length)} stretch />
-                <KVTag label="Unknown" value={String(unknownCount)} stretch />
-              </div>
-              <div className="flex flex-col gap-2" style={{ width: '130px' }}>
-                <KVTag label="Passed" value={String(passCount)} valueVariant="pass" stretch />
-                <KVTag label="Failed" value={String(failCount)} valueVariant="fail" stretch />
-              </div>
+            {/* Client + URL */}
+            <div className="flex items-center gap-3 mt-3 flex-wrap">
+              {project.clientName && (
+                <span className="font-sans text-sm" style={{ color: '#5f5e5e' }}>{project.clientName}</span>
+              )}
+              {project.url && (
+                <a
+                  href={project.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-sans text-xs hover:underline"
+                  style={{ color: '#5f5e5e' }}
+                >
+                  {project.url}
+                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                </a>
+              )}
             </div>
           </div>
 

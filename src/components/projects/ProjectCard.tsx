@@ -54,17 +54,12 @@ export function ProjectCard({ project, onClick, onEdit, onArchive, onComplete }:
     >
       {/* Top row: name + actions */}
       <div className="flex items-start gap-4 mb-3">
-        <div className="flex-1 min-w-0">
-          <h2
-            className="font-serif font-bold leading-tight mb-1"
-            style={{ fontSize: '1.75rem', letterSpacing: '-0.02em', color: '#1a1a1a' }}
-          >
-            {project.name}
-          </h2>
-          {project.clientName && (
-            <p className="font-sans text-sm" style={{ color: '#5f5e5e' }}>{project.clientName}</p>
-          )}
-        </div>
+        <h2
+          className="font-serif font-bold leading-tight flex-1 min-w-0"
+          style={{ fontSize: '1.75rem', letterSpacing: '-0.02em', color: '#1a1a1a' }}
+        >
+          {project.name}
+        </h2>
         <div className="flex items-center gap-1.5 flex-shrink-0">
           <EchoButton
             icon={<Pencil className="h-3.5 w-3.5" />}
@@ -98,28 +93,42 @@ export function ProjectCard({ project, onClick, onEdit, onArchive, onComplete }:
         </div>
       </div>
 
+      {/* Stats pills — between title and metadata */}
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
+        <KVTag label="Findings" value={String(project.findingCount)} />
+        <KVTag label="Unknown" value={String(auditStats.unknown)} />
+        <KVTag label="Passed" value={String(auditStats.pass)} valueVariant="pass" />
+        <KVTag label="Failed" value={String(auditStats.fail)} valueVariant="fail" />
+      </div>
+
+      {/* Metadata: client + URL */}
+      {(project.clientName || project.url) && (
+        <div className="flex items-center gap-3 mb-3 flex-wrap">
+          {project.clientName && (
+            <span className="font-sans text-sm" style={{ color: '#5f5e5e' }}>{project.clientName}</span>
+          )}
+          {project.url && (
+            <span
+              className="font-sans text-xs"
+              style={{ color: '#5f5e5e' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {project.url}
+            </span>
+          )}
+        </div>
+      )}
+
       {project.description && (
         <p className="font-sans text-sm leading-relaxed mb-3" style={{ color: '#5f5e5e' }}>{project.description}</p>
       )}
 
-      {/* Bottom: status pill + metrics + date */}
-      <div className="flex items-center justify-between pt-3 flex-wrap gap-2" style={{ borderTop: '1px solid #f0ede9' }}>
-        <div className="flex items-center gap-2">
-          <EchoPill variant="level" label={STATUS_LABELS[project.status] || project.status} />
-          <span className="font-sans text-xs" style={{ color: '#b0aaa8' }}>
-            {formatRelativeDate(project.updatedAt)}
-          </span>
-        </div>
-        <div className="flex items-start gap-2">
-          <div className="flex flex-col gap-1" style={{ minWidth: '130px' }}>
-            <KVTag label="Findings" value={String(project.findingCount)} stretch />
-            <KVTag label="Unknown" value={String(auditStats.unknown)} stretch />
-          </div>
-          <div className="flex flex-col gap-1" style={{ minWidth: '120px' }}>
-            <KVTag label="Passed" value={String(auditStats.pass)} valueVariant="pass" stretch />
-            <KVTag label="Failed" value={String(auditStats.fail)} valueVariant="fail" stretch />
-          </div>
-        </div>
+      {/* Bottom: status pill + date */}
+      <div className="flex items-center gap-2 pt-3" style={{ borderTop: '1px solid #f0ede9' }}>
+        <EchoPill variant="level" label={STATUS_LABELS[project.status] || project.status} />
+        <span className="font-sans text-xs" style={{ color: '#b0aaa8' }}>
+          {formatRelativeDate(project.updatedAt)}
+        </span>
       </div>
     </article>
   )
