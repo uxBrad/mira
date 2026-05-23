@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { ChevronLeft, ChevronRight, Check, X, Clock, CheckCircle2, AlertCircle, ExternalLink, Maximize2, Minimize2, XCircle, Clipboard, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, X, Clock, CheckCircle2, AlertCircle, ExternalLink, Maximize2, Minimize2, XCircle, Clipboard, Plus, Image } from 'lucide-react'
 import { WCAG_CRITERIA, STANDARDS_OPTIONS } from '../../lib/utils'
 import {
   Select,
@@ -609,19 +609,32 @@ export function StepAuditPanel({
               <Label className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5 block" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Screenshot
               </Label>
-              <EchoButton
-                icon={<Clipboard className="h-3.5 w-3.5" />}
-                iconPosition="left"
-                onClick={async () => {
-                  try {
-                    const filePath = await window.api.system.readClipboardImage()
-                    if (filePath) setScreenshotPath(filePath)
-                  } catch { /* silent */ }
-                }}
-                style={{ fontSize: '13px', padding: '6px 12px' }}
-              >
-                {screenshotPath ? 'Replace Screenshot' : 'Paste from Clipboard'}
-              </EchoButton>
+              <div className="flex items-center gap-2">
+                <EchoButton
+                  icon={<Image className="h-3.5 w-3.5" />}
+                  iconPosition="left"
+                  onClick={async () => {
+                    const path = await window.api.export.chooseScreenshot()
+                    if (path) setScreenshotPath(path)
+                  }}
+                  style={{ fontSize: '13px', padding: '6px 12px' }}
+                >
+                  {screenshotPath ? 'Change' : 'Add Screenshot'}
+                </EchoButton>
+                <EchoButton
+                  icon={<Clipboard className="h-3.5 w-3.5" />}
+                  iconPosition="left"
+                  onClick={async () => {
+                    try {
+                      const filePath = await window.api.system.readClipboardImage()
+                      if (filePath) setScreenshotPath(filePath)
+                    } catch { /* silent */ }
+                  }}
+                  style={{ fontSize: '13px', padding: '6px 12px' }}
+                >
+                  Paste from Clipboard
+                </EchoButton>
+              </div>
               {screenshotPath && (
                 <div className="flex items-center gap-1.5 mt-1.5">
                   <span className="font-sans text-xs truncate" style={{ color: '#5f5e5e' }}>

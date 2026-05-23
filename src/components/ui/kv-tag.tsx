@@ -33,6 +33,7 @@ export function KVTag({ label, value, valueVariant = 'default', className = '', 
           padding: '3px 10px',
           display: 'flex',
           alignItems: 'center',
+          borderRight: '1px solid rgba(0,0,0,0.1)',
           ...(stretch ? { flex: 1 } : {}),
         }}
       >
