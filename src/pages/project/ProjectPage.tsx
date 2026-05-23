@@ -696,7 +696,7 @@ export default function ProjectPage() {
             {/* Group by criteria toggle — always visible */}
             <label
               className="flex items-center gap-1.5 font-sans text-xs font-semibold px-3 py-1.5 cursor-pointer select-none ml-auto"
-              style={{ background: groupByCriteria ? '#1d4ed8' : 'transparent', color: groupByCriteria ? '#fff' : '#2b2c2c' }}
+              style={{ background: 'transparent', color: '#2b2c2c' }}
             >
               <input
                 type="checkbox"
@@ -706,9 +706,9 @@ export default function ProjectPage() {
               />
               <span
                 className="flex-shrink-0 w-3.5 h-3.5 flex items-center justify-center"
-                style={{ border: `1.5px solid ${groupByCriteria ? '#fff' : '#d0cac8'}`, background: groupByCriteria ? '#fff' : 'transparent', borderRadius: '2px' }}
+                style={{ border: `1.5px solid ${groupByCriteria ? '#1d4ed8' : '#d0cac8'}`, background: groupByCriteria ? '#1d4ed8' : 'transparent', borderRadius: '2px' }}
               >
-                {groupByCriteria && <Check className="h-2 w-2" style={{ color: '#1d4ed8' }} />}
+                {groupByCriteria && <Check className="h-2 w-2" style={{ color: '#fff' }} />}
               </span>
               Group by criteria
             </label>
