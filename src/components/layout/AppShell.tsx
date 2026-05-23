@@ -153,7 +153,7 @@ export default function AppShell() {
     >
       <header
         className="flex-shrink-0 flex items-center px-2 titlebar-drag"
-        style={{ background: '#ffffff', borderBottom: '1px solid #ebe7e7', height: '48px' }}
+        style={{ background: '#ffffff', borderBottom: '1px solid #ebe7e7', height: '40px' }}
         aria-label="Main navigation"
       >
         {/* Left: hamburger + back/forward */}

@@ -205,7 +205,7 @@ export default function SettingsPage() {
                 </div>
                 <EchoButton
                   icon={<X className="h-3.5 w-3.5" />}
-                  iconPosition="left"
+                  iconPosition="right"
                   fullWidth
                   onClick={removeLogo}
                   style={{ justifyContent: 'center', color: '#c0392b' }}
@@ -232,7 +232,7 @@ export default function SettingsPage() {
             />
             <EchoButton
               icon={<Upload className="h-3.5 w-3.5" />}
-              iconPosition="left"
+              iconPosition="right"
               fullWidth
               onClick={() => logoInputRef.current?.click()}
               style={{ justifyContent: 'center' }}
@@ -261,7 +261,7 @@ export default function SettingsPage() {
                 </div>
                 <EchoButton
                   icon={<X className="h-3.5 w-3.5" />}
-                  iconPosition="left"
+                  iconPosition="right"
                   fullWidth
                   onClick={removeAvatar}
                   style={{ justifyContent: 'center', color: '#c0392b' }}
@@ -290,7 +290,7 @@ export default function SettingsPage() {
             />
             <EchoButton
               icon={<Upload className="h-3.5 w-3.5" />}
-              iconPosition="left"
+              iconPosition="right"
               fullWidth
               onClick={() => avatarInputRef.current?.click()}
               style={{ justifyContent: 'center' }}

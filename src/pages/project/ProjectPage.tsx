@@ -114,16 +114,6 @@ function MultiSelectFilter({
             ? `${label}: ${selectedLabels.slice(0, 2).join(', ')}${selectedLabels.length > 2 ? ` +${selectedLabels.length - 2}` : ''}`
             : `${label}: Any`}
         </span>
-        {active && (
-          <button
-            type="button"
-            aria-label={`Clear ${label} filter`}
-            onClick={e => { e.stopPropagation(); onClear() }}
-            className="ml-0.5 leading-none hover:opacity-80"
-          >
-            ×
-          </button>
-        )}
         <ChevronDown className="h-3 w-3 opacity-60 flex-shrink-0" />
       </button>
 
@@ -168,6 +158,18 @@ function MultiSelectFilter({
               </button>
             )
           })}
+          {active && (
+            <>
+              <div style={{ height: '1px', background: '#e0dbd9', margin: '4px 0' }} />
+              <button
+                onClick={() => { onClear(); setOpen(false) }}
+                className="flex items-center w-full px-3 py-2 font-sans text-sm text-left transition-colors hover:bg-[#f6f3f2]"
+                style={{ color: '#1d4ed8' }}
+              >
+                Clear
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>
@@ -606,13 +608,13 @@ export default function ProjectPage() {
 
             {/* Audit criteria stats — 2-column layout matching Figma */}
             <div className="flex items-start gap-3 flex-shrink-0 pt-1">
-              <div className="flex flex-col gap-2">
-                <KVTag label="Findings" value={String(findings.length)} />
-                <KVTag label="Unknown" value={String(unknownCount)} />
+              <div className="flex flex-col gap-2" style={{ width: '130px' }}>
+                <KVTag label="Findings" value={String(findings.length)} stretch />
+                <KVTag label="Unknown" value={String(unknownCount)} stretch />
               </div>
-              <div className="flex flex-col gap-2">
-                <KVTag label="Passed" value={String(passCount)} valueVariant="pass" />
-                <KVTag label="Failed" value={String(failCount)} valueVariant="fail" />
+              <div className="flex flex-col gap-2" style={{ width: '130px' }}>
+                <KVTag label="Passed" value={String(passCount)} valueVariant="pass" stretch />
+                <KVTag label="Failed" value={String(failCount)} valueVariant="fail" stretch />
               </div>
             </div>
           </div>
@@ -700,7 +702,7 @@ export default function ProjectPage() {
             {/* Group by criteria toggle — always visible */}
             <label
               className="flex items-center gap-1.5 font-sans text-xs font-semibold px-3 py-1.5 cursor-pointer select-none ml-auto"
-              style={{ border: `1px solid ${groupByCriteria ? '#1d4ed8' : '#d0cac8'}`, background: groupByCriteria ? '#1d4ed8' : 'transparent', color: groupByCriteria ? '#fff' : '#2b2c2c' }}
+              style={{ background: groupByCriteria ? '#1d4ed8' : 'transparent', color: groupByCriteria ? '#fff' : '#2b2c2c' }}
             >
               <input
                 type="checkbox"
@@ -761,13 +763,6 @@ export default function ProjectPage() {
             </div>
           )}
 
-          {!isLoading && findings.length > 0 && (
-            <p className="font-sans text-xs mb-2" style={{ color: '#5f5e5e' }}>
-              {filtered.length === findings.length
-                ? `${findings.length} finding${findings.length !== 1 ? 's' : ''}`
-                : `${filtered.length} of ${findings.length} findings`}
-            </p>
-          )}
 
           {!isLoading && findings.length === 0 && !error && (
             <div className="py-24 text-center">

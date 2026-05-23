@@ -322,7 +322,7 @@ export function StepAuditPanel({
     >
       {/* ── Header ── */}
       <div
-        className="flex-shrink-0 flex items-center justify-between px-6"
+        className="flex-shrink-0 flex items-center justify-between pl-6 pr-3"
         style={{ borderBottom: '1px solid #e0dbd9', background: '#f6f3f2', minHeight: '60px' }}
       >
         <div className="flex items-center gap-3">
@@ -332,10 +332,8 @@ export function StepAuditPanel({
           <span className="font-sans text-sm font-semibold" style={{ color: '#3a3a3a' }}>
             {index + 1} / {total}
           </span>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* Progress bar */}
-          <div className="flex items-center gap-2 mr-2">
+          {/* Progress bar — sits right next to step counter */}
+          <div className="flex items-center gap-2">
             <div className="w-24 h-1.5" style={{ background: '#e0dbd9' }}>
               <div
                 className="h-full transition-all"
@@ -344,21 +342,23 @@ export function StepAuditPanel({
             </div>
             <span className="font-sans text-xs" style={{ color: '#3a3a3a' }}>{progressPct}%</span>
           </div>
+        </div>
+        <div className="flex items-center gap-0.5">
           <button
             onClick={onToggleWide}
             className="flex items-center justify-center transition-colors hover:text-foreground"
-            style={{ color: '#5f5e5e', width: '40px', height: '40px', borderRadius: '4px' }}
+            style={{ color: '#5f5e5e', width: '32px', height: '32px', borderRadius: '4px' }}
             aria-label={isWide ? 'Exit wide mode' : 'Enter wide mode'}
           >
-            {isWide ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+            {isWide ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </button>
           <button
             onClick={onClose}
             className="flex items-center justify-center transition-colors hover:text-foreground"
-            style={{ color: '#5f5e5e', width: '40px', height: '40px', borderRadius: '4px' }}
+            style={{ color: '#5f5e5e', width: '32px', height: '32px', borderRadius: '4px' }}
             aria-label="Close step audit"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -490,6 +490,13 @@ export function StepAuditPanel({
                 Issue Title
               </Label>
               <div className="flex items-center gap-2">
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder={`${criterion.name} issue…`}
+                  className="flex-1 h-9 px-3 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                  style={{ borderColor: '#d0cac8' }}
+                />
                 {templates.length > 0 && (
                   <Select value={selectedTemplateId} onValueChange={applyTemplate}>
                     <SelectTrigger style={{ width: '140px', height: '36px', fontSize: '12px', flexShrink: 0 }}>
@@ -503,13 +510,6 @@ export function StepAuditPanel({
                     </SelectContent>
                   </Select>
                 )}
-                <input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder={`${criterion.name} issue…`}
-                  className="flex-1 h-9 px-3 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary"
-                  style={{ borderColor: '#d0cac8' }}
-                />
               </div>
             </div>
 
@@ -633,20 +633,31 @@ export function StepAuditPanel({
           {/* Status buttons — two independent groups */}
           <div className="flex items-center gap-1.5 justify-center">
             {/* Verdict group */}
-            <EchoButton
-              icon={<CheckCircle2 className="h-3 w-3" />}
-              iconPosition="left"
-              onClick={() => setVerdict('pass')}
-              style={{
-                padding: '6px 10px',
-                fontSize: '12px',
-                background: verdict === 'pass' ? '#2d7a4f' : 'transparent',
-                color: verdict === 'pass' ? '#fff' : '#2d7a4f',
-                border: '1px solid #2d7a4f',
-              }}
-            >
-              Pass
-            </EchoButton>
+            <div className="relative group">
+              <EchoButton
+                icon={<CheckCircle2 className="h-3 w-3" />}
+                iconPosition="left"
+                onClick={() => setVerdict('pass')}
+                style={{
+                  padding: '6px 10px',
+                  fontSize: '12px',
+                  background: verdict === 'pass' ? '#2d7a4f' : 'transparent',
+                  color: verdict === 'pass' ? '#fff' : '#2d7a4f',
+                  border: '1px solid #2d7a4f',
+                }}
+              >
+                Pass
+              </EchoButton>
+              {hasFail && (
+                <div
+                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap"
+                  style={{ background: '#1a1a1a', color: '#fff', fontSize: '11px', borderRadius: '4px', fontFamily: 'var(--font-sans)' }}
+                  role="tooltip"
+                >
+                  Can't mark as passed because of logged failures
+                </div>
+              )}
+            </div>
             <EchoButton
               icon={<XCircle className="h-3 w-3" />}
               iconPosition="left"

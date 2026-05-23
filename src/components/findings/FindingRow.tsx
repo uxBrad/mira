@@ -38,7 +38,7 @@ interface FindingRowProps {
 function statusPill(status: string | null) {
   if (status === 'resolved') return <EchoPill variant="pass" label="PASS" />
   if (status === 'wont_fix') return <EchoPill variant="unknown" label="N/A" />
-  return <EchoPill variant="fail" label="FAIL" />
+  return null
 }
 
 export function FindingRow({ finding, onEdit, onDelete }: FindingRowProps) {

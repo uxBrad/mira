@@ -656,7 +656,7 @@ export function FindingFormSidebar({
                 )}
               </div>
               <p className="font-sans text-xs" style={{ color: '#9b9695' }}>
-                Or press Ctrl+V to paste from clipboard
+                Or press Ctrl+V (Cmd+V on Mac) to paste from clipboard
               </p>
             </div>
 
