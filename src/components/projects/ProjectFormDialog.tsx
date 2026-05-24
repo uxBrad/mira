@@ -276,7 +276,7 @@ export function ProjectFormDialog({
                       style={{ background: '#f6f3f2', borderRadius: '4px', minHeight: '80px' }}
                     >
                       <img
-                        src={`file://${clientLogoPath}`}
+                        src={`file:///${clientLogoPath.replace(/\\/g, '/')}`}
                         alt="Client logo preview"
                         style={{ maxHeight: '64px', maxWidth: '100%', objectFit: 'contain' }}
                       />
