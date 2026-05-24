@@ -129,7 +129,8 @@ const systemAPI = {
   openFile: (filePath: string) => ipcRenderer.invoke('system:openFile', filePath),
   quit: () => ipcRenderer.invoke('system:quit'),
   saveClipboardImage: (base64: string) => ipcRenderer.invoke('system:saveClipboardImage', base64),
-  readClipboardImage: () => ipcRenderer.invoke('system:readClipboardImage')
+  readClipboardImage: () => ipcRenderer.invoke('system:readClipboardImage'),
+  readFileAsBase64: (filePath: string) => ipcRenderer.invoke('system:readFileAsBase64', filePath)
 }
 
 if (process.contextIsolated) {

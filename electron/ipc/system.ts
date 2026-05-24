@@ -3,6 +3,15 @@ import { shell } from 'electron'
 import fs from 'fs'
 import path from 'path'
 
+function fileToDataUrl(filePath: string): string | null {
+  try {
+    const buffer = fs.readFileSync(filePath)
+    const ext = path.extname(filePath).slice(1).toLowerCase()
+    const mime = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : ext === 'gif' ? 'image/gif' : ext === 'webp' ? 'image/webp' : 'image/png'
+    return `data:${mime};base64,${buffer.toString('base64')}`
+  } catch { return null }
+}
+
 type _GetMainWindow = () => any // eslint-disable-line @typescript-eslint/no-explicit-any
 
 export function registerSystemHandlers(ipcMain: IpcMain, _getMainWindow: _GetMainWindow): void {
@@ -33,10 +42,10 @@ export function registerSystemHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
     const image = clipboard.readImage()
     if (image.isEmpty()) return null
     const pngBuffer = image.toPNG()
-    const tempDir = app.getPath('temp')
-    const fileName = `echo-screenshot-${Date.now()}.png`
-    const filePath = path.join(tempDir, fileName)
-    fs.writeFileSync(filePath, pngBuffer)
-    return filePath
+    return `data:image/png;base64,${pngBuffer.toString('base64')}`
+  })
+
+  ipcMain.handle('system:readFileAsBase64', async (_, filePath: string) => {
+    return fileToDataUrl(filePath)
   })
 }

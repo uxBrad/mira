@@ -2,7 +2,8 @@ import { IpcMain, BrowserWindow, dialog } from 'electron'
 import { getDb } from '../../db'
 import { projects, findings } from '../../db/schema'
 import { eq, desc } from 'drizzle-orm'
-import { writeFileSync } from 'fs'
+import { writeFileSync, readFileSync } from 'fs'
+import { extname } from 'path'
 
 type _GetMainWindow = () => BrowserWindow | null
 
@@ -24,7 +25,11 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
       properties: ['openFile']
     })
     if (result.canceled || result.filePaths.length === 0) return null
-    return result.filePaths[0]
+    const filePath = result.filePaths[0]
+    const ext = extname(filePath).slice(1).toLowerCase()
+    const mime = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : ext === 'gif' ? 'image/gif' : ext === 'webp' ? 'image/webp' : 'image/png'
+    const buffer = readFileSync(filePath)
+    return `data:${mime};base64,${buffer.toString('base64')}`
   })
 
   ipcMain.handle('export:csv', async (_, projectId: string) => {
@@ -584,13 +589,13 @@ function buildVpatHtml(
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: white; color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; }
-  @page { margin: 0.5in; }
+  @page { margin: 0.5in; @bottom-right { content: counter(page); font-size: 10px; color: #999; font-family: -apple-system, sans-serif; } }
+  @page :first { @bottom-right { content: none; } }
   @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
   table { width: 100%; border-collapse: collapse; margin: 20px 0; }
   h1 { font-family: Georgia, 'Times New Roman', serif; }
   h2 { font-family: Georgia, 'Times New Roman', serif; border-bottom: 2px solid #e0dbd9; padding-bottom: 12px; }
   .page { page-break-before: always; }
-  .page-number { text-align: right; font-size: 10px; color: #999; margin-top: 40px; }
 </style>
 </head>
 <body>
@@ -662,7 +667,6 @@ function buildVpatHtml(
     </tbody>
   </table>
 
-  <div class="page-number">Page 2 of 16</div>
 </div>
 
 <!-- ════════════════════════════════════════
@@ -710,7 +714,6 @@ function buildVpatHtml(
     </p>
   </div>
 
-  <div class="page-number">Page 3 of 16</div>
 </div>
 
 <!-- ════════════════════════════════════════
@@ -729,7 +732,6 @@ function buildVpatHtml(
     </tbody>
   </table>
 
-  <div class="page-number">Page 4+ of 16</div>
 </div>
 
 <!-- ════════════════════════════════════════
@@ -744,7 +746,6 @@ function buildVpatHtml(
     </tbody>
   </table>
 
-  <div class="page-number">Page 10+ of 16</div>
 </div>
 
 <!-- ════════════════════════════════════════
@@ -765,7 +766,6 @@ function buildVpatHtml(
     This assessment was generated on ${date} using manuA11y, an accessibility auditing tool. For the most current information about product accessibility, please contact the organization directly.
   </p>
 
-  <div class="page-number">Page 16 of 16</div>
 </div>
 
 </body>

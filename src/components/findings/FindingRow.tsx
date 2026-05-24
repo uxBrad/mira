@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Pencil, Trash2, X, ZoomIn } from 'lucide-react'
 import { EchoButton } from '../ui/echo-button'
 import { EchoPill } from '../ui/echo-pill'
 import { KVTag } from '../ui/kv-tag'
@@ -24,9 +24,46 @@ interface Finding {
   status: string | null
   pageUrl: string | null
   component: string | null
+  screenshotPath: string | null
   recommendations: string | null
   notes: string | null
   createdAt: number
+}
+
+function ScreenshotThumb({ path, onOpen }: { path: string; onOpen: (src: string) => void }) {
+  const [src, setSrc] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (path.startsWith('data:')) {
+      setSrc(path)
+    } else {
+      window.api.system.readFileAsBase64(path).then((result) => {
+        if (result) setSrc(result as string)
+      })
+    }
+  }, [path])
+
+  if (!src) return null
+
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(src)}
+      aria-label="View screenshot"
+      className="relative flex-shrink-0 group"
+      style={{ width: '72px', height: '52px' }}
+    >
+      <img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        style={{ width: '72px', height: '52px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #e0dbd9', display: 'block' }}
+      />
+      <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors rounded-[4px]">
+        <ZoomIn className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
+      </div>
+    </button>
+  )
 }
 
 interface FindingRowProps {
@@ -45,6 +82,7 @@ function statusPill(status: string | null) {
 export function FindingRow({ finding, onEdit, onDelete }: FindingRowProps) {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
 
   async function handleDelete() {
     setIsDeleting(true)
@@ -117,18 +155,48 @@ export function FindingRow({ finding, onEdit, onDelete }: FindingRowProps) {
           </p>
         )}
 
-        {/* Tags */}
-        {hasTags && (
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {finding.pageUrl && (
-              <KVTag label="Page" value={finding.pageUrl} />
+        {/* Screenshot + tags row */}
+        {(finding.screenshotPath || hasTags) && (
+          <div className="flex items-start gap-3 mt-2 flex-wrap">
+            {finding.screenshotPath && (
+              <ScreenshotThumb path={finding.screenshotPath} onOpen={setLightboxSrc} />
             )}
-            {finding.component && (
-              <KVTag label="Component" value={finding.component} />
+            {hasTags && (
+              <div className="flex flex-wrap gap-1.5 self-center">
+                {finding.pageUrl && <KVTag label="Page" value={finding.pageUrl} />}
+                {finding.component && <KVTag label="Component" value={finding.component} />}
+              </div>
             )}
           </div>
         )}
       </article>
+
+      {/* Lightbox */}
+      {lightboxSrc && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85"
+          onClick={() => setLightboxSrc(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Screenshot"
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxSrc(null)}
+            aria-label="Close"
+            className="absolute top-4 right-4 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+            style={{ width: '36px', height: '36px' }}
+          >
+            <X className="h-5 w-5 text-white" aria-hidden="true" />
+          </button>
+          <img
+            src={lightboxSrc}
+            alt="Screenshot full view"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: '6px' }}
+          />
+        </div>
+      )}
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="max-w-sm">

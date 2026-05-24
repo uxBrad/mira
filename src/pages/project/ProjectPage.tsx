@@ -466,7 +466,7 @@ export default function ProjectPage() {
           title: 'PDF exported',
           description: `${format === 'vpat' ? 'VPAT' : 'Summary'} report saved.`,
           action: (
-            <ToastAction altText="Open file" onClick={() => window.api.system.openFile(result.path!)}>
+            <ToastAction altText="Open file" className="bg-[#1d4ed8] text-white border-[#1d4ed8] hover:bg-[#1e40af]" onClick={() => window.api.system.openFile(result.path!)}>
               Open
             </ToastAction>
           )
@@ -496,7 +496,7 @@ export default function ProjectPage() {
           title: 'CSV exported',
           description: 'Findings exported.',
           action: (
-            <ToastAction altText="Open file" onClick={() => window.api.system.openFile(result.path!)}>
+            <ToastAction altText="Open file" className="bg-[#1d4ed8] text-white border-[#1d4ed8] hover:bg-[#1e40af]" onClick={() => window.api.system.openFile(result.path!)}>
               Open
             </ToastAction>
           )

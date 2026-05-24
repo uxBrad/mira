@@ -322,44 +322,43 @@ export function FindingFormSidebar({
           )}
 
           <div className="space-y-5">
-            {/* Load from template */}
-            {mode === 'create' && templates.length > 0 && (
-              <div className="space-y-1.5">
-                <Label htmlFor="sf-template" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
-                  Load from template
-                </Label>
-                <Select value={selectedTemplateId} onValueChange={applyTemplateById}>
-                  <SelectTrigger id="sf-template">
-                    <SelectValue placeholder="Select a template…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {templates.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Title */}
+            {/* Title + inline template selector */}
             <div className="space-y-1.5">
               <Label htmlFor="sf-title" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                 Title <span aria-hidden="true" style={{ color: '#1d4ed8' }}>*</span>
               </Label>
-              <input
-                id="sf-title"
-                ref={titleRef}
-                required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Images missing alternative text"
-                aria-required="true"
-                disabled={isLoading}
-                className={inputClass}
-                style={inputStyle}
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  id="sf-title"
+                  ref={titleRef}
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Images missing alternative text"
+                  aria-required="true"
+                  disabled={isLoading}
+                  className={`${inputClass} flex-1`}
+                  style={inputStyle}
+                />
+                {mode === 'create' && templates.length > 0 && (
+                  <Select value={selectedTemplateId} onValueChange={applyTemplateById}>
+                    <SelectTrigger
+                      id="sf-template"
+                      aria-label="Load from template"
+                      style={{ width: '140px', height: '36px', fontSize: '12px', flexShrink: 0 }}
+                    >
+                      <SelectValue placeholder="Template…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {templates.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
             </div>
 
             {/* Page */}
@@ -629,17 +628,20 @@ export function FindingFormSidebar({
                 </button>
               </div>
               {screenshotPath && (
-                <div className="flex items-center gap-1.5 mt-1">
-                  <span className="font-sans text-xs text-muted-foreground truncate">
-                    {screenshotPath.split('/').pop() || screenshotPath.split('\\').pop()}
-                  </span>
+                <div className="mt-2 relative inline-block">
+                  <img
+                    src={screenshotPath}
+                    alt="Screenshot preview"
+                    style={{ maxHeight: '120px', maxWidth: '100%', borderRadius: '4px', border: '1px solid #e0dbd9', display: 'block' }}
+                  />
                   <button
                     type="button"
                     onClick={() => setScreenshotPath('')}
                     aria-label="Remove screenshot"
-                    className="flex-shrink-0"
+                    className="absolute top-1 right-1 flex items-center justify-center bg-black/60 hover:bg-black/80 rounded-full"
+                    style={{ width: '20px', height: '20px' }}
                   >
-                    <X className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+                    <X className="h-3 w-3 text-white" aria-hidden="true" />
                   </button>
                 </div>
               )}
