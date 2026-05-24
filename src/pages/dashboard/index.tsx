@@ -177,7 +177,7 @@ export default function DashboardPage() {
       className="flex h-full overflow-hidden"
       style={{
         gap: '12px',
-        background: '#d8d3d1',
+        background: 'transparent',
         padding: '12px',
       }}
     >

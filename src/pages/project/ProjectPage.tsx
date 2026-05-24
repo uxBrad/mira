@@ -578,7 +578,7 @@ export default function ProjectPage() {
     <div
       className="flex h-full overflow-hidden"
       style={{
-        background: '#d8d3d1',
+        background: 'transparent',
         transition: tr,
         padding: '12px',
       }}
