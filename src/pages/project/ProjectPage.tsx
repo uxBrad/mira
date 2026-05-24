@@ -820,29 +820,33 @@ export default function ProjectPage() {
                     return (
                       <div key={criterion.id}>
                         {/* Criterion heading row */}
-                        <div className="flex items-center gap-2 mb-2 pb-2.5" style={{ borderBottom: '1px solid #e0dbd9' }}>
-                          <span className="font-sans text-sm font-bold uppercase tracking-widest flex-shrink-0" style={{ color: '#1d4ed8', letterSpacing: '0.1em' }}>
-                            {criterion.id}
-                          </span>
-                          <span className="font-serif font-bold text-base truncate flex-1 min-w-0" style={{ color: '#1a1a1a' }}>
-                            {criterion.name}
-                          </span>
-                          {criterionVerdict === 'pass' && (
-                            <span className="flex items-center gap-1 font-sans text-xs font-bold px-2 py-0.5 uppercase flex-shrink-0" style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.06em', borderRadius: '3px' }}>
-                              <CheckCircle2 className="h-3 w-3" aria-hidden="true" /> Pass
+                        <div className="flex items-baseline gap-3 mb-2 pb-2.5" style={{ borderBottom: '1px solid #e0dbd9' }}>
+                          {/* Left cluster: ID + Name + Verdict — all sit together */}
+                          <div className="flex items-baseline gap-2 flex-1 min-w-0">
+                            <span className="font-sans text-sm font-bold uppercase tracking-widest flex-shrink-0" style={{ color: '#1d4ed8', letterSpacing: '0.1em' }}>
+                              {criterion.id}
                             </span>
-                          )}
-                          {criterionVerdict === 'fail' && (
-                            <span className="font-sans text-xs font-bold px-2 py-0.5 uppercase flex-shrink-0" style={{ background: '#dc2626', color: '#fff', letterSpacing: '0.06em', borderRadius: '3px' }}>
-                              Fail
+                            <span className="font-serif font-bold text-base truncate min-w-0" style={{ color: '#1a1a1a' }}>
+                              {criterion.name}
                             </span>
-                          )}
-                          {!criterionVerdict && (
-                            <span className="font-sans text-xs font-bold px-2 py-0.5 uppercase flex-shrink-0" style={{ background: '#e5e2e1', color: '#5f5e5e', letterSpacing: '0.06em', borderRadius: '3px' }}>
-                              Unknown
-                            </span>
-                          )}
-                          <span className="font-sans text-xs flex-shrink-0" style={{ color: '#b0aaa8', marginLeft: 'auto' }}>
+                            {criterionVerdict === 'pass' && (
+                              <span className="flex items-center gap-1 font-sans text-xs font-bold px-2 py-0.5 uppercase flex-shrink-0" style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.06em', borderRadius: '3px' }}>
+                                <CheckCircle2 className="h-3 w-3" aria-hidden="true" /> Pass
+                              </span>
+                            )}
+                            {criterionVerdict === 'fail' && (
+                              <span className="font-sans text-xs font-bold px-2 py-0.5 uppercase flex-shrink-0" style={{ background: '#dc2626', color: '#fff', letterSpacing: '0.06em', borderRadius: '3px' }}>
+                                Fail
+                              </span>
+                            )}
+                            {!criterionVerdict && (
+                              <span className="font-sans text-xs font-bold px-2 py-0.5 uppercase flex-shrink-0" style={{ background: '#e5e2e1', color: '#5f5e5e', letterSpacing: '0.06em', borderRadius: '3px' }}>
+                                Unknown
+                              </span>
+                            )}
+                          </div>
+                          {/* Right: Level + Count */}
+                          <span className="font-sans text-xs flex-shrink-0" style={{ color: '#b0aaa8' }}>
                             Level {criterion.level}
                           </span>
                           {!isEmpty && (
