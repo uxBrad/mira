@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Plus, Trash2, Maximize2, Minimize2 } from 'lucide-react'
+import { X, Plus, Trash2, Maximize2, Minimize2, Image } from 'lucide-react'
 import { EchoButton } from '../ui/echo-button'
 import { Label } from '../ui/label'
 import {
@@ -19,6 +19,7 @@ interface ProjectFormData {
   status?: string
   standards?: string
   auditUrls?: string[]
+  clientLogoPath?: string | null
 }
 
 interface ProjectFormDialogProps {
@@ -52,6 +53,7 @@ export function ProjectFormDialog({
   const [auditUrls, setAuditUrls] = useState<string[]>(
     initialData?.auditUrls && initialData.auditUrls.length > 0 ? initialData.auditUrls : ['']
   )
+  const [clientLogoPath, setClientLogoPath] = useState<string | null>(initialData?.clientLogoPath ?? null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const nameRef = useRef<HTMLInputElement>(null)
@@ -86,6 +88,7 @@ export function ProjectFormDialog({
       setAuditUrls(
         initialData?.auditUrls && initialData.auditUrls.length > 0 ? initialData.auditUrls : ['']
       )
+      setClientLogoPath(initialData?.clientLogoPath ?? null)
       setError(null)
       setTimeout(() => nameRef.current?.focus(), 50)
     }
@@ -129,7 +132,8 @@ export function ProjectFormDialog({
         description: description.trim() || undefined,
         status,
         standards: standards || undefined,
-        auditUrls: cleanUrls.length > 0 ? cleanUrls : undefined
+        auditUrls: cleanUrls.length > 0 ? cleanUrls : undefined,
+        clientLogoPath: clientLogoPath || null,
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
@@ -258,6 +262,52 @@ export function ProjectFormDialog({
                   className={inputClass}
                   style={inputStyle}
                 />
+              </div>
+
+              {/* Client Logo */}
+              <div className="space-y-1.5">
+                <Label className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
+                  Client Logo
+                </Label>
+                {clientLogoPath && (
+                  <div className="mb-2">
+                    <img
+                      src={`file://${clientLogoPath}`}
+                      alt="Client logo preview"
+                      style={{ maxHeight: '40px', maxWidth: '160px', objectFit: 'contain', objectPosition: 'left' }}
+                    />
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <EchoButton
+                    icon={<Image className="h-3.5 w-3.5" />}
+                    iconPosition="left"
+                    type="button"
+                    disabled={isLoading}
+                    onClick={async () => {
+                      const path = await window.api.export.chooseScreenshot()
+                      if (path) setClientLogoPath(path)
+                    }}
+                    style={{ fontSize: '13px', padding: '6px 12px' }}
+                  >
+                    {clientLogoPath ? 'Replace Logo' : 'Choose Logo'}
+                  </EchoButton>
+                  {clientLogoPath && (
+                    <EchoButton
+                      type="button"
+                      disabled={isLoading}
+                      onClick={() => setClientLogoPath(null)}
+                      style={{ fontSize: '13px', padding: '6px 12px' }}
+                    >
+                      Remove
+                    </EchoButton>
+                  )}
+                </div>
+                {clientLogoPath && (
+                  <p className="font-sans text-xs truncate" style={{ color: '#9a9897' }}>
+                    {clientLogoPath.split(/[\\/]/).pop()}
+                  </p>
+                )}
               </div>
 
               {/* Website URL */}

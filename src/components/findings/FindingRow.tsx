@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import { EchoButton } from '../ui/echo-button'
 import { EchoPill } from '../ui/echo-pill'
+import { KVTag } from '../ui/kv-tag'
 import {
   Dialog,
   DialogContent,
@@ -120,14 +121,10 @@ export function FindingRow({ finding, onEdit, onDelete }: FindingRowProps) {
         {hasTags && (
           <div className="flex flex-wrap gap-1.5 mt-2">
             {finding.pageUrl && (
-              <span className="font-sans text-xs font-normal px-2 py-0.5" style={{ background: '#f0ede9', color: '#5f5e5e', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.06)' }}>
-                Page: {finding.pageUrl}
-              </span>
+              <KVTag label="Page" value={finding.pageUrl} />
             )}
             {finding.component && (
-              <span className="font-sans text-xs font-normal px-2 py-0.5" style={{ background: '#f0ede9', color: '#5f5e5e', borderRadius: '4px', border: '1px solid rgba(0,0,0,0.06)' }}>
-                Component: {finding.component}
-              </span>
+              <KVTag label="Component" value={finding.component} />
             )}
           </div>
         )}

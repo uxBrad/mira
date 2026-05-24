@@ -57,6 +57,7 @@ export function registerProjectHandlers(ipcMain: IpcMain): void {
         standards?: string
         auditUrls?: string[]
         components?: string[]
+        clientLogoPath?: string
       }
     ) => {
       const db = getDb()
@@ -73,6 +74,7 @@ export function registerProjectHandlers(ipcMain: IpcMain): void {
         standards: data.standards || null,
         auditUrls: data.auditUrls?.length ? JSON.stringify(data.auditUrls) : null,
         components: data.components?.length ? JSON.stringify(data.components) : null,
+        clientLogoPath: data.clientLogoPath || null,
         createdAt: now,
         updatedAt: now
       })
@@ -96,6 +98,7 @@ export function registerProjectHandlers(ipcMain: IpcMain): void {
         standards?: string
         auditUrls?: string[]
         components?: string[]
+        clientLogoPath?: string | null
       }
     ) => {
       const db = getDb()

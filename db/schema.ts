@@ -10,6 +10,7 @@ export const projects = sqliteTable('projects', {
   standards: text('standards'),
   auditUrls: text('audit_urls'),   // JSON array of path strings e.g. ["/home", "/checkout"]
   components: text('components'),  // JSON array of component names e.g. ["Navigation", "Header"]
+  clientLogoPath: text('client_logo_path'),
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull()
 })

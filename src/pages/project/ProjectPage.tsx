@@ -44,6 +44,7 @@ interface Project {
   standards: string | null
   auditUrls: string[]
   components: string[]
+  clientLogoPath: string | null
   createdAt: number
   updatedAt: number
 }
@@ -365,6 +366,7 @@ export default function ProjectPage() {
     standards?: string
     auditUrls?: string[]
     components?: string[]
+    clientLogoPath?: string | null
   }) {
     if (!id) return
     const updated = await window.api.projects.update(id, data)
@@ -521,8 +523,17 @@ export default function ProjectPage() {
 
   if (!project) return null
 
-  const passCount = Object.values(auditVerdicts).filter(v => v === 'pass').length
-  const failCount = Object.values(auditVerdicts).filter(v => v === 'fail').length
+  // Criteria with any active (non-resolved, non-wont_fix) finding are auto-fail
+  const criteriaWithActiveFindings = new Set(
+    findings
+      .filter(f => f.wcagCriterion && f.status !== 'resolved' && f.status !== 'wont_fix')
+      .map(f => f.wcagCriterion!)
+  )
+  const effectiveVerdicts: Record<string, 'pass' | 'fail'> = { ...auditVerdicts }
+  criteriaWithActiveFindings.forEach(cid => { effectiveVerdicts[cid] = 'fail' })
+
+  const passCount = Object.values(effectiveVerdicts).filter(v => v === 'pass').length
+  const failCount = Object.values(effectiveVerdicts).filter(v => v === 'fail').length
   const unknownCount = WCAG_CRITERIA.length - passCount - failCount
 
   const anySidebarOpen = sidebarOpen || stepAuditOpen
@@ -567,6 +578,17 @@ export default function ProjectPage() {
         <div className="flex-shrink-0 px-10 pt-8 pb-0" style={{ background: '#fcf9f8' }}>
           {/* Project info */}
           <div className="mb-5">
+            {/* Client logo */}
+            {project.clientLogoPath && (
+              <div className="mb-4">
+                <img
+                  src={`file://${project.clientLogoPath}`}
+                  alt={project.clientName ? `${project.clientName} logo` : 'Client logo'}
+                  style={{ maxHeight: '48px', maxWidth: '200px', objectFit: 'contain', objectPosition: 'left' }}
+                />
+              </div>
+            )}
+
             {/* Standards label */}
             {project.standards && (
               <p
@@ -794,7 +816,7 @@ export default function ProjectPage() {
                   {criteriaToShow.map(criterion => {
                     const groupFindings = findingsByCriterion[criterion.id] ?? []
                     const isEmpty = groupFindings.length === 0
-                    const criterionVerdict = auditVerdicts[criterion.id]
+                    const criterionVerdict = effectiveVerdicts[criterion.id]
                     return (
                       <div key={criterion.id}>
                         {/* Criterion heading row */}
@@ -802,7 +824,7 @@ export default function ProjectPage() {
                           <span className="font-sans text-sm font-bold uppercase tracking-widest flex-shrink-0" style={{ color: '#1d4ed8', letterSpacing: '0.1em' }}>
                             {criterion.id}
                           </span>
-                          <span className="font-serif font-bold text-base truncate" style={{ color: '#1a1a1a' }}>
+                          <span className="font-serif font-bold text-base truncate flex-1 min-w-0" style={{ color: '#1a1a1a' }}>
                             {criterion.name}
                           </span>
                           {criterionVerdict === 'pass' && (
@@ -1110,6 +1132,7 @@ export default function ProjectPage() {
                 status: project.status,
                 standards: project.standards ?? undefined,
                 auditUrls: project.auditUrls,
+                clientLogoPath: project.clientLogoPath,
               }}
             />
           )}
