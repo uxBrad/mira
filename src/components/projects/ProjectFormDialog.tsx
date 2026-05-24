@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Plus, Trash2, Maximize2, Minimize2, Image } from 'lucide-react'
+import { X, Plus, Trash2, Maximize2, Minimize2, Upload } from 'lucide-react'
 import { EchoButton } from '../ui/echo-button'
 import { Label } from '../ui/label'
 import {
@@ -269,45 +269,52 @@ export function ProjectFormDialog({
                 <Label className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
                   Client Logo
                 </Label>
-                {clientLogoPath && (
+                {clientLogoPath ? (
                   <div className="mb-2">
-                    <img
-                      src={`file://${clientLogoPath}`}
-                      alt="Client logo preview"
-                      style={{ maxHeight: '40px', maxWidth: '160px', objectFit: 'contain', objectPosition: 'left' }}
-                    />
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <EchoButton
-                    icon={<Image className="h-3.5 w-3.5" />}
-                    iconPosition="left"
-                    type="button"
-                    disabled={isLoading}
-                    onClick={async () => {
-                      const path = await window.api.export.chooseScreenshot()
-                      if (path) setClientLogoPath(path)
-                    }}
-                    style={{ fontSize: '13px', padding: '6px 12px' }}
-                  >
-                    {clientLogoPath ? 'Replace Logo' : 'Choose Logo'}
-                  </EchoButton>
-                  {clientLogoPath && (
+                    <div
+                      className="flex items-center justify-center p-3 mb-2"
+                      style={{ background: '#f6f3f2', borderRadius: '4px', minHeight: '80px' }}
+                    >
+                      <img
+                        src={`file://${clientLogoPath}`}
+                        alt="Client logo preview"
+                        style={{ maxHeight: '64px', maxWidth: '100%', objectFit: 'contain' }}
+                      />
+                    </div>
                     <EchoButton
+                      icon={<X className="h-3.5 w-3.5" />}
+                      iconPosition="right"
+                      fullWidth
                       type="button"
                       disabled={isLoading}
                       onClick={() => setClientLogoPath(null)}
-                      style={{ fontSize: '13px', padding: '6px 12px' }}
+                      style={{ justifyContent: 'center', color: '#c0392b' }}
                     >
                       Remove
                     </EchoButton>
-                  )}
-                </div>
-                {clientLogoPath && (
-                  <p className="font-sans text-xs truncate" style={{ color: '#9a9897' }}>
-                    {clientLogoPath.split(/[\\/]/).pop()}
-                  </p>
+                  </div>
+                ) : (
+                  <div
+                    className="flex flex-col items-center justify-center p-5 mb-2"
+                    style={{ background: '#f6f3f2', borderRadius: '4px', border: '1px dashed #d0cac8', minHeight: '80px' }}
+                  >
+                    <p className="font-sans text-xs" style={{ color: '#9a9897' }}>No logo uploaded</p>
+                  </div>
                 )}
+                <EchoButton
+                  icon={<Upload className="h-3.5 w-3.5" />}
+                  iconPosition="right"
+                  fullWidth
+                  type="button"
+                  disabled={isLoading}
+                  onClick={async () => {
+                    const path = await window.api.export.chooseScreenshot()
+                    if (path) setClientLogoPath(path)
+                  }}
+                  style={{ justifyContent: 'center' }}
+                >
+                  {clientLogoPath ? 'Replace Logo' : 'Choose Logo'}
+                </EchoButton>
               </div>
 
               {/* Website URL */}
