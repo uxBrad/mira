@@ -51,7 +51,7 @@ function ScreenshotThumb({ path, onOpen }: { path: string; onOpen: (src: string)
       type="button"
       onClick={() => onOpen(src)}
       aria-label="View screenshot"
-      className="relative flex-shrink-0 group mt-2"
+      className="relative flex-shrink-0 group"
       style={{ width: '80px', height: '58px' }}
     >
       <img
@@ -139,34 +139,34 @@ export function FindingRow({ finding, onEdit, onDelete }: FindingRowProps) {
                 {finding.component && <KVTag label="Component" value={finding.component} />}
               </div>
             )}
-          </div>
-
-          {/* Right: buttons + thumbnail */}
-          <div className="flex-shrink-0 flex flex-col items-end">
-            <div className="flex items-center gap-2">
-              <EchoButton
-                icon={<Pencil className="w-4 h-4" />}
-                iconPosition="left"
-                onClick={onEdit}
-                aria-label={`Edit: ${finding.title}`}
-                style={{ padding: '6px 12px', fontSize: '14px' }}
-              >
-                Edit
-              </EchoButton>
-              <EchoButton
-                icon={<Trash2 className="w-4 h-4" />}
-                iconPosition="left"
-                onClick={() => setDeleteOpen(true)}
-                aria-label={`Delete: ${finding.title}`}
-                style={{ padding: '6px 12px', fontSize: '14px' }}
-              >
-                Delete
-              </EchoButton>
-            </div>
 
             {finding.screenshotPath && (
-              <ScreenshotThumb path={finding.screenshotPath} onOpen={setLightboxSrc} />
+              <div className="mt-2">
+                <ScreenshotThumb path={finding.screenshotPath} onOpen={setLightboxSrc} />
+              </div>
             )}
+          </div>
+
+          {/* Right: buttons */}
+          <div className="flex-shrink-0 flex items-start gap-2">
+            <EchoButton
+              icon={<Pencil className="w-4 h-4" />}
+              iconPosition="left"
+              onClick={onEdit}
+              aria-label={`Edit: ${finding.title}`}
+              style={{ padding: '6px 12px', fontSize: '14px' }}
+            >
+              Edit
+            </EchoButton>
+            <EchoButton
+              icon={<Trash2 className="w-4 h-4" />}
+              iconPosition="left"
+              onClick={() => setDeleteOpen(true)}
+              aria-label={`Delete: ${finding.title}`}
+              style={{ padding: '6px 12px', fontSize: '14px' }}
+            >
+              Delete
+            </EchoButton>
           </div>
         </div>
       </article>
