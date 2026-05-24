@@ -176,7 +176,6 @@ export default function DashboardPage() {
     <div
       className="flex h-full overflow-hidden"
       style={{
-        gap: '12px',
         background: 'transparent',
         padding: '12px',
       }}
@@ -186,6 +185,7 @@ export default function DashboardPage() {
         className="flex flex-col overflow-hidden"
         style={{
           flex: panelOpen ? (panelWide ? '0 0 0px' : '0 0 calc(50% - 6px)') : '1 1 0%',
+          marginRight: panelWide ? '0' : '12px',
           transition: tr,
           borderRadius: '10px',
           background: '#fcf9f8',
