@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Pencil, Trash2, X, ZoomIn } from 'lucide-react'
 import { EchoButton } from '../ui/echo-button'
 import { EchoPill } from '../ui/echo-pill'
@@ -50,14 +51,14 @@ function ScreenshotThumb({ path, onOpen }: { path: string; onOpen: (src: string)
       type="button"
       onClick={() => onOpen(src)}
       aria-label="View screenshot"
-      className="relative flex-shrink-0 group"
-      style={{ width: '72px', height: '52px' }}
+      className="relative flex-shrink-0 group mt-2"
+      style={{ width: '80px', height: '58px' }}
     >
       <img
         src={src}
         alt=""
         aria-hidden="true"
-        style={{ width: '72px', height: '52px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #e0dbd9', display: 'block' }}
+        style={{ width: '80px', height: '58px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #e0dbd9', display: 'block' }}
       />
       <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors rounded-[4px]">
         <ZoomIn className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
@@ -107,74 +108,73 @@ export function FindingRow({ finding, onEdit, onDelete }: FindingRowProps) {
         }}
         aria-label={finding.title}
       >
-        {/* Top row: title + status pill — then action buttons flush right */}
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap">
-            <h3
-              className="font-serif font-bold leading-snug"
-              style={{ fontSize: '1.2rem', letterSpacing: '-0.01em', color: '#1a1a1a' }}
-            >
-              {finding.title}
-            </h3>
-            {statusPill(finding.status)}
-          </div>
+        <div className="flex gap-4">
+          {/* Left: all content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <h3
+                className="font-serif font-bold leading-snug"
+                style={{ fontSize: '1.2rem', letterSpacing: '-0.01em', color: '#1a1a1a' }}
+              >
+                {finding.title}
+              </h3>
+              {statusPill(finding.status)}
+            </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <EchoButton
-              icon={<Pencil className="w-4 h-4" />}
-              iconPosition="left"
-              onClick={onEdit}
-              aria-label={`Edit: ${finding.title}`}
-              style={{ padding: '6px 12px', fontSize: '14px' }}
-            >
-              Edit
-            </EchoButton>
-            <EchoButton
-              icon={<Trash2 className="w-4 h-4" />}
-              iconPosition="left"
-              onClick={() => setDeleteOpen(true)}
-              aria-label={`Delete: ${finding.title}`}
-              style={{ padding: '6px 12px', fontSize: '14px' }}
-            >
-              Delete
-            </EchoButton>
-          </div>
-        </div>
-
-        {/* Description */}
-        {finding.description && (
-          <p className="font-sans text-sm leading-relaxed mb-2" style={{ color: '#5f5e5e' }}>
-            {finding.description}
-          </p>
-        )}
-
-        {/* Notes */}
-        {finding.notes && (
-          <p className="font-sans text-xs italic mb-2" style={{ color: '#5f5e5e' }}>
-            Note: {finding.notes}
-          </p>
-        )}
-
-        {/* Screenshot + tags row */}
-        {(finding.screenshotPath || hasTags) && (
-          <div className="flex items-start gap-3 mt-2 flex-wrap">
-            {finding.screenshotPath && (
-              <ScreenshotThumb path={finding.screenshotPath} onOpen={setLightboxSrc} />
+            {finding.description && (
+              <p className="font-sans text-sm leading-relaxed mb-2" style={{ color: '#5f5e5e' }}>
+                {finding.description}
+              </p>
             )}
+
+            {finding.notes && (
+              <p className="font-sans text-xs italic mb-2" style={{ color: '#5f5e5e' }}>
+                Note: {finding.notes}
+              </p>
+            )}
+
             {hasTags && (
-              <div className="flex flex-wrap gap-1.5 self-center">
+              <div className="flex flex-wrap gap-1.5 mt-2">
                 {finding.pageUrl && <KVTag label="Page" value={finding.pageUrl} />}
                 {finding.component && <KVTag label="Component" value={finding.component} />}
               </div>
             )}
           </div>
-        )}
+
+          {/* Right: buttons + thumbnail */}
+          <div className="flex-shrink-0 flex flex-col items-end">
+            <div className="flex items-center gap-2">
+              <EchoButton
+                icon={<Pencil className="w-4 h-4" />}
+                iconPosition="left"
+                onClick={onEdit}
+                aria-label={`Edit: ${finding.title}`}
+                style={{ padding: '6px 12px', fontSize: '14px' }}
+              >
+                Edit
+              </EchoButton>
+              <EchoButton
+                icon={<Trash2 className="w-4 h-4" />}
+                iconPosition="left"
+                onClick={() => setDeleteOpen(true)}
+                aria-label={`Delete: ${finding.title}`}
+                style={{ padding: '6px 12px', fontSize: '14px' }}
+              >
+                Delete
+              </EchoButton>
+            </div>
+
+            {finding.screenshotPath && (
+              <ScreenshotThumb path={finding.screenshotPath} onOpen={setLightboxSrc} />
+            )}
+          </div>
+        </div>
       </article>
 
-      {/* Lightbox */}
-      {lightboxSrc && (
+      {/* Lightbox — portaled to body to escape stacking contexts */}
+      {lightboxSrc && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85"
+          style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={() => setLightboxSrc(null)}
           role="dialog"
           aria-modal="true"
@@ -184,10 +184,9 @@ export function FindingRow({ finding, onEdit, onDelete }: FindingRowProps) {
             type="button"
             onClick={() => setLightboxSrc(null)}
             aria-label="Close"
-            className="absolute top-4 right-4 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-            style={{ width: '36px', height: '36px' }}
+            style={{ position: 'absolute', top: '16px', right: '16px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.15)', borderRadius: '50%', border: 'none', cursor: 'pointer' }}
           >
-            <X className="h-5 w-5 text-white" aria-hidden="true" />
+            <X style={{ width: '20px', height: '20px', color: 'white' }} aria-hidden="true" />
           </button>
           <img
             src={lightboxSrc}
@@ -195,7 +194,8 @@ export function FindingRow({ finding, onEdit, onDelete }: FindingRowProps) {
             onClick={(e) => e.stopPropagation()}
             style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: '6px' }}
           />
-        </div>
+        </div>,
+        document.body
       )}
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
