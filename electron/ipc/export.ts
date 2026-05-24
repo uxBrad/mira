@@ -105,14 +105,6 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
         standards: f.standards ? JSON.parse(f.standards as string) : []
       }))
 
-      // Calculate severity counts for summary
-      const severityCounts = {
-        critical: findingsData.filter((f) => f.severity === 'critical').length,
-        serious: findingsData.filter((f) => f.severity === 'serious').length,
-        moderate: findingsData.filter((f) => f.severity === 'moderate').length,
-        minor: findingsData.filter((f) => f.severity === 'minor').length
-      }
-
       const { filePath, canceled } = await dialog.showSaveDialog({
         title: 'Export Report as PDF',
         defaultPath: `${project.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-accessibility-report.pdf`,
@@ -137,7 +129,7 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
       // Build HTML report based on format
       const html = format === 'vpat'
         ? buildVpatHtml(project, findingsData, auditState || { criteriaVerdict: {}, criteriaProgress: {} })
-        : buildReportHtml(project, findingsData, severityCounts)
+        : buildReportHtml(project, findingsData, auditState)
       console.log(`[PDF Export] ${format} HTML generated, length:`, html.length)
 
       // Load HTML content
@@ -199,7 +191,7 @@ function severityColor(severity: string): string {
 function buildReportHtml(
   project: typeof projects.$inferSelect,
   findingsData: Array<typeof findings.$inferSelect & { standards: string[] }>,
-  severityCounts: { critical: number; serious: number; moderate: number; minor: number }
+  auditState?: { criteriaVerdict: Record<string, 'pass' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> }
 ): string {
   const date = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
@@ -210,8 +202,18 @@ function buildReportHtml(
   const RED = '#c0392b'
   const BG = '#f5f0ef'
 
+  const TOTAL_CRITERIA = 57
   const totalFindings = findingsData.length
-  const openFindings = findingsData.filter((f) => f.status === 'open' || f.status === 'in_progress').length
+  const criteriaWithActiveFindings = new Set(
+    findingsData
+      .filter(f => f.wcagCriterion && f.status !== 'resolved' && f.status !== 'wont_fix')
+      .map(f => f.wcagCriterion!)
+  )
+  const effectiveVerdicts: Record<string, 'pass' | 'fail'> = { ...(auditState?.criteriaVerdict ?? {}) }
+  criteriaWithActiveFindings.forEach(cid => { effectiveVerdicts[cid] = 'fail' })
+  const passCount = Object.values(effectiveVerdicts).filter(v => v === 'pass').length
+  const failCount = Object.values(effectiveVerdicts).filter(v => v === 'fail').length
+  const unknownCount = TOTAL_CRITERIA - passCount - failCount
 
   // Derive a human-readable audit type from the project standards field
   const auditTypeLabel = project.standards
@@ -264,7 +266,7 @@ function buildReportHtml(
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: white; color: #1a1a1a; }
-  @page { margin: 0; }
+  @page { margin-top: 64px; margin-right: 0; margin-bottom: 0; margin-left: 0; }
   @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 </style>
 </head>
@@ -273,7 +275,7 @@ function buildReportHtml(
 <!-- ══════════════════════════════════════
      COVER PAGE
 ══════════════════════════════════════ -->
-<div style="min-height:100vh; background:${BG}; padding: 72px 80px; display:flex; flex-direction:column; justify-content:space-between;">
+<div style="min-height:100vh; background:${BG}; padding: 8px 80px 72px; display:flex; flex-direction:column; justify-content:space-between;">
 
   <!-- Top: client + title -->
   <div>
@@ -294,10 +296,10 @@ function buildReportHtml(
   <div>
     <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:40px;">
       ${[
-        { label: 'Total Issues', value: totalFindings },
-        { label: 'Critical', value: severityCounts.critical },
-        { label: 'Serious', value: severityCounts.serious },
-        { label: 'Open', value: openFindings }
+        { label: 'Total Findings', value: totalFindings },
+        { label: 'Failed', value: failCount },
+        { label: 'Unknown', value: unknownCount },
+        { label: 'Passed', value: passCount }
       ].map((s) => `
         <div style="background:white; padding:20px 16px;">
           <p style="font-family:Georgia,serif; font-size:40px; font-weight:700; color:${RED}; line-height:1;">${s.value}</p>
@@ -312,32 +314,31 @@ function buildReportHtml(
 <!-- ══════════════════════════════════════
      SUMMARY PAGE
 ══════════════════════════════════════ -->
-<div style="padding: 64px 80px; background:white; page-break-before:always;">
+<div style="padding: 0 80px 64px; background:white; page-break-before:always;">
   ${project.clientName ? `<p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:${RED}; margin-bottom:16px;">${escapeHtml(project.clientName)}</p>` : ''}
   <h2 style="font-family:Georgia,serif; font-size:32px; font-weight:700; color:#1a1a1a; margin-bottom:12px;">Summary</h2>
   <div style="width:40px; height:4px; background:${RED}; margin-bottom:32px;"></div>
 
   <p style="font-family:-apple-system,sans-serif; font-size:15px; color:#444; line-height:1.7; margin-bottom:36px;">
     This accessibility audit of <strong>${escapeHtml(project.name)}</strong> identified
-    <strong>${totalFindings} issue${totalFindings !== 1 ? 's' : ''}</strong> across the evaluated scope.
-    ${severityCounts.critical > 0 ? `<strong style="color:${RED}">${severityCounts.critical} critical issue${severityCounts.critical !== 1 ? 's' : ''}</strong> require immediate attention. ` : ''}
-    ${totalFindings === 0 ? 'No accessibility issues were found during this audit.' : `${openFindings} issue${openFindings !== 1 ? 's' : ''} remain${openFindings === 1 ? 's' : ''} open.`}
+    <strong>${totalFindings} finding${totalFindings !== 1 ? 's' : ''}</strong> across the evaluated scope.
+    ${failCount > 0 ? `<strong style="color:${RED}">${failCount} WCAG criterion${failCount !== 1 ? 'a' : ''}</strong> did not pass. ` : ''}
+    ${totalFindings === 0 ? 'No accessibility issues were found during this audit.' : ''}
   </p>
 
-  <!-- Severity bars -->
-  <h3 style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#888; margin-bottom:20px;">Issues by Severity</h3>
+  <!-- Audit results -->
+  <h3 style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#888; margin-bottom:20px;">Audit Results &mdash; WCAG 2.2 A &amp; AA (57 Criteria)</h3>
   ${[
-    { label: 'Critical', count: severityCounts.critical, color: '#c0392b' },
-    { label: 'Serious', count: severityCounts.serious, color: '#e67e22' },
-    { label: 'Moderate', count: severityCounts.moderate, color: '#d4ac0d' },
-    { label: 'Minor', count: severityCounts.minor, color: '#27ae60' }
+    { label: 'Failed', count: failCount, color: '#c0392b' },
+    { label: 'Unknown', count: unknownCount, color: '#aaaaaa' },
+    { label: 'Passed', count: passCount, color: '#2d7a4f' }
   ].map((s) => `
     <div style="display:flex; align-items:center; gap:14px; margin-bottom:10px;">
       <span style="font-family:-apple-system,sans-serif; font-size:12px; font-weight:600; color:#333; min-width:72px;">${s.label}</span>
       <div style="flex:1; background:#ede9e7; height:16px;">
-        <div style="width:${totalFindings > 0 ? Math.round((s.count / totalFindings) * 100) : 0}%; background:${s.color}; height:100%;"></div>
+        <div style="width:${Math.round((s.count / 57) * 100)}%; background:${s.color}; height:100%;"></div>
       </div>
-      <span style="font-family:Georgia,serif; font-size:16px; font-weight:700; color:${s.color}; min-width:24px; text-align:right;">${s.count}</span>
+      <span style="font-family:Georgia,serif; font-size:16px; font-weight:700; color:${s.color}; min-width:36px; text-align:right;">${s.count}</span>
     </div>
   `).join('')}
 
@@ -351,7 +352,7 @@ function buildReportHtml(
 <!-- ══════════════════════════════════════
      FINDINGS PAGES
 ══════════════════════════════════════ -->
-<div style="padding: 80px 80px 64px 80px; background:white; page-break-before:always;">
+<div style="padding: 16px 80px 64px; background:white; page-break-before:always;">
   ${project.clientName ? `<p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:${RED}; margin-bottom:16px;">${escapeHtml(project.clientName)}</p>` : ''}
   <h2 style="font-family:Georgia,serif; font-size:32px; font-weight:700; color:#1a1a1a; margin-bottom:12px;">Detailed Findings</h2>
   <div style="width:40px; height:4px; background:${RED}; margin-bottom:40px;"></div>

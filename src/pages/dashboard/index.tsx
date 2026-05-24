@@ -77,7 +77,7 @@ function ArchivePanel({
 }
 
 export default function DashboardPage() {
-  const { projects, isLoading, error, createProject, updateProject, deleteProject } = useProjects()
+  const { projects, isLoading, error, createProject, updateProject } = useProjects()
   const [panelMode, setPanelMode] = useState<PanelMode>(null)
   const [panelProject, setPanelProject] = useState<ProjectWithCount | null>(null)
   const [panelMounted, setPanelMounted] = useState(false)

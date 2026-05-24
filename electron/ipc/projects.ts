@@ -26,6 +26,7 @@ export function registerProjectHandlers(ipcMain: IpcMain): void {
         standards: projects.standards,
         auditUrls: projects.auditUrls,
         components: projects.components,
+        clientLogoPath: projects.clientLogoPath,
         createdAt: projects.createdAt,
         updatedAt: projects.updatedAt,
         findingCount: sql<number>`count(${findings.id})`

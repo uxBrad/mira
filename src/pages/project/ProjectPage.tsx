@@ -23,6 +23,7 @@ import { ProjectFormDialog } from '../../components/projects/ProjectFormDialog'
 import { StepAuditPanel } from '../../components/audit/StepAuditPanel'
 import { ImportFindingsDialog } from '../../components/findings/ImportFindingsDialog'
 import { useToast } from '../../components/ui/use-toast'
+import { ToastAction } from '../../components/ui/toast'
 import { EchoButton } from '../../components/ui/echo-button'
 import { KVTag } from '../../components/ui/kv-tag'
 import {
@@ -451,9 +452,25 @@ export default function ProjectPage() {
     setIsExporting('pdf')
     setShowFormatDialog(false)
     try {
-      const result = await window.api.export.pdf(id!, format)
+      let auditState: { criteriaVerdict: Record<string, 'pass' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> } = { criteriaVerdict: {}, criteriaProgress: {} }
+      try {
+        const saved = localStorage.getItem(`echo-step-audit-${id}`)
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          if (parsed.criteriaVerdict) auditState = { criteriaVerdict: parsed.criteriaVerdict, criteriaProgress: parsed.criteriaProgress ?? {} }
+        }
+      } catch { /* ignore */ }
+      const result = await window.api.export.pdf(id!, format, auditState)
       if (!result.canceled) {
-        toast({ title: 'PDF exported', description: `${format === 'vpat' ? 'VPAT' : 'Summary'} report saved to ${result.path}` })
+        toast({
+          title: 'PDF exported',
+          description: `${format === 'vpat' ? 'VPAT' : 'Summary'} report saved.`,
+          action: (
+            <ToastAction altText="Open file" onClick={() => window.api.system.openFile(result.path!)}>
+              Open
+            </ToastAction>
+          )
+        })
       }
     } catch (err) {
       toast({
@@ -475,7 +492,15 @@ export default function ProjectPage() {
     try {
       const result = await window.api.export.csv(id!)
       if (!result.canceled) {
-        toast({ title: 'CSV exported', description: `Saved to ${result.path}` })
+        toast({
+          title: 'CSV exported',
+          description: 'Findings exported.',
+          action: (
+            <ToastAction altText="Open file" onClick={() => window.api.system.openFile(result.path!)}>
+              Open
+            </ToastAction>
+          )
+        })
       }
     } catch (err) {
       toast({
