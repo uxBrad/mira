@@ -514,24 +514,19 @@ function buildVpatHtml(
     const hasOpenIssues = issues.some((f) => f.status !== 'resolved' && f.status !== 'wont_fix')
 
     if (hasOpenIssues) {
-      // Has open issues = Does Not Support
       return { level: 'Does Not Support', color: '#c0392b' }
-    } else if (verdict === 'pass' || (verdict !== 'fail' && issues.length === 0)) {
-      // Marked pass, or no verdict and no issues = Supports
+    } else if (verdict === 'pass') {
       return { level: 'Supports', color: '#2d7a4f' }
     } else if (verdict === 'fail' && issues.length > 0 && !hasOpenIssues) {
-      // Failed but all issues resolved = Supports (issues were found and fixed)
+      // Failed but all issues resolved
       return { level: 'Supports', color: '#2d7a4f' }
     } else if (verdict === 'fail' && issues.length === 0) {
-      // Failed but no findings recorded = Does Not Support
+      // Explicitly failed but no findings logged
       return { level: 'Does Not Support', color: '#c0392b' }
-    } else if (verdict === null && issues.length === 0) {
-      // Not evaluated = Not Evaluated
-      return { level: 'Not Evaluated', color: '#999' }
+    } else {
+      // No verdict, no open issues = not yet tested
+      return { level: 'Not Tested', color: '#999' }
     }
-
-    // Default = Supports
-    return { level: 'Supports', color: '#2d7a4f' }
   }
 
   // Get remarks (finding titles) for a criterion
