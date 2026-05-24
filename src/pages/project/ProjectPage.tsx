@@ -190,7 +190,6 @@ export default function ProjectPage() {
   const [isExporting, setIsExporting] = useState<'pdf' | 'csv' | null>(null)
   const [showFormatDialog, setShowFormatDialog] = useState(false)
   const [principleFilter, setPrincipleFilter] = useState<string[]>([])
-  const [severityFilter, setSeverityFilter] = useState<string[]>([])
   const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [pageFilter, setPageFilter] = useState<string[]>([])
   const [componentFilter, setComponentFilter] = useState<string[]>([])
@@ -303,7 +302,6 @@ export default function ProjectPage() {
       const prefix = f.wcagCriterion?.split('.')[0]
       if (!prefix || !principleFilter.includes(prefix)) return false
     }
-    if (severityFilter.length > 0 && !severityFilter.includes(f.severity ?? '')) return false
     if (statusFilter.length > 0 && !statusFilter.includes(f.status ?? '')) return false
     if (pageFilter.length > 0 && !pageFilter.includes(f.pageUrl ?? '')) return false
     if (componentFilter.length > 0 && !componentFilter.includes(f.component ?? '')) return false
@@ -311,7 +309,7 @@ export default function ProjectPage() {
   })
 
   const activeFilterCount =
-    principleFilter.length + severityFilter.length + statusFilter.length + pageFilter.length + componentFilter.length
+    principleFilter.length + statusFilter.length + pageFilter.length + componentFilter.length
 
   function toggleFilter(
     value: string,
@@ -682,18 +680,6 @@ export default function ProjectPage() {
                   onClear={() => setPrincipleFilter([])}
                 />
                 <MultiSelectFilter
-                  label="Severity"
-                  options={[
-                    { key: 'critical', label: 'Critical' },
-                    { key: 'serious', label: 'Serious' },
-                    { key: 'moderate', label: 'Moderate' },
-                    { key: 'minor', label: 'Minor' },
-                  ]}
-                  selected={severityFilter}
-                  onToggle={v => toggleFilter(v, severityFilter, setSeverityFilter)}
-                  onClear={() => setSeverityFilter([])}
-                />
-                <MultiSelectFilter
                   label="Status"
                   options={[
                     { key: 'open', label: 'Open' },
@@ -727,7 +713,6 @@ export default function ProjectPage() {
                   <button
                     onClick={() => {
                       setPrincipleFilter([])
-                      setSeverityFilter([])
                       setStatusFilter([])
                       setPageFilter([])
                       setComponentFilter([])
