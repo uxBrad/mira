@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { EchoButton } from '../../components/ui/echo-button'
 import { Label } from '../../components/ui/label'
 import { useToast } from '../../components/ui/use-toast'
+import logoSrc from '../../assets/logo.png'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -90,7 +91,10 @@ export default function LoginPage() {
         className="hidden lg:flex w-2/5 flex-col justify-between px-12 py-12"
         style={{ background: '#f6f3f2' }}
       >
-        <span className="font-display text-xl font-bold text-foreground">manuA11y</span>
+        <div className="flex items-center gap-3">
+          <img src={logoSrc} alt="" aria-hidden="true" style={{ width: '32px', height: '32px' }} />
+          <span className="font-display text-xl font-bold text-foreground">manuA11y</span>
+        </div>
         <div>
           <p className="font-display text-3xl font-semibold leading-snug text-foreground mb-4">
             The professional tool for accessibility auditing.
@@ -108,7 +112,10 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center px-8">
         <div className="w-full max-w-sm">
           <div className="mb-10 lg:hidden">
-            <span className="font-display text-xl font-bold">manuA11y</span>
+            <div className="flex items-center gap-3">
+              <img src={logoSrc} alt="" aria-hidden="true" style={{ width: '32px', height: '32px' }} />
+              <span className="font-display text-xl font-bold">manuA11y</span>
+            </div>
           </div>
 
           {needsVerification ? (
@@ -194,6 +201,9 @@ export default function LoginPage() {
             </>
           ) : (
             <>
+              <div className="mb-6 hidden lg:block">
+                <img src={logoSrc} alt="manuA11y" style={{ width: '56px', height: '56px' }} />
+              </div>
               <h1 className="text-2xl font-semibold tracking-tight mb-1">Welcome back</h1>
               <p className="font-data text-sm text-muted-foreground mb-8">Sign in to your account</p>
 
