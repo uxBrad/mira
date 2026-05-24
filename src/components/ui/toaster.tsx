@@ -1,7 +1,7 @@
+import * as ToastPrimitives from '@radix-ui/react-toast'
 import { useToast } from './use-toast'
 import {
   Toast,
-  ToastClose,
   ToastDescription,
   ToastProvider,
   ToastTitle,
@@ -22,14 +22,9 @@ export function Toaster() {
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               {action && (
-                <ToastClose asChild>
-                  <button
-                    type="button"
-                    className="inline-flex h-8 items-center justify-center rounded-md border border-input bg-transparent px-3 text-sm font-medium transition-colors hover:bg-secondary focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    Dismiss
-                  </button>
-                </ToastClose>
+                <ToastPrimitives.Close className="inline-flex h-8 items-center justify-center rounded-md border border-input bg-transparent px-3 text-sm font-medium transition-colors hover:bg-secondary focus:outline-none focus:ring-1 focus:ring-ring">
+                  Dismiss
+                </ToastPrimitives.Close>
               )}
               {action}
             </div>
