@@ -603,17 +603,6 @@ export default function ProjectPage() {
         <div className="flex-shrink-0 px-10 pt-8 pb-0" style={{ background: '#fcf9f8' }}>
           {/* Project info */}
           <div className="mb-5">
-            {/* Client logo */}
-            {project.clientLogoPath && (
-              <div className="mb-4">
-                <img
-                  src={project.clientLogoPath}
-                  alt={project.clientName ? `${project.clientName} logo` : 'Client logo'}
-                  style={{ maxHeight: '48px', maxWidth: '200px', objectFit: 'contain', objectPosition: 'left' }}
-                />
-              </div>
-            )}
-
             {/* Standards label */}
             {project.standards && (
               <p
@@ -622,6 +611,17 @@ export default function ProjectPage() {
               >
                 {project.standards} Audit
               </p>
+            )}
+
+            {/* Client logo */}
+            {project.clientLogoPath && (
+              <div className="mb-3">
+                <img
+                  src={project.clientLogoPath}
+                  alt={project.clientName ? `${project.clientName} logo` : 'Client logo'}
+                  style={{ maxHeight: '48px', maxWidth: '200px', objectFit: 'contain', objectPosition: 'left' }}
+                />
+              </div>
             )}
 
             {/* Project name — large serif */}
