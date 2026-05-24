@@ -103,18 +103,19 @@ export function registerProjectHandlers(ipcMain: IpcMain): void {
       }
     ) => {
       const db = getDb()
-      const { auditUrls, components, ...rest } = data
-      const updateData: Record<string, unknown> = { ...rest, updatedAt: Date.now() }
 
-      if (Array.isArray(auditUrls)) {
-        updateData['auditUrls'] = auditUrls.length ? JSON.stringify(auditUrls) : null
-      }
-      if (Array.isArray(components)) {
-        updateData['components'] = components.length ? JSON.stringify(components) : null
-      }
+      const setData: Partial<typeof projects.$inferInsert> = { updatedAt: Date.now() }
+      if (data.name !== undefined) setData.name = data.name
+      if (data.clientName !== undefined) setData.clientName = data.clientName || null
+      if (data.url !== undefined) setData.url = data.url || null
+      if (data.description !== undefined) setData.description = data.description || null
+      if (data.status !== undefined) setData.status = data.status
+      if (data.standards !== undefined) setData.standards = data.standards || null
+      if (Array.isArray(data.auditUrls)) setData.auditUrls = data.auditUrls.length ? JSON.stringify(data.auditUrls) : null
+      if (Array.isArray(data.components)) setData.components = data.components.length ? JSON.stringify(data.components) : null
+      if ('clientLogoPath' in data) setData.clientLogoPath = data.clientLogoPath ?? null
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await db.update(projects).set(updateData as any).where(eq(projects.id, id))
+      await db.update(projects).set(setData).where(eq(projects.id, id))
 
       const [project] = await db.select().from(projects).where(eq(projects.id, id))
       return deserializeProject(project)

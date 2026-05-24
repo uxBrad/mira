@@ -36,6 +36,7 @@ const projectsAPI = {
     standards?: string
     auditUrls?: string[]
     components?: string[]
+    clientLogoPath?: string
   }) => ipcRenderer.invoke('projects:create', data),
   update: (
     id: string,
@@ -48,6 +49,7 @@ const projectsAPI = {
       standards?: string
       auditUrls?: string[]
       components?: string[]
+      clientLogoPath?: string | null
     }
   ) => ipcRenderer.invoke('projects:update', id, data),
   delete: (id: string) => ipcRenderer.invoke('projects:delete', id)

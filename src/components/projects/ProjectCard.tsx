@@ -52,6 +52,17 @@ export function ProjectCard({ project, onClick, onEdit, onArchive, onComplete }:
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }}
       aria-label={`${project.name}${project.clientName ? `, client: ${project.clientName}` : ''}`}
     >
+      {/* Client logo */}
+      {project.clientLogoPath && (
+        <div className="mb-3">
+          <img
+            src={project.clientLogoPath}
+            alt={project.clientName ? `${project.clientName} logo` : 'Client logo'}
+            style={{ maxHeight: '36px', maxWidth: '160px', objectFit: 'contain', objectPosition: 'left' }}
+          />
+        </div>
+      )}
+
       {/* Top row: name + actions */}
       <div className="flex items-start gap-4 mb-3">
         <h2
