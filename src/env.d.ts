@@ -196,6 +196,7 @@ interface Window {
       quit: () => Promise<void>
       saveClipboardImage: (base64: string) => Promise<string>
       readClipboardImage: () => Promise<string | null>
+      readFileAsBase64: (filePath: string) => Promise<string | null>
     }
   }
 }
