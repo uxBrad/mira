@@ -57,6 +57,16 @@ export function ProjectFormDialog({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const nameRef = useRef<HTMLInputElement>(null)
+  const logoInputRef = useRef<HTMLInputElement>(null)
+
+  function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => setClientLogoPath(reader.result as string)
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
 
   // Scroll state for body fade + indicator
   const bodyRef = useRef<HTMLDivElement>(null)
@@ -276,7 +286,7 @@ export function ProjectFormDialog({
                       style={{ background: '#f6f3f2', borderRadius: '4px', minHeight: '80px' }}
                     >
                       <img
-                        src={`file:///${clientLogoPath.replace(/\\/g, '/')}`}
+                        src={clientLogoPath}
                         alt="Client logo preview"
                         style={{ maxHeight: '64px', maxWidth: '100%', objectFit: 'contain' }}
                       />
@@ -301,16 +311,21 @@ export function ProjectFormDialog({
                     <p className="font-sans text-xs" style={{ color: '#9a9897' }}>No logo uploaded</p>
                   </div>
                 )}
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  aria-label="Upload client logo"
+                  onChange={handleLogoUpload}
+                />
                 <EchoButton
                   icon={<Upload className="h-3.5 w-3.5" />}
                   iconPosition="right"
                   fullWidth
                   type="button"
                   disabled={isLoading}
-                  onClick={async () => {
-                    const path = await window.api.export.chooseScreenshot()
-                    if (path) setClientLogoPath(path)
-                  }}
+                  onClick={() => logoInputRef.current?.click()}
                   style={{ justifyContent: 'center' }}
                 >
                   {clientLogoPath ? 'Replace Logo' : 'Choose Logo'}

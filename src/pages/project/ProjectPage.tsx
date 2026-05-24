@@ -607,7 +607,7 @@ export default function ProjectPage() {
             {project.clientLogoPath && (
               <div className="mb-4">
                 <img
-                  src={`file:///${project.clientLogoPath.replace(/\\/g, '/')}`}
+                  src={project.clientLogoPath}
                   alt={project.clientName ? `${project.clientName} logo` : 'Client logo'}
                   style={{ maxHeight: '48px', maxWidth: '200px', objectFit: 'contain', objectPosition: 'left' }}
                 />
