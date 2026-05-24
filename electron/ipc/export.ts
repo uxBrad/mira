@@ -605,7 +605,8 @@ function buildVpatHtml(
 ════════════════════════════════════════ -->
 <div style="padding: 60px 50px; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between;">
   <div>
-    <h1 style="font-size: 48px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px;">Accessibility Conformance Report</h1>
+    ${project.clientLogoPath ? `<div style="margin-bottom: 24px;"><img src="${project.clientLogoPath}" alt="${project.clientName ? escapeHtml(project.clientName) + ' logo' : 'Client logo'}" style="max-height: 56px; max-width: 240px; object-fit: contain;"></div>` : ''}
+    <h1 style="font-size: 48px; font-weight: 700; line-height: 1.1; margin-bottom: 8px; letter-spacing: -0.5px;">Accessibility Conformance Report</h1>
     <p style="font-size: 16px; color: #666; margin-bottom: 40px; font-weight: 500;">WCAG Edition (Based on VPAT® Version 2.4)</p>
 
     <div style="background: #f9f6f5; padding: 32px; border-left: 4px solid ${RED}; margin: 40px 0;">
