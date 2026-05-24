@@ -149,7 +149,7 @@ export default function AppShell() {
   return (
     <div
       className="flex flex-col h-screen overflow-hidden transition-opacity duration-300"
-      style={{ background: '#fcf9f8', opacity: ready ? 1 : 0 }}
+      style={{ background: 'linear-gradient(180deg, #1e1b4b 0%, #5b21b6 100%)', opacity: ready ? 1 : 0 }}
     >
       <header
         className="flex-shrink-0 flex items-center px-2 titlebar-drag"
@@ -331,7 +331,7 @@ export default function AppShell() {
         id="main-content"
         className="flex-1 flex flex-col overflow-hidden focus:outline-none"
         tabIndex={-1}
-        style={{ background: '#fcf9f8' }}
+        style={{ background: 'transparent' }}
       >
         <UpdateBanner />
         <div className="flex-1 overflow-y-auto">
