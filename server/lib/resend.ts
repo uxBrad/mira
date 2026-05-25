@@ -24,7 +24,7 @@ export async function sendVerificationEmail(to: string, code: string): Promise<v
         </div>
         <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">Verify your email</h1>
         <p style="color: #6b7280; margin: 0 0 32px; line-height: 1.6;">
-          Enter this code in the Echo app to verify your email and start your 7-day free trial.
+          Enter this code in the Echo app to verify your email and start your 30-day free trial.
         </p>
         <div style="background: #f3f4f6; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 32px;">
           <p style="margin: 0 0 8px; font-size: 13px; color: #6b7280; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;">Verification code</p>
