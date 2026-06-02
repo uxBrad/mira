@@ -13,6 +13,11 @@
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^20.17.6",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
     "next": "^14.2.21",
@@ -20,10 +25,5 @@
     "resend": "^4.0.1",
     "stripe": "^17.3.1",
     "typescript": "^5.6.3"
-  },
-  "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/jsonwebtoken": "^9.0.7",
-    "@types/node": "^20.17.6"
   }
 }
