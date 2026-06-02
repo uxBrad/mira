@@ -16,7 +16,9 @@ const store = new Store<{ session: SessionData | null }>({
   encryptionKey: 'gfa-session-key-v1'
 })
 
-const API_URL = process.env.VITE_API_URL || 'http://localhost:3001'
+const API_URL = process.env.NODE_ENV === 'development'
+  ? 'http://localhost:3001'
+  : 'https://echo-production-02ef.up.railway.app'
 
 async function apiRequest(
   path: string,
