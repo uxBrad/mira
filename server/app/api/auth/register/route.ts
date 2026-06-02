@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs'
 import { prisma } from '../../../../lib/prisma'
 import { hashToken } from '../../../../lib/jwt'
 import { sendVerificationEmail } from '../../../../lib/resend'
-import { stripe } from '../../../../lib/stripe'
+import { getStripe } from '../../../../lib/stripe'
 
 function generateOtpCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString()
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     // Create Stripe customer (skip if Stripe not configured)
     let stripeCustomerId: string | null = null
     try {
-      const stripeCustomer = await stripe.customers.create({
+      const stripeCustomer = await getStripe().customers.create({
         email: emailLower,
         name: name || undefined,
         metadata: { source: 'grounds-for-access' }
