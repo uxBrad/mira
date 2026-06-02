@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       where: { userId: auth.user.id }
     })
 
-    if (!subscription) {
+    if (!subscription?.stripeCustomerId) {
       return NextResponse.json({ error: 'No subscription found.' }, { status: 404 })
     }
 
