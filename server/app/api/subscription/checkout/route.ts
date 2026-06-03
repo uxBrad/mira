@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
         }
       ],
       mode: 'subscription',
+      ui_mode: 'hosted',
       success_url: `${process.env.APP_URL}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.APP_URL}/checkout-cancel`,
       metadata: {
