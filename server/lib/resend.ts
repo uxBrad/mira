@@ -8,18 +8,7 @@ function getResend(): Resend {
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'james@jecture.co'
 
-const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="48" height="48" style="display:block;border-radius:10px">
-  <rect width="256" height="256" fill="#610000" rx="40"/>
-  <circle cx="88" cy="128" r="10" fill="#ffffff"/>
-  <path d="M88 108 A20 20 0 0 1 88 148" stroke="#ffffff" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.95"/>
-  <path d="M88 90 A38 38 0 0 1 88 166" stroke="#ffffff" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.75"/>
-  <path d="M88 72 A56 56 0 0 1 88 184" stroke="#ffffff" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.55"/>
-  <path d="M88 54 A74 74 0 0 1 88 202" stroke="#ffffff" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.35"/>
-  <rect x="162" y="80" width="18" height="96" rx="3" fill="#ffffff" opacity="0.9"/>
-  <rect x="162" y="80" width="56" height="18" rx="3" fill="#ffffff" opacity="0.9"/>
-  <rect x="162" y="119" width="44" height="18" rx="3" fill="#ffffff" opacity="0.9"/>
-  <rect x="162" y="158" width="56" height="18" rx="3" fill="#ffffff" opacity="0.9"/>
-</svg>`
+const LOGO_IMG = `<img src="https://echo-production-02ef.up.railway.app/logo.png" width="56" height="56" alt="manuA11y" style="display:block;" />`
 
 const baseStyles = `
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -36,7 +25,7 @@ export async function sendVerificationEmail(to: string, code: string): Promise<v
     subject: 'Your verification code — manuA11y',
     html: `
       <div style="${baseStyles}">
-        <div style="margin-bottom: 24px;">${LOGO_SVG}</div>
+        <div style="margin-bottom: 24px;">${LOGO_IMG}</div>
         <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">Verify your email</h1>
         <p style="color: #6b7280; margin: 0 0 32px; line-height: 1.6;">
           Enter this code in manuA11y to verify your email and start your 30-day free trial.
@@ -60,7 +49,7 @@ export async function sendPasswordResetEmail(to: string, code: string): Promise<
     subject: 'Your password reset code — manuA11y',
     html: `
       <div style="${baseStyles}">
-        <div style="margin-bottom: 24px;">${LOGO_SVG}</div>
+        <div style="margin-bottom: 24px;">${LOGO_IMG}</div>
         <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 8px;">Reset your password</h1>
         <p style="color: #6b7280; margin: 0 0 32px; line-height: 1.6;">
           Enter this code in manuA11y along with your new password.
