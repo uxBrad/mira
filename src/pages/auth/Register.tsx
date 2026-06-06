@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { Button } from '../../components/ui/button'
-import { Input } from '../../components/ui/input'
+import { EchoButton } from '../../components/ui/echo-button'
 import { Label } from '../../components/ui/label'
 import { useToast } from '../../components/ui/use-toast'
+import logoSrc from '../../assets/logo.png'
 
 type Step = 'register' | 'verify'
 
@@ -76,15 +76,16 @@ export default function RegisterPage() {
     }
   }
 
+  const inputClass = 'w-full h-10 px-3 font-sans text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1d4ed8] transition-colors'
+  const inputStyle = { border: '1px solid #d0cac8' }
+
   if (step === 'verify') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <div className="w-full max-w-sm">
-          <div className="flex items-center gap-2.5 mb-8 justify-center">
-            <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center" aria-hidden="true">
-              <span className="text-primary-foreground font-bold text-base">m</span>
-            </div>
-            <span className="font-bold text-xl">manuA11y</span>
+          <div className="flex items-center gap-3 mb-8 justify-center">
+            <img src={logoSrc} alt="" aria-hidden="true" style={{ width: '32px', height: '32px' }} />
+            <span className="font-display font-bold text-xl">manuA11y</span>
           </div>
 
           <div className="border rounded-xl p-6 shadow-sm bg-card">
@@ -107,8 +108,8 @@ export default function RegisterPage() {
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="code">Verification code</Label>
-                  <Input
+                  <Label htmlFor="code" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">Verification code</Label>
+                  <input
                     id="code"
                     type="text"
                     inputMode="numeric"
@@ -118,27 +119,27 @@ export default function RegisterPage() {
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="123456"
-                    className="text-center text-2xl tracking-[0.3em] font-mono"
                     disabled={isLoading}
                     autoFocus
+                    className={`${inputClass} text-center text-2xl tracking-[0.3em] font-mono`}
+                    style={inputStyle}
                   />
                 </div>
 
-                <Button
+                <EchoButton
                   type="submit"
-                  size="lg"
-                  className="w-full"
+                  variant="primary"
+                  fullWidth
                   disabled={isLoading || code.length !== 6}
+                  style={{ justifyContent: 'center' }}
                 >
                   {isLoading ? (
-                    <>
+                    <span className="flex items-center gap-2">
                       <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
                       Verifying…
-                    </>
-                  ) : (
-                    'Verify email'
-                  )}
-                </Button>
+                    </span>
+                  ) : 'Verify email'}
+                </EchoButton>
 
                 <button
                   type="button"
@@ -158,11 +159,9 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
-        <div className="flex items-center gap-2.5 mb-8 justify-center">
-          <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center" aria-hidden="true">
-            <span className="text-primary-foreground font-bold text-base">E</span>
-          </div>
-          <span className="font-bold text-xl">manuA11y</span>
+        <div className="flex items-center gap-3 mb-8 justify-center">
+          <img src={logoSrc} alt="" aria-hidden="true" style={{ width: '32px', height: '32px' }} />
+          <span className="font-display font-bold text-xl">manuA11y</span>
         </div>
 
         <div className="border rounded-xl p-6 shadow-sm bg-card">
@@ -184,8 +183,8 @@ export default function RegisterPage() {
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="name">Full name</Label>
-                <Input
+                <Label htmlFor="name" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">Full name</Label>
+                <input
                   id="name"
                   type="text"
                   autoComplete="name"
@@ -194,12 +193,14 @@ export default function RegisterPage() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Alex Chen"
                   disabled={isLoading}
+                  className={inputClass}
+                  style={inputStyle}
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="email">Email address</Label>
-                <Input
+                <Label htmlFor="email" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">Email address</Label>
+                <input
                   id="email"
                   type="email"
                   autoComplete="email"
@@ -208,12 +209,14 @@ export default function RegisterPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   disabled={isLoading}
+                  className={inputClass}
+                  style={inputStyle}
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="password">Password</Label>
-                <Input
+                <Label htmlFor="password" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">Password</Label>
+                <input
                   id="password"
                   type="password"
                   autoComplete="new-password"
@@ -223,6 +226,8 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   aria-describedby="password-hint"
                   disabled={isLoading}
+                  className={inputClass}
+                  style={inputStyle}
                 />
                 <p id="password-hint" className="text-xs text-muted-foreground">
                   At least 8 characters
@@ -230,8 +235,8 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="confirm-password">Confirm password</Label>
-                <Input
+                <Label htmlFor="confirm-password" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">Confirm password</Label>
+                <input
                   id="confirm-password"
                   type="password"
                   autoComplete="new-password"
@@ -239,24 +244,25 @@ export default function RegisterPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   disabled={isLoading}
+                  className={inputClass}
+                  style={inputStyle}
                 />
               </div>
 
-              <Button
+              <EchoButton
                 type="submit"
-                size="lg"
-                className="w-full"
+                variant="primary"
+                fullWidth
                 disabled={isLoading || !name || !email || !password || !confirmPassword}
+                style={{ justifyContent: 'center' }}
               >
                 {isLoading ? (
-                  <>
+                  <span className="flex items-center gap-2">
                     <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
                     Creating account…
-                  </>
-                ) : (
-                  'Create account'
-                )}
-              </Button>
+                  </span>
+                ) : 'Create account'}
+              </EchoButton>
             </div>
           </form>
         </div>
