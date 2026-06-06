@@ -144,9 +144,12 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => { setStep('register'); setCode(''); setError(null) }}
-                  className="w-full text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
+                  className="w-full flex items-center justify-center gap-1.5 font-data text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Back to registration
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M5.5 3L9.5 7L5.5 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </button>
               </div>
             </form>
