@@ -88,15 +88,15 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ github.ref_name || inputs.tag }}
-          name: manuA11y ${{ github.ref_name || inputs.tag }}
+          name: Mira ${{ github.ref_name || inputs.tag }}
           draft: true
           prerelease: ${{ contains(github.ref_name || inputs.tag, 'beta') || contains(github.ref_name || inputs.tag, 'alpha') }}
           body: |
-            ## manuA11y ${{ github.ref_name || inputs.tag }}
+            ## Mira ${{ github.ref_name || inputs.tag }}
 
             ### Download
-            - **Windows:** `manuA11y Setup *.exe`
-            - **Mac:** `manuA11y-*.dmg` — right-click → Open on first launch (app is unsigned for beta)
+            - **Windows:** `Mira Setup *.exe`
+            - **Mac:** `Mira-*.dmg` — right-click → Open on first launch (app is unsigned for beta)
 
             ### What's new
             <!-- Add release notes here before publishing -->

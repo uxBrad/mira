@@ -1,6 +1,6 @@
-# manua11y
+# Mira
 
-manua11y is a desktop application for accessibility auditors. It helps you document, classify, and report WCAG findings across audit projects — generating branded PDF reports and CSV exports.
+Mira is a desktop application for accessibility auditors. It helps you document, classify, and report WCAG findings across audit projects — generating branded PDF reports and CSV exports.
 
 ## Tech stack
 

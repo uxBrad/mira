@@ -93,7 +93,7 @@ export default function LoginPage() {
       >
         <div className="flex items-center gap-3">
           <img src={logoSrc} alt="" aria-hidden="true" style={{ width: '32px', height: '32px' }} />
-          <span className="font-display text-xl font-bold text-foreground">manuA11y</span>
+          <span className="font-display text-xl font-bold text-foreground">Mira</span>
         </div>
         <div>
           <p className="font-display text-3xl font-semibold leading-snug text-foreground mb-4">
@@ -104,7 +104,7 @@ export default function LoginPage() {
           </p>
         </div>
         <p className="font-data text-xs text-muted-foreground">
-          © {new Date().getFullYear()} manuA11y
+          © {new Date().getFullYear()} Mira
         </p>
       </div>
 
@@ -114,7 +114,7 @@ export default function LoginPage() {
           <div className="mb-10 lg:hidden">
             <div className="flex items-center gap-3">
               <img src={logoSrc} alt="" aria-hidden="true" style={{ width: '32px', height: '32px' }} />
-              <span className="font-display text-xl font-bold">manuA11y</span>
+              <span className="font-display text-xl font-bold">Mira</span>
             </div>
           </div>
 
@@ -202,7 +202,7 @@ export default function LoginPage() {
           ) : (
             <>
               <div className="mb-6 hidden lg:block">
-                <img src={logoSrc} alt="manuA11y" style={{ width: '56px', height: '56px' }} />
+                <img src={logoSrc} alt="Mira" style={{ width: '56px', height: '56px' }} />
               </div>
               <h1 className="text-2xl font-semibold tracking-tight mb-1">Welcome back</h1>
               <p className="font-data text-sm text-muted-foreground mb-8">Sign in to your account</p>

@@ -57,7 +57,7 @@ export default function PaywallPage() {
           </div>
           <h1 className="text-3xl font-bold mb-2">Your trial has ended</h1>
           <p className="text-muted-foreground text-lg">
-            Subscribe to continue using manuA11y.
+            Subscribe to continue using Mira.
           </p>
         </div>
 

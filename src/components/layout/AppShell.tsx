@@ -141,7 +141,7 @@ export default function AppShell() {
       key: 'help',
       label: 'Help',
       items: [
-        { label: 'About manuA11y', action: () => {} },
+        { label: 'About Mira', action: () => {} },
       ],
     },
   ]

@@ -85,7 +85,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-sm">
           <div className="flex items-center gap-3 mb-8 justify-center">
             <img src={logoSrc} alt="" aria-hidden="true" style={{ width: '32px', height: '32px' }} />
-            <span className="font-display font-bold text-xl">manuA11y</span>
+            <span className="font-display font-bold text-xl">Mira</span>
           </div>
 
           <div className="border rounded-xl p-6 shadow-sm bg-card">
@@ -164,7 +164,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-3 mb-8 justify-center">
           <img src={logoSrc} alt="" aria-hidden="true" style={{ width: '32px', height: '32px' }} />
-          <span className="font-display font-bold text-xl">manuA11y</span>
+          <span className="font-display font-bold text-xl">Mira</span>
         </div>
 
         <div className="border rounded-xl p-6 shadow-sm bg-card">
