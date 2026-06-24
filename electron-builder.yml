@@ -56,5 +56,5 @@ nsis:
 publish:
   provider: github
   owner: uxBrad
-  repo: echo
+  repo: mira
   releaseType: release
