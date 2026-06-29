@@ -247,7 +247,6 @@ export function ImportFindingsDialog({
               <Button
                 onClick={handleChooseFile}
                 disabled={isLoading}
-                style={{ background: '#1d4ed8', color: '#fff', borderRadius: '4px' }}
               >
                 <Upload className="h-4 w-4 mr-2" />
                 {isLoading ? 'Reading file…' : 'Choose file'}
@@ -501,13 +500,11 @@ export function ImportFindingsDialog({
                 <Button
                   variant="outline"
                   onClick={reset}
-                  style={{ borderRadius: '4px' }}
                 >
                   Import another file
                 </Button>
                 <Button
                   onClick={() => handleClose(false)}
-                  style={{ background: '#1d4ed8', color: '#fff', borderRadius: '4px' }}
                 >
                   Done
                 </Button>
@@ -523,7 +520,6 @@ export function ImportFindingsDialog({
               <Button
                 variant="outline"
                 onClick={() => { reset(); setStep('idle') }}
-                style={{ borderRadius: '4px' }}
               >
                 Choose different file
               </Button>
@@ -534,11 +530,6 @@ export function ImportFindingsDialog({
                 <Button
                   onClick={handleImport}
                   disabled={selectedVisible.length === 0}
-                  style={{
-                    background: selectedVisible.length === 0 ? '#e0dbd9' : '#1d4ed8',
-                    color: selectedVisible.length === 0 ? '#5f5e5e' : '#fff',
-                    borderRadius: '4px'
-                  }}
                 >
                   Import {selectedVisible.length > 0 ? selectedVisible.length : ''} finding{selectedVisible.length !== 1 ? 's' : ''}
                 </Button>
