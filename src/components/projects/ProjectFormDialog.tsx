@@ -16,6 +16,7 @@ interface ProjectFormData {
   clientName?: string
   url?: string
   description?: string
+  scope?: string
   status?: string
   standards?: string
   auditUrls?: string[]
@@ -57,6 +58,7 @@ export function ProjectFormDialog({
     initialData?.auditUrls && initialData.auditUrls.length > 0 ? initialData.auditUrls : ['']
   )
   const [clientLogoPath, setClientLogoPath] = useState<string | null>(initialData?.clientLogoPath ?? null)
+  const [scope, setScope] = useState(initialData?.scope || '')
   const [auditorName, setAuditorName] = useState(initialData?.auditorName || '')
   const [auditorCredentials, setAuditorCredentials] = useState(initialData?.auditorCredentials || '')
   const [testingEnvironment, setTestingEnvironment] = useState(initialData?.testingEnvironment || '')
@@ -105,6 +107,7 @@ export function ProjectFormDialog({
         initialData?.auditUrls && initialData.auditUrls.length > 0 ? initialData.auditUrls : ['']
       )
       setClientLogoPath(initialData?.clientLogoPath ?? null)
+      setScope(initialData?.scope || '')
       setAuditorName(initialData?.auditorName || '')
       setAuditorCredentials(initialData?.auditorCredentials || '')
       setTestingEnvironment(initialData?.testingEnvironment || '')
@@ -149,6 +152,7 @@ export function ProjectFormDialog({
         clientName: clientName.trim() || undefined,
         url: url.trim() || undefined,
         description: description.trim() || undefined,
+        scope: scope.trim() || undefined,
         status,
         standards: standards || undefined,
         auditUrls: cleanUrls.length > 0 ? cleanUrls : undefined,
@@ -429,14 +433,34 @@ export function ProjectFormDialog({
               {/* Description */}
               <div className="space-y-1.5">
                 <Label htmlFor="ps-description" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
-                  Description / scope
+                  Product Description
                 </Label>
                 <textarea
                   id="ps-description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Audit scope, context, or notes about this project…"
-                  rows={3}
+                  placeholder="Brief description of the product being audited…"
+                  rows={2}
+                  disabled={isLoading}
+                  className="w-full px-3 py-2 font-sans text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#1d4ed8] resize-none"
+                  style={{ border: '1px solid #d0cac8' }}
+                />
+              </div>
+
+              {/* Scope */}
+              <div className="space-y-1.5">
+                <Label htmlFor="ps-scope" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
+                  Scope of Evaluation
+                </Label>
+                <p className="font-sans text-xs" style={{ color: '#5f5e5e' }}>
+                  Which pages, flows, or templates were evaluated
+                </p>
+                <textarea
+                  id="ps-scope"
+                  value={scope}
+                  onChange={(e) => setScope(e.target.value)}
+                  placeholder="Homepage, Contact form, Checkout flow (/cart, /checkout, /confirmation)"
+                  rows={2}
                   disabled={isLoading}
                   className="w-full px-3 py-2 font-sans text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#1d4ed8] resize-none"
                   style={{ border: '1px solid #d0cac8' }}

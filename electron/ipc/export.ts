@@ -92,7 +92,7 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
     return { success: true, path: filePath }
   })
 
-  ipcMain.handle('export:pdf', async (_, projectId: string, format: 'summary' | 'vpat' = 'summary', auditState?: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> }) => {
+  ipcMain.handle('export:pdf', async (_, projectId: string, format: 'summary' | 'vpat' = 'summary', auditState?: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>>; criterionNotes?: Record<string, string> }) => {
     try {
       const db = getDb()
       const [project] = await db.select().from(projects).where(eq(projects.id, projectId))
@@ -133,7 +133,7 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
 
       // Build HTML report based on format
       const html = format === 'vpat'
-        ? buildVpatHtml(project, findingsData, auditState || { criteriaVerdict: {}, criteriaProgress: {} })
+        ? buildVpatHtml(project, findingsData, auditState || { criteriaVerdict: {}, criteriaProgress: {}, criterionNotes: {} })
         : buildReportHtml(project, findingsData, auditState)
       console.log(`[PDF Export] ${format} HTML generated, length:`, html.length)
 
@@ -431,7 +431,7 @@ const CRITERION_DESCRIPTIONS: Record<string, string> = {
 function buildVpatHtml(
   project: typeof projects.$inferSelect,
   findingsData: Array<typeof findings.$inferSelect & { standards: string[] }>,
-  auditState: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> }
+  auditState: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>>; criterionNotes?: Record<string, string> }
 ): string {
   const date = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
@@ -536,11 +536,37 @@ function buildVpatHtml(
     }
   }
 
-  // Get remarks (finding titles) for a criterion
+  // Build remarks cell content from criterion notes + finding details
   function getRemarks(criterionId: string): string {
     const issues = findingsByCriterion.get(criterionId) || []
-    if (issues.length === 0) return ''
-    return issues.map((i) => escapeHtml(i.title || 'Unnamed issue')).slice(0, 3).join('; ') + (issues.length > 3 ? `; and ${issues.length - 3} more` : '')
+    const note = auditState.criterionNotes?.[criterionId] || ''
+    const parts: string[] = []
+
+    if (note) {
+      parts.push(`<span style="color:#333">${escapeHtml(note)}</span>`)
+    }
+
+    const displayed = issues.slice(0, 3)
+    for (const i of displayed) {
+      const title = escapeHtml(i.title || 'Unnamed issue')
+      const severity = i.severity ? ` <span style="color:#888;font-style:italic">(${escapeHtml(i.severity)})</span>` : ''
+      const locationParts = [i.pageUrl, i.component].filter(Boolean).map(s => escapeHtml(s!))
+      const location = locationParts.length ? ` <span style="color:#6b7280">— ${locationParts.join(', ')}</span>` : ''
+      const firstSentence = i.description
+        ? i.description.replace(/\s+/g, ' ').split(/(?<=[.!?])\s/)[0].trim().slice(0, 140)
+        : ''
+      const desc = firstSentence
+        ? `<br><span style="color:#666;font-size:9px">${escapeHtml(firstSentence)}${firstSentence.length >= 140 ? '…' : ''}</span>`
+        : ''
+
+      parts.push(`<strong style="font-size:10px">${title}</strong>${severity}${location}${desc}`)
+    }
+
+    if (issues.length > 3) {
+      parts.push(`<span style="color:#888;font-style:italic;font-size:9px">…and ${issues.length - 3} more finding${issues.length - 3 > 1 ? 's' : ''}</span>`)
+    }
+
+    return parts.join('<br><br>')
   }
 
   const RED = '#c0392b'
@@ -621,9 +647,14 @@ function buildVpatHtml(
     ${project.description ? `
     <div style="margin: 32px 0;">
       <h3 style="font-size: 13px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #666;">Product Description</h3>
-      <p style="font-size: 12px; color: #555; line-height: 1.7;">
-        ${escapeHtml(project.description)}
-      </p>
+      <p style="font-size: 12px; color: #555; line-height: 1.7;">${escapeHtml(project.description)}</p>
+    </div>
+    ` : ''}
+
+    ${project.scope ? `
+    <div style="margin: 32px 0;">
+      <h3 style="font-size: 13px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #666;">Scope of Evaluation</h3>
+      <p style="font-size: 12px; color: #555; line-height: 1.7;">${escapeHtml(project.scope)}</p>
     </div>
     ` : ''}
 

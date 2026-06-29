@@ -14,6 +14,7 @@ export const projects = sqliteTable('projects', {
   auditorName: text('auditor_name'),
   auditorCredentials: text('auditor_credentials'),
   testingEnvironment: text('testing_environment'),
+  scope: text('scope'),
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull()
 })

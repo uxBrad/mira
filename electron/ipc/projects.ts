@@ -30,6 +30,7 @@ export function registerProjectHandlers(ipcMain: IpcMain): void {
         auditorName: projects.auditorName,
         auditorCredentials: projects.auditorCredentials,
         testingEnvironment: projects.testingEnvironment,
+        scope: projects.scope,
         createdAt: projects.createdAt,
         updatedAt: projects.updatedAt,
         findingCount: sql<number>`count(${findings.id})`
@@ -65,6 +66,7 @@ export function registerProjectHandlers(ipcMain: IpcMain): void {
         auditorName?: string
         auditorCredentials?: string
         testingEnvironment?: string
+        scope?: string
       }
     ) => {
       const db = getDb()
@@ -85,6 +87,7 @@ export function registerProjectHandlers(ipcMain: IpcMain): void {
         auditorName: data.auditorName || null,
         auditorCredentials: data.auditorCredentials || null,
         testingEnvironment: data.testingEnvironment || null,
+        scope: data.scope || null,
         createdAt: now,
         updatedAt: now
       })
@@ -112,6 +115,7 @@ export function registerProjectHandlers(ipcMain: IpcMain): void {
         auditorName?: string
         auditorCredentials?: string
         testingEnvironment?: string
+        scope?: string
       }
     ) => {
       const db = getDb()
@@ -129,6 +133,7 @@ export function registerProjectHandlers(ipcMain: IpcMain): void {
       if (data.auditorName !== undefined) setData.auditorName = data.auditorName || null
       if (data.auditorCredentials !== undefined) setData.auditorCredentials = data.auditorCredentials || null
       if (data.testingEnvironment !== undefined) setData.testingEnvironment = data.testingEnvironment || null
+      if (data.scope !== undefined) setData.scope = data.scope || null
 
       await db.update(projects).set(setData).where(eq(projects.id, id))
 

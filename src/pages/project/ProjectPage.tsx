@@ -49,6 +49,7 @@ interface Project {
   auditorName: string | null
   auditorCredentials: string | null
   testingEnvironment: string | null
+  scope: string | null
   createdAt: number
   updatedAt: number
 }
@@ -372,6 +373,7 @@ export default function ProjectPage() {
     auditorName?: string
     auditorCredentials?: string
     testingEnvironment?: string
+    scope?: string
   }) {
     if (!id) return
     const updated = await window.api.projects.update(id, data)
@@ -456,12 +458,12 @@ export default function ProjectPage() {
     setIsExporting('pdf')
     setShowFormatDialog(false)
     try {
-      let auditState: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> } = { criteriaVerdict: {}, criteriaProgress: {} }
+      let auditState: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>>; criterionNotes?: Record<string, string> } = { criteriaVerdict: {}, criteriaProgress: {} }
       try {
         const saved = localStorage.getItem(`echo-step-audit-${id}`)
         if (saved) {
           const parsed = JSON.parse(saved)
-          if (parsed.criteriaVerdict) auditState = { criteriaVerdict: parsed.criteriaVerdict, criteriaProgress: parsed.criteriaProgress ?? {} }
+          if (parsed.criteriaVerdict) auditState = { criteriaVerdict: parsed.criteriaVerdict, criteriaProgress: parsed.criteriaProgress ?? {}, criterionNotes: parsed.criterionNotes ?? {} }
         }
       } catch { /* ignore */ }
       const result = await window.api.export.pdf(id!, format, auditState)
@@ -1156,6 +1158,7 @@ export default function ProjectPage() {
                 auditorName: project.auditorName ?? undefined,
                 auditorCredentials: project.auditorCredentials ?? undefined,
                 testingEnvironment: project.testingEnvironment ?? undefined,
+                scope: project.scope ?? undefined,
               }}
             />
           )}

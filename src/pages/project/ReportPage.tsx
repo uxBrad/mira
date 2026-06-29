@@ -87,7 +87,8 @@ export default function ReportPage() {
       const raw = JSON.parse(localStorage.getItem(auditKey) || '{}')
       const auditState = {
         criteriaVerdict: raw.criteriaVerdict || {},
-        criteriaProgress: raw.criteriaProgress || {}
+        criteriaProgress: raw.criteriaProgress || {},
+        criterionNotes: raw.criterionNotes || {}
       }
       const result = await window.api.export.pdf(id, format, auditState)
       if (result.canceled) {

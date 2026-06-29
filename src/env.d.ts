@@ -44,6 +44,7 @@ interface Window {
         auditorName: string | null
         auditorCredentials: string | null
         testingEnvironment: string | null
+        scope: string | null
         createdAt: number
         updatedAt: number
         findingCount: number
@@ -62,6 +63,7 @@ interface Window {
         auditorName: string | null
         auditorCredentials: string | null
         testingEnvironment: string | null
+        scope: string | null
         createdAt: number
         updatedAt: number
       }>
@@ -77,24 +79,25 @@ interface Window {
         auditorName?: string
         auditorCredentials?: string
         testingEnvironment?: string
+        scope?: string
       }) => Promise<{
         id: string; name: string; clientName: string | null; url: string | null
         description: string | null; status: string; standards: string | null
         auditUrls: string[]; components: string[]; clientLogoPath: string | null
         auditorName: string | null; auditorCredentials: string | null; testingEnvironment: string | null
-        createdAt: number; updatedAt: number
+        scope: string | null; createdAt: number; updatedAt: number
       }>
       update: (id: string, data: {
         name?: string; clientName?: string; url?: string; description?: string
         status?: string; standards?: string; auditUrls?: string[]; components?: string[]
         clientLogoPath?: string | null
-        auditorName?: string; auditorCredentials?: string; testingEnvironment?: string
+        auditorName?: string; auditorCredentials?: string; testingEnvironment?: string; scope?: string
       }) => Promise<{
         id: string; name: string; clientName: string | null; url: string | null
         description: string | null; status: string; standards: string | null
         auditUrls: string[]; components: string[]; clientLogoPath: string | null
         auditorName: string | null; auditorCredentials: string | null; testingEnvironment: string | null
-        createdAt: number; updatedAt: number
+        scope: string | null; createdAt: number; updatedAt: number
       }>
       delete: (id: string) => Promise<{ success: boolean }>
     }
@@ -169,7 +172,7 @@ interface Window {
       delete: (id: string) => Promise<{ success: boolean }>
     }
     export: {
-      pdf: (projectId: string, format?: 'summary' | 'vpat', auditState?: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> }) => Promise<{ success?: boolean; path?: string; canceled?: boolean }>
+      pdf: (projectId: string, format?: 'summary' | 'vpat', auditState?: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>>; criterionNotes?: Record<string, string> }) => Promise<{ success?: boolean; path?: string; canceled?: boolean }>
       csv: (projectId: string) => Promise<{ success?: boolean; path?: string; canceled?: boolean }>
       chooseScreenshot: () => Promise<string | null>
     }

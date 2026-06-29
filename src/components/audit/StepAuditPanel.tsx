@@ -183,6 +183,18 @@ export function StepAuditPanel({
     return {}
   })
 
+  // criterionNotes: free-text notes per criterion (appear in VPAT remarks column)
+  const [criterionNotes, setCriterionNotes] = useState<Record<string, string>>(() => {
+    try {
+      const saved = localStorage.getItem(storageKey)
+      if (saved) {
+        const n = JSON.parse(saved)?.criterionNotes
+        if (n && typeof n === 'object') return n
+      }
+    } catch { /* ignore */ }
+    return {}
+  })
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
 
@@ -198,9 +210,9 @@ export function StepAuditPanel({
   // ─── Persist position + status whenever anything changes ────────────────
   useEffect(() => {
     try {
-      localStorage.setItem(storageKey, JSON.stringify({ index, criteriaVerdict, criteriaProgress }))
+      localStorage.setItem(storageKey, JSON.stringify({ index, criteriaVerdict, criteriaProgress, criterionNotes }))
     } catch { /* ignore – private browsing may block writes */ }
-  }, [index, criteriaVerdict, criteriaProgress, storageKey])
+  }, [index, criteriaVerdict, criteriaProgress, criterionNotes, storageKey])
 
   // ─── Notify parent immediately when verdicts change so grouped view updates ──
   const isFirstRender = useRef(true)
@@ -483,6 +495,34 @@ export function StepAuditPanel({
               ))}
             </div>
           )}
+        </div>
+
+        {/* ── VPAT Notes ── */}
+        <div className="px-6 py-4" style={{ borderBottom: '1px solid #e0dbd9' }}>
+          <p className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
+            VPAT Notes
+          </p>
+          <p className="font-sans text-xs mb-2" style={{ color: '#5f5e5e' }}>
+            Appears in the Remarks column of the exported report.
+          </p>
+          <textarea
+            value={criterionNotes[criterion.id] || ''}
+            onChange={(e) => {
+              const val = e.target.value
+              setCriterionNotes(prev => {
+                if (!val) {
+                  const next = { ...prev }
+                  delete next[criterion.id]
+                  return next
+                }
+                return { ...prev, [criterion.id]: val }
+              })
+            }}
+            placeholder="Optional: note the test outcome, what was checked, or any relevant context…"
+            rows={2}
+            className="w-full px-3 py-2 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+            style={{ borderColor: '#d0cac8' }}
+          />
         </div>
 
         {/* ── Log a Finding form ── */}
