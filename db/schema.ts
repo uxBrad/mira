@@ -8,9 +8,12 @@ export const projects = sqliteTable('projects', {
   description: text('description'),
   status: text('status').notNull().default('in_progress'),
   standards: text('standards'),
-  auditUrls: text('audit_urls'),   // JSON array of path strings e.g. ["/home", "/checkout"]
-  components: text('components'),  // JSON array of component names e.g. ["Navigation", "Header"]
+  auditUrls: text('audit_urls'),         // JSON array of path strings e.g. ["/home", "/checkout"]
+  components: text('components'),        // JSON array of component names e.g. ["Navigation", "Header"]
   clientLogoPath: text('client_logo_path'),
+  auditorName: text('auditor_name'),
+  auditorCredentials: text('auditor_credentials'),
+  testingEnvironment: text('testing_environment'),
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull()
 })

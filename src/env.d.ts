@@ -41,6 +41,9 @@ interface Window {
         auditUrls: string[]
         components: string[]
         clientLogoPath: string | null
+        auditorName: string | null
+        auditorCredentials: string | null
+        testingEnvironment: string | null
         createdAt: number
         updatedAt: number
         findingCount: number
@@ -56,6 +59,9 @@ interface Window {
         auditUrls: string[]
         components: string[]
         clientLogoPath: string | null
+        auditorName: string | null
+        auditorCredentials: string | null
+        testingEnvironment: string | null
         createdAt: number
         updatedAt: number
       }>
@@ -68,20 +74,26 @@ interface Window {
         auditUrls?: string[]
         components?: string[]
         clientLogoPath?: string
+        auditorName?: string
+        auditorCredentials?: string
+        testingEnvironment?: string
       }) => Promise<{
         id: string; name: string; clientName: string | null; url: string | null
         description: string | null; status: string; standards: string | null
         auditUrls: string[]; components: string[]; clientLogoPath: string | null
+        auditorName: string | null; auditorCredentials: string | null; testingEnvironment: string | null
         createdAt: number; updatedAt: number
       }>
       update: (id: string, data: {
         name?: string; clientName?: string; url?: string; description?: string
         status?: string; standards?: string; auditUrls?: string[]; components?: string[]
         clientLogoPath?: string | null
+        auditorName?: string; auditorCredentials?: string; testingEnvironment?: string
       }) => Promise<{
         id: string; name: string; clientName: string | null; url: string | null
         description: string | null; status: string; standards: string | null
         auditUrls: string[]; components: string[]; clientLogoPath: string | null
+        auditorName: string | null; auditorCredentials: string | null; testingEnvironment: string | null
         createdAt: number; updatedAt: number
       }>
       delete: (id: string) => Promise<{ success: boolean }>

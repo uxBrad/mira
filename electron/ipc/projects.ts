@@ -27,6 +27,9 @@ export function registerProjectHandlers(ipcMain: IpcMain): void {
         auditUrls: projects.auditUrls,
         components: projects.components,
         clientLogoPath: projects.clientLogoPath,
+        auditorName: projects.auditorName,
+        auditorCredentials: projects.auditorCredentials,
+        testingEnvironment: projects.testingEnvironment,
         createdAt: projects.createdAt,
         updatedAt: projects.updatedAt,
         findingCount: sql<number>`count(${findings.id})`
@@ -59,6 +62,9 @@ export function registerProjectHandlers(ipcMain: IpcMain): void {
         auditUrls?: string[]
         components?: string[]
         clientLogoPath?: string
+        auditorName?: string
+        auditorCredentials?: string
+        testingEnvironment?: string
       }
     ) => {
       const db = getDb()
@@ -76,6 +82,9 @@ export function registerProjectHandlers(ipcMain: IpcMain): void {
         auditUrls: data.auditUrls?.length ? JSON.stringify(data.auditUrls) : null,
         components: data.components?.length ? JSON.stringify(data.components) : null,
         clientLogoPath: data.clientLogoPath || null,
+        auditorName: data.auditorName || null,
+        auditorCredentials: data.auditorCredentials || null,
+        testingEnvironment: data.testingEnvironment || null,
         createdAt: now,
         updatedAt: now
       })
@@ -100,6 +109,9 @@ export function registerProjectHandlers(ipcMain: IpcMain): void {
         auditUrls?: string[]
         components?: string[]
         clientLogoPath?: string | null
+        auditorName?: string
+        auditorCredentials?: string
+        testingEnvironment?: string
       }
     ) => {
       const db = getDb()
@@ -114,6 +126,9 @@ export function registerProjectHandlers(ipcMain: IpcMain): void {
       if (Array.isArray(data.auditUrls)) setData.auditUrls = data.auditUrls.length ? JSON.stringify(data.auditUrls) : null
       if (Array.isArray(data.components)) setData.components = data.components.length ? JSON.stringify(data.components) : null
       if ('clientLogoPath' in data) setData.clientLogoPath = data.clientLogoPath ?? null
+      if (data.auditorName !== undefined) setData.auditorName = data.auditorName || null
+      if (data.auditorCredentials !== undefined) setData.auditorCredentials = data.auditorCredentials || null
+      if (data.testingEnvironment !== undefined) setData.testingEnvironment = data.testingEnvironment || null
 
       await db.update(projects).set(setData).where(eq(projects.id, id))
 

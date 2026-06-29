@@ -632,12 +632,27 @@ function buildVpatHtml(
       <p style="font-size: 12px; color: #555;">For more information about this accessibility assessment, contact the organization responsible for the product.</p>
     </div>
 
+    ${(project.auditorName || project.auditorCredentials) ? `
+    <div style="margin: 32px 0;">
+      <h3 style="font-size: 13px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #666;">Auditor</h3>
+      ${project.auditorName ? `<p style="font-size: 12px; color: #555; margin-bottom: 4px;"><strong>${escapeHtml(project.auditorName)}</strong></p>` : ''}
+      ${project.auditorCredentials ? `<p style="font-size: 12px; color: #888;">${escapeHtml(project.auditorCredentials)}</p>` : ''}
+    </div>
+    ` : ''}
+
     <div style="margin: 32px 0;">
       <h3 style="font-size: 13px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #666;">Evaluation Methods Used</h3>
       <p style="font-size: 12px; color: #555; line-height: 1.7;">
         This accessibility audit was conducted using a combination of manual inspection and automated testing tools. The evaluation assessed conformance with WCAG 2.2 Success Criteria at levels A and AA. Testing included keyboard navigation, screen reader testing, color contrast verification, and functional testing of interactive components.
       </p>
     </div>
+
+    ${project.testingEnvironment ? `
+    <div style="margin: 32px 0;">
+      <h3 style="font-size: 13px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #666;">Testing Environment</h3>
+      <p style="font-size: 12px; color: #555; line-height: 1.8; white-space: pre-line;">${escapeHtml(project.testingEnvironment)}</p>
+    </div>
+    ` : ''}
   </div>
 
   <div style="padding-top: 40px; border-top: 1px solid #e0dbd9;">
@@ -729,6 +744,14 @@ function buildVpatHtml(
   </p>
 
   <table style="border: 1px solid #e0dbd9; width: 100%;">
+    <thead>
+      <tr style="background: #f9f6f5; border-bottom: 2px solid #e0dbd9;">
+        <th style="padding: 10px 14px; text-align: left; font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #666; width: 12%;">Criteria</th>
+        <th style="padding: 10px 14px; text-align: left; font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #666; width: 50%;">Description</th>
+        <th style="padding: 10px 14px; text-align: center; font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #666; width: 12%;">Conformance Level</th>
+        <th style="padding: 10px 14px; text-align: left; font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #666; width: 26%;">Remarks and Explanations</th>
+      </tr>
+    </thead>
     <tbody>
       ${buildDetailedTableRows('A')}
     </tbody>
@@ -743,6 +766,14 @@ function buildVpatHtml(
   <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 30px;">Table 2: Success Criteria, Level AA</h2>
 
   <table style="border: 1px solid #e0dbd9; width: 100%;">
+    <thead>
+      <tr style="background: #f9f6f5; border-bottom: 2px solid #e0dbd9;">
+        <th style="padding: 10px 14px; text-align: left; font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #666; width: 12%;">Criteria</th>
+        <th style="padding: 10px 14px; text-align: left; font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #666; width: 50%;">Description</th>
+        <th style="padding: 10px 14px; text-align: center; font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #666; width: 12%;">Conformance Level</th>
+        <th style="padding: 10px 14px; text-align: left; font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #666; width: 26%;">Remarks and Explanations</th>
+      </tr>
+    </thead>
     <tbody>
       ${buildDetailedTableRows('AA')}
     </tbody>

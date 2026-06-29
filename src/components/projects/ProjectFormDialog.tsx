@@ -20,6 +20,9 @@ interface ProjectFormData {
   standards?: string
   auditUrls?: string[]
   clientLogoPath?: string | null
+  auditorName?: string
+  auditorCredentials?: string
+  testingEnvironment?: string
 }
 
 interface ProjectFormDialogProps {
@@ -54,6 +57,9 @@ export function ProjectFormDialog({
     initialData?.auditUrls && initialData.auditUrls.length > 0 ? initialData.auditUrls : ['']
   )
   const [clientLogoPath, setClientLogoPath] = useState<string | null>(initialData?.clientLogoPath ?? null)
+  const [auditorName, setAuditorName] = useState(initialData?.auditorName || '')
+  const [auditorCredentials, setAuditorCredentials] = useState(initialData?.auditorCredentials || '')
+  const [testingEnvironment, setTestingEnvironment] = useState(initialData?.testingEnvironment || '')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const nameRef = useRef<HTMLInputElement>(null)
@@ -99,6 +105,9 @@ export function ProjectFormDialog({
         initialData?.auditUrls && initialData.auditUrls.length > 0 ? initialData.auditUrls : ['']
       )
       setClientLogoPath(initialData?.clientLogoPath ?? null)
+      setAuditorName(initialData?.auditorName || '')
+      setAuditorCredentials(initialData?.auditorCredentials || '')
+      setTestingEnvironment(initialData?.testingEnvironment || '')
       setError(null)
       setTimeout(() => nameRef.current?.focus(), 50)
     }
@@ -144,6 +153,9 @@ export function ProjectFormDialog({
         standards: standards || undefined,
         auditUrls: cleanUrls.length > 0 ? cleanUrls : undefined,
         clientLogoPath: clientLogoPath || null,
+        auditorName: auditorName.trim() || undefined,
+        auditorCredentials: auditorCredentials.trim() || undefined,
+        testingEnvironment: testingEnvironment.trim() || undefined,
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
@@ -424,6 +436,56 @@ export function ProjectFormDialog({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Audit scope, context, or notes about this project…"
+                  rows={3}
+                  disabled={isLoading}
+                  className="w-full px-3 py-2 font-sans text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#1d4ed8] resize-none"
+                  style={{ border: '1px solid #d0cac8' }}
+                />
+              </div>
+
+              {/* Auditor info */}
+              <div className="space-y-1.5">
+                <Label htmlFor="ps-auditor-name" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
+                  Auditor Name
+                </Label>
+                <input
+                  id="ps-auditor-name"
+                  value={auditorName}
+                  onChange={(e) => setAuditorName(e.target.value)}
+                  placeholder="Jane Smith"
+                  disabled={isLoading}
+                  className={inputClass}
+                  style={inputStyle}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="ps-auditor-creds" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
+                  Auditor Credentials
+                </Label>
+                <input
+                  id="ps-auditor-creds"
+                  value={auditorCredentials}
+                  onChange={(e) => setAuditorCredentials(e.target.value)}
+                  placeholder="CPACC, DHS Trusted Tester"
+                  disabled={isLoading}
+                  className={inputClass}
+                  style={inputStyle}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="ps-testing-env" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
+                  Testing Environment
+                </Label>
+                <p className="font-sans text-xs" style={{ color: '#5f5e5e' }}>
+                  List AT tools, browsers, and OS used (e.g. NVDA 2024.1 + Chrome 120, Windows 11)
+                </p>
+                <textarea
+                  id="ps-testing-env"
+                  value={testingEnvironment}
+                  onChange={(e) => setTestingEnvironment(e.target.value)}
+                  placeholder="NVDA 2024.1 + Chrome 120 on Windows 11&#10;JAWS 2024 + Edge 120 on Windows 11&#10;VoiceOver + Safari on macOS 14"
                   rows={3}
                   disabled={isLoading}
                   className="w-full px-3 py-2 font-sans text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#1d4ed8] resize-none"

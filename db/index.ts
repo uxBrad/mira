@@ -91,6 +91,9 @@ async function runMigrations(client: Client): Promise<void> {
     `ALTER TABLE projects ADD COLUMN audit_urls TEXT`,
     `ALTER TABLE projects ADD COLUMN components TEXT`,
     `ALTER TABLE projects ADD COLUMN client_logo_path TEXT`,
+    `ALTER TABLE projects ADD COLUMN auditor_name TEXT`,
+    `ALTER TABLE projects ADD COLUMN auditor_credentials TEXT`,
+    `ALTER TABLE projects ADD COLUMN testing_environment TEXT`,
     `ALTER TABLE findings ADD COLUMN component TEXT`
   ]
 

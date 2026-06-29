@@ -46,6 +46,9 @@ interface Project {
   auditUrls: string[]
   components: string[]
   clientLogoPath: string | null
+  auditorName: string | null
+  auditorCredentials: string | null
+  testingEnvironment: string | null
   createdAt: number
   updatedAt: number
 }
@@ -366,6 +369,9 @@ export default function ProjectPage() {
     auditUrls?: string[]
     components?: string[]
     clientLogoPath?: string | null
+    auditorName?: string
+    auditorCredentials?: string
+    testingEnvironment?: string
   }) {
     if (!id) return
     const updated = await window.api.projects.update(id, data)
@@ -1147,6 +1153,9 @@ export default function ProjectPage() {
                 standards: project.standards ?? undefined,
                 auditUrls: project.auditUrls,
                 clientLogoPath: project.clientLogoPath,
+                auditorName: project.auditorName ?? undefined,
+                auditorCredentials: project.auditorCredentials ?? undefined,
+                testingEnvironment: project.testingEnvironment ?? undefined,
               }}
             />
           )}
