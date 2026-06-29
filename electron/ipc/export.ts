@@ -536,15 +536,10 @@ function buildVpatHtml(
     }
   }
 
-  // Build remarks cell content from criterion notes + finding details
+  // Build remarks cell content from finding details (title, description, recommendations, notes)
   function getRemarks(criterionId: string): string {
     const issues = findingsByCriterion.get(criterionId) || []
-    const note = auditState.criterionNotes?.[criterionId] || ''
     const parts: string[] = []
-
-    if (note) {
-      parts.push(`<span style="color:#333">${escapeHtml(note)}</span>`)
-    }
 
     const displayed = issues.slice(0, 3)
     for (const i of displayed) {
@@ -558,8 +553,14 @@ function buildVpatHtml(
       const desc = firstSentence
         ? `<br><span style="color:#666;font-size:9px">${escapeHtml(firstSentence)}${firstSentence.length >= 140 ? '…' : ''}</span>`
         : ''
+      const rec = i.recommendations
+        ? `<br><span style="color:#2d7a4f;font-size:9px"><strong>Rec:</strong> ${escapeHtml(i.recommendations.slice(0, 160))}${i.recommendations.length > 160 ? '…' : ''}</span>`
+        : ''
+      const note = i.notes
+        ? `<br><span style="color:#888;font-size:9px;font-style:italic">${escapeHtml(i.notes.slice(0, 120))}${i.notes.length > 120 ? '…' : ''}</span>`
+        : ''
 
-      parts.push(`<strong style="font-size:10px">${title}</strong>${severity}${location}${desc}`)
+      parts.push(`<strong style="font-size:10px">${title}</strong>${severity}${location}${desc}${rec}${note}`)
     }
 
     if (issues.length > 3) {

@@ -183,8 +183,8 @@ export function StepAuditPanel({
     return {}
   })
 
-  // criterionNotes: free-text notes per criterion (appear in VPAT remarks column)
-  const [criterionNotes, setCriterionNotes] = useState<Record<string, string>>(() => {
+  // criterionNotes: read from localStorage for backwards compat, no longer editable in UI
+  const [criterionNotes] = useState<Record<string, string>>(() => {
     try {
       const saved = localStorage.getItem(storageKey)
       if (saved) {
@@ -497,33 +497,6 @@ export function StepAuditPanel({
           )}
         </div>
 
-        {/* ── VPAT Notes ── */}
-        <div className="px-6 py-4" style={{ borderBottom: '1px solid #e0dbd9' }}>
-          <p className="font-sans text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
-            VPAT Notes
-          </p>
-          <p className="font-sans text-xs mb-2" style={{ color: '#5f5e5e' }}>
-            Appears in the Remarks column of the exported report.
-          </p>
-          <textarea
-            value={criterionNotes[criterion.id] || ''}
-            onChange={(e) => {
-              const val = e.target.value
-              setCriterionNotes(prev => {
-                if (!val) {
-                  const next = { ...prev }
-                  delete next[criterion.id]
-                  return next
-                }
-                return { ...prev, [criterion.id]: val }
-              })
-            }}
-            placeholder="Optional: note the test outcome, what was checked, or any relevant context…"
-            rows={2}
-            className="w-full px-3 py-2 font-sans text-sm border bg-white focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-            style={{ borderColor: '#d0cac8' }}
-          />
-        </div>
 
         {/* ── Log a Finding form ── */}
         <div className="px-6 py-5">
