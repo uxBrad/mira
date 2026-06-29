@@ -92,7 +92,7 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
     return { success: true, path: filePath }
   })
 
-  ipcMain.handle('export:pdf', async (_, projectId: string, format: 'summary' | 'vpat' = 'summary', auditState?: { criteriaVerdict: Record<string, 'pass' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> }) => {
+  ipcMain.handle('export:pdf', async (_, projectId: string, format: 'summary' | 'vpat' = 'summary', auditState?: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> }) => {
     try {
       const db = getDb()
       const [project] = await db.select().from(projects).where(eq(projects.id, projectId))
@@ -196,7 +196,7 @@ function severityColor(severity: string): string {
 function buildReportHtml(
   project: typeof projects.$inferSelect,
   findingsData: Array<typeof findings.$inferSelect & { standards: string[] }>,
-  auditState?: { criteriaVerdict: Record<string, 'pass' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> }
+  auditState?: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> }
 ): string {
   const date = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
@@ -214,7 +214,7 @@ function buildReportHtml(
       .filter(f => f.wcagCriterion && f.status !== 'resolved' && f.status !== 'wont_fix')
       .map(f => f.wcagCriterion!)
   )
-  const effectiveVerdicts: Record<string, 'pass' | 'fail'> = { ...(auditState?.criteriaVerdict ?? {}) }
+  const effectiveVerdicts: Record<string, 'pass' | 'partial' | 'na' | 'fail'> = { ...(auditState?.criteriaVerdict ?? {}) }
   criteriaWithActiveFindings.forEach(cid => { effectiveVerdicts[cid] = 'fail' })
   const passCount = Object.values(effectiveVerdicts).filter(v => v === 'pass').length
   const failCount = Object.values(effectiveVerdicts).filter(v => v === 'fail').length
@@ -431,7 +431,7 @@ const CRITERION_DESCRIPTIONS: Record<string, string> = {
 function buildVpatHtml(
   project: typeof projects.$inferSelect,
   findingsData: Array<typeof findings.$inferSelect & { standards: string[] }>,
-  auditState: { criteriaVerdict: Record<string, 'pass' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> }
+  auditState: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> }
 ): string {
   const date = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
@@ -518,19 +518,21 @@ function buildVpatHtml(
     const issues = findingsByCriterion.get(criterionId) || []
     const hasOpenIssues = issues.some((f) => f.status !== 'resolved' && f.status !== 'wont_fix')
 
+    // Open findings always override to Does Not Support
     if (hasOpenIssues) {
       return { level: 'Does Not Support', color: '#c0392b' }
-    } else if (verdict === 'pass') {
+    }
+
+    if (verdict === 'pass' || (verdict === 'fail' && issues.length > 0 && !hasOpenIssues)) {
       return { level: 'Supports', color: '#2d7a4f' }
-    } else if (verdict === 'fail' && issues.length > 0 && !hasOpenIssues) {
-      // Failed but all issues resolved
-      return { level: 'Supports', color: '#2d7a4f' }
-    } else if (verdict === 'fail' && issues.length === 0) {
-      // Explicitly failed but no findings logged
+    } else if (verdict === 'partial') {
+      return { level: 'Partially Supports', color: '#d97706' }
+    } else if (verdict === 'na') {
+      return { level: 'Not Applicable', color: '#6b7280' }
+    } else if (verdict === 'fail') {
       return { level: 'Does Not Support', color: '#c0392b' }
     } else {
-      // No verdict, no open issues = not yet tested
-      return { level: 'Not Tested', color: '#999' }
+      return { level: 'Not Evaluated', color: '#999' }
     }
   }
 

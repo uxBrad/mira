@@ -195,12 +195,12 @@ export default function ProjectPage() {
   const [componentFilter, setComponentFilter] = useState<string[]>([])
   const [findingInitialData, setFindingInitialData] = useState<Partial<{title:string;description:string;wcagCriterion:string;wcagLevel:string;standards:string[];category:string;severity:string;status:string;pageUrl:string;component:string;screenshotPath:string;recommendations:string;notes:string}> | undefined>(undefined)
   const [groupByCriteria, setGroupByCriteria] = useState(false)
-  const [auditVerdicts, setAuditVerdicts] = useState<Record<string, 'pass' | 'fail'>>(() => {
+  const [auditVerdicts, setAuditVerdicts] = useState<Record<string, 'pass' | 'partial' | 'na' | 'fail'>>(() => {
     try {
       const saved = localStorage.getItem(`echo-step-audit-${id}`)
       if (saved) {
         const v = JSON.parse(saved)?.criteriaVerdict
-        if (v && typeof v === 'object') return v as Record<string, 'pass' | 'fail'>
+        if (v && typeof v === 'object') return v as Record<string, 'pass' | 'partial' | 'na' | 'fail'>
       }
     } catch { /* ignore */ }
     return {}
@@ -450,7 +450,7 @@ export default function ProjectPage() {
     setIsExporting('pdf')
     setShowFormatDialog(false)
     try {
-      let auditState: { criteriaVerdict: Record<string, 'pass' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> } = { criteriaVerdict: {}, criteriaProgress: {} }
+      let auditState: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> } = { criteriaVerdict: {}, criteriaProgress: {} }
       try {
         const saved = localStorage.getItem(`echo-step-audit-${id}`)
         if (saved) {
@@ -552,7 +552,7 @@ export default function ProjectPage() {
       .filter(f => f.wcagCriterion && f.status !== 'resolved' && f.status !== 'wont_fix')
       .map(f => f.wcagCriterion!)
   )
-  const effectiveVerdicts: Record<string, 'pass' | 'fail'> = { ...auditVerdicts }
+  const effectiveVerdicts: Record<string, 'pass' | 'partial' | 'na' | 'fail'> = { ...auditVerdicts }
   criteriaWithActiveFindings.forEach(cid => { effectiveVerdicts[cid] = 'fail' })
 
   const passCount = Object.values(effectiveVerdicts).filter(v => v === 'pass').length
@@ -1027,7 +1027,7 @@ export default function ProjectPage() {
                 const saved = localStorage.getItem(`echo-step-audit-${id}`)
                 if (saved) {
                   const v = JSON.parse(saved)?.criteriaVerdict
-                  if (v && typeof v === 'object') setAuditVerdicts(v as Record<string, 'pass' | 'fail'>)
+                  if (v && typeof v === 'object') setAuditVerdicts(v as Record<string, 'pass' | 'partial' | 'na' | 'fail'>)
                 }
               } catch { /* ignore */ }
             }}

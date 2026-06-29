@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { ChevronLeft, ChevronRight, Check, X, Clock, CheckCircle2, AlertCircle, ExternalLink, Maximize2, Minimize2, XCircle, Clipboard, Plus, Image } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, X, Clock, CheckCircle2, AlertCircle, ExternalLink, Maximize2, Minimize2, XCircle, MinusCircle, Ban, Clipboard, Plus, Image } from 'lucide-react'
 import { WCAG_CRITERIA, STANDARDS_OPTIONS } from '../../lib/utils'
 import {
   Select,
@@ -73,8 +73,8 @@ const CRITERION_DESCRIPTIONS: Record<string, string> = {
 }
 
 // ─── Per-criterion audit status — two independent dimensions ────────────────
-// Verdict: did this criterion pass or fail? (null = no verdict yet)
-export type CriterionVerdict = 'pass' | 'fail' | null
+// Verdict: VPAT conformance outcome for this criterion (null = not yet evaluated)
+export type CriterionVerdict = 'pass' | 'partial' | 'na' | 'fail' | null
 // Progress: where is the audit work? (default: in_progress)
 export type CriterionProgress = 'in_progress' | 'complete'
 // Legacy alias kept for ReportPage compat
@@ -97,7 +97,7 @@ interface StepAuditPanelProps {
   isWide?: boolean
   onToggleWide?: () => void
   navigateToCriterionId?: string
-  onVerdictChange?: (verdicts: Record<string, 'pass' | 'fail'>) => void
+  onVerdictChange?: (verdicts: Record<string, 'pass' | 'partial' | 'na' | 'fail'>) => void
   onAddFinding: (data: {
     projectId: string
     title: string
@@ -159,8 +159,8 @@ export function StepAuditPanel({
     return 0
   })
 
-  // verdict: 'pass' | 'fail' | absent=null
-  const [criteriaVerdict, setCriteriaVerdict] = useState<Record<string, 'pass' | 'fail'>>(() => {
+  // verdict: 'pass' | 'partial' | 'na' | 'fail' | absent=null
+  const [criteriaVerdict, setCriteriaVerdict] = useState<Record<string, 'pass' | 'partial' | 'na' | 'fail'>>(() => {
     try {
       const saved = localStorage.getItem(storageKey)
       if (saved) {
@@ -258,7 +258,7 @@ export function StepAuditPanel({
     setRecommendations(tpl.recommendations ?? '')
   }
 
-  function setVerdict(v: 'pass' | 'fail') {
+  function setVerdict(v: 'pass' | 'partial' | 'na' | 'fail') {
     setCriteriaVerdict((prev) => {
       // Toggle off if already selected (except when hasFail forces fail)
       if (prev[criterion.id] === v && !hasFail) {
@@ -425,12 +425,22 @@ export function StepAuditPanel({
             <div className="flex-shrink-0 flex items-center gap-1.5">
               {verdict === 'pass' && (
                 <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#2d7a4f', color: '#fff', letterSpacing: '0.08em', borderRadius: '20px' }}>
-                  <CheckCircle2 className="h-3 w-3" /> Pass
+                  <CheckCircle2 className="h-3 w-3" /> Supports
+                </span>
+              )}
+              {verdict === 'partial' && (
+                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#d97706', color: '#fff', letterSpacing: '0.08em', borderRadius: '20px' }}>
+                  <MinusCircle className="h-3 w-3" /> Partial
+                </span>
+              )}
+              {verdict === 'na' && (
+                <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#6b7280', color: '#fff', letterSpacing: '0.08em', borderRadius: '20px' }}>
+                  <Ban className="h-3 w-3" /> N/A
                 </span>
               )}
               {verdict === 'fail' && (
                 <span className="flex items-center gap-1 font-sans text-xs font-bold px-2.5 py-1 uppercase" style={{ background: '#dc2626', color: '#fff', letterSpacing: '0.08em', borderRadius: '20px' }}>
-                  <AlertCircle className="h-3 w-3" /> Fail {criterionFindings.length > 0 && `(${criterionFindings.length})`}
+                  <AlertCircle className="h-3 w-3" /> Does Not Support {criterionFindings.length > 0 && `(${criterionFindings.length})`}
                 </span>
               )}
               {progress === 'complete' ? (
@@ -693,15 +703,17 @@ export function StepAuditPanel({
                 icon={<CheckCircle2 className="h-3 w-3" />}
                 iconPosition="left"
                 onClick={() => setVerdict('pass')}
+                disabled={hasFail}
                 style={{
                   padding: '6px 10px',
                   fontSize: '12px',
                   background: verdict === 'pass' ? '#2d7a4f' : 'transparent',
                   color: verdict === 'pass' ? '#fff' : '#2d7a4f',
                   border: '1px solid #2d7a4f',
+                  opacity: hasFail ? 0.4 : 1,
                 }}
               >
-                Pass
+                Supports
               </EchoButton>
               {hasFail && (
                 <div
@@ -709,7 +721,61 @@ export function StepAuditPanel({
                   style={{ background: '#1a1a1a', color: '#fff', fontSize: '11px', borderRadius: '4px', fontFamily: 'var(--font-sans)' }}
                   role="tooltip"
                 >
-                  Can't mark as passed because of logged failures
+                  Resolve logged findings first
+                </div>
+              )}
+            </div>
+            <div className="relative group">
+              <EchoButton
+                icon={<MinusCircle className="h-3 w-3" />}
+                iconPosition="left"
+                onClick={() => setVerdict('partial')}
+                disabled={hasFail}
+                style={{
+                  padding: '6px 10px',
+                  fontSize: '12px',
+                  background: verdict === 'partial' ? '#d97706' : 'transparent',
+                  color: verdict === 'partial' ? '#fff' : '#d97706',
+                  border: '1px solid #d97706',
+                  opacity: hasFail ? 0.4 : 1,
+                }}
+              >
+                Partial
+              </EchoButton>
+              {hasFail && (
+                <div
+                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap"
+                  style={{ background: '#1a1a1a', color: '#fff', fontSize: '11px', borderRadius: '4px', fontFamily: 'var(--font-sans)' }}
+                  role="tooltip"
+                >
+                  Resolve logged findings first
+                </div>
+              )}
+            </div>
+            <div className="relative group">
+              <EchoButton
+                icon={<Ban className="h-3 w-3" />}
+                iconPosition="left"
+                onClick={() => setVerdict('na')}
+                disabled={hasFail}
+                style={{
+                  padding: '6px 10px',
+                  fontSize: '12px',
+                  background: verdict === 'na' ? '#6b7280' : 'transparent',
+                  color: verdict === 'na' ? '#fff' : '#6b7280',
+                  border: '1px solid #6b7280',
+                  opacity: hasFail ? 0.4 : 1,
+                }}
+              >
+                N/A
+              </EchoButton>
+              {hasFail && (
+                <div
+                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap"
+                  style={{ background: '#1a1a1a', color: '#fff', fontSize: '11px', borderRadius: '4px', fontFamily: 'var(--font-sans)' }}
+                  role="tooltip"
+                >
+                  Resolve logged findings first
                 </div>
               )}
             </div>

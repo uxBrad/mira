@@ -157,7 +157,7 @@ interface Window {
       delete: (id: string) => Promise<{ success: boolean }>
     }
     export: {
-      pdf: (projectId: string, format?: 'summary' | 'vpat', auditState?: { criteriaVerdict: Record<string, 'pass' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> }) => Promise<{ success?: boolean; path?: string; canceled?: boolean }>
+      pdf: (projectId: string, format?: 'summary' | 'vpat', auditState?: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> }) => Promise<{ success?: boolean; path?: string; canceled?: boolean }>
       csv: (projectId: string) => Promise<{ success?: boolean; path?: string; canceled?: boolean }>
       chooseScreenshot: () => Promise<string | null>
     }
