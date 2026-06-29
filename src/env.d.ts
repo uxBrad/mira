@@ -1,4 +1,4 @@
-/// <reference types="vite/client" />
+﻿/// <reference types="vite/client" />
 
 interface Window {
   api: {
@@ -172,7 +172,7 @@ interface Window {
       delete: (id: string) => Promise<{ success: boolean }>
     }
     export: {
-      pdf: (projectId: string, format?: 'summary' | 'vpat', auditState?: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>>; criterionNotes?: Record<string, string> }) => Promise<{ success?: boolean; path?: string; canceled?: boolean }>
+      pdf: (projectId: string, format?: 'summary' | 'vpat', auditState?: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>>; criterionNotes?: Record<string, string>; auditorName?: string; auditorCredentials?: string; auditorEmail?: string }) => Promise<{ success?: boolean; path?: string; canceled?: boolean }>
       csv: (projectId: string) => Promise<{ success?: boolean; path?: string; canceled?: boolean }>
       chooseScreenshot: () => Promise<string | null>
     }
@@ -215,3 +215,4 @@ interface Window {
     }
   }
 }
+

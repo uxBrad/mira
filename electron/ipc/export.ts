@@ -92,7 +92,7 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
     return { success: true, path: filePath }
   })
 
-  ipcMain.handle('export:pdf', async (_, projectId: string, format: 'summary' | 'vpat' = 'summary', auditState?: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>>; criterionNotes?: Record<string, string> }) => {
+  ipcMain.handle('export:pdf', async (_, projectId: string, format: 'summary' | 'vpat' = 'summary', auditState?: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>>; criterionNotes?: Record<string, string>; auditorName?: string; auditorCredentials?: string; auditorEmail?: string }) => {
     try {
       const db = getDb()
       const [project] = await db.select().from(projects).where(eq(projects.id, projectId))
@@ -431,7 +431,7 @@ const CRITERION_DESCRIPTIONS: Record<string, string> = {
 function buildVpatHtml(
   project: typeof projects.$inferSelect,
   findingsData: Array<typeof findings.$inferSelect & { standards: string[] }>,
-  auditState: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>>; criterionNotes?: Record<string, string> }
+  auditState: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>>; criterionNotes?: Record<string, string>; auditorName?: string; auditorCredentials?: string; auditorEmail?: string }
 ): string {
   const date = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
@@ -663,11 +663,12 @@ function buildVpatHtml(
       <p style="font-size: 12px; color: #555;">For more information about this accessibility assessment, contact the organization responsible for the product.</p>
     </div>
 
-    ${(project.auditorName || project.auditorCredentials) ? `
+    ${(auditState.auditorName || auditState.auditorCredentials || auditState.auditorEmail) ? `
     <div style="margin: 32px 0;">
       <h3 style="font-size: 13px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #666;">Auditor</h3>
-      ${project.auditorName ? `<p style="font-size: 12px; color: #555; margin-bottom: 4px;"><strong>${escapeHtml(project.auditorName)}</strong></p>` : ''}
-      ${project.auditorCredentials ? `<p style="font-size: 12px; color: #888;">${escapeHtml(project.auditorCredentials)}</p>` : ''}
+      ${auditState.auditorName ? `<p style="font-size: 12px; color: #555; margin-bottom: 4px;"><strong>${escapeHtml(auditState.auditorName)}</strong></p>` : ''}
+      ${auditState.auditorCredentials ? `<p style="font-size: 12px; color: #888; margin-bottom: 4px;">${escapeHtml(auditState.auditorCredentials)}</p>` : ''}
+      ${auditState.auditorEmail ? `<p style="font-size: 12px; color: #888;">${escapeHtml(auditState.auditorEmail)}</p>` : ''}
     </div>
     ` : ''}
 

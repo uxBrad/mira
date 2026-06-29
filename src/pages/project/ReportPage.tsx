@@ -88,7 +88,10 @@ export default function ReportPage() {
       const auditState = {
         criteriaVerdict: raw.criteriaVerdict || {},
         criteriaProgress: raw.criteriaProgress || {},
-        criterionNotes: raw.criterionNotes || {}
+        criterionNotes: raw.criterionNotes || {},
+        auditorName: localStorage.getItem('echo-auditor-name') ?? undefined,
+        auditorCredentials: localStorage.getItem('echo-auditor-credentials') ?? undefined,
+        auditorEmail: localStorage.getItem('echo-auditor-email') ?? undefined,
       }
       const result = await window.api.export.pdf(id, format, auditState)
       if (result.canceled) {

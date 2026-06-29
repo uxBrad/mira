@@ -458,7 +458,7 @@ export default function ProjectPage() {
     setIsExporting('pdf')
     setShowFormatDialog(false)
     try {
-      let auditState: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>>; criterionNotes?: Record<string, string> } = { criteriaVerdict: {}, criteriaProgress: {} }
+      let auditState: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>>; criterionNotes?: Record<string, string>; auditorName?: string; auditorCredentials?: string; auditorEmail?: string } = { criteriaVerdict: {}, criteriaProgress: {} }
       try {
         const saved = localStorage.getItem(`echo-step-audit-${id}`)
         if (saved) {
@@ -466,6 +466,9 @@ export default function ProjectPage() {
           if (parsed.criteriaVerdict) auditState = { criteriaVerdict: parsed.criteriaVerdict, criteriaProgress: parsed.criteriaProgress ?? {}, criterionNotes: parsed.criterionNotes ?? {} }
         }
       } catch { /* ignore */ }
+      auditState.auditorName = localStorage.getItem('echo-auditor-name') ?? undefined
+      auditState.auditorCredentials = localStorage.getItem('echo-auditor-credentials') ?? undefined
+      auditState.auditorEmail = localStorage.getItem('echo-auditor-email') ?? undefined
       const result = await window.api.export.pdf(id!, format, auditState)
       if (!result.canceled) {
         toast({
@@ -1155,8 +1158,6 @@ export default function ProjectPage() {
                 standards: project.standards ?? undefined,
                 auditUrls: project.auditUrls,
                 clientLogoPath: project.clientLogoPath,
-                auditorName: project.auditorName ?? undefined,
-                auditorCredentials: project.auditorCredentials ?? undefined,
                 testingEnvironment: project.testingEnvironment ?? undefined,
                 scope: project.scope ?? undefined,
               }}

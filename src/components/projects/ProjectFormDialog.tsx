@@ -21,8 +21,6 @@ interface ProjectFormData {
   standards?: string
   auditUrls?: string[]
   clientLogoPath?: string | null
-  auditorName?: string
-  auditorCredentials?: string
   testingEnvironment?: string
 }
 
@@ -59,8 +57,6 @@ export function ProjectFormDialog({
   )
   const [clientLogoPath, setClientLogoPath] = useState<string | null>(initialData?.clientLogoPath ?? null)
   const [scope, setScope] = useState(initialData?.scope || '')
-  const [auditorName, setAuditorName] = useState(initialData?.auditorName || '')
-  const [auditorCredentials, setAuditorCredentials] = useState(initialData?.auditorCredentials || '')
   const [testingEnvironment, setTestingEnvironment] = useState(initialData?.testingEnvironment || '')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -108,8 +104,6 @@ export function ProjectFormDialog({
       )
       setClientLogoPath(initialData?.clientLogoPath ?? null)
       setScope(initialData?.scope || '')
-      setAuditorName(initialData?.auditorName || '')
-      setAuditorCredentials(initialData?.auditorCredentials || '')
       setTestingEnvironment(initialData?.testingEnvironment || '')
       setError(null)
       setTimeout(() => nameRef.current?.focus(), 50)
@@ -157,8 +151,6 @@ export function ProjectFormDialog({
         standards: standards || undefined,
         auditUrls: cleanUrls.length > 0 ? cleanUrls : undefined,
         clientLogoPath: clientLogoPath || null,
-        auditorName: auditorName.trim() || undefined,
-        auditorCredentials: auditorCredentials.trim() || undefined,
         testingEnvironment: testingEnvironment.trim() || undefined,
       })
     } catch (err) {
@@ -464,37 +456,6 @@ export function ProjectFormDialog({
                   disabled={isLoading}
                   className="w-full px-3 py-2 font-sans text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#1d4ed8] resize-none"
                   style={{ border: '1px solid #d0cac8' }}
-                />
-              </div>
-
-              {/* Auditor info */}
-              <div className="space-y-1.5">
-                <Label htmlFor="ps-auditor-name" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
-                  Auditor Name
-                </Label>
-                <input
-                  id="ps-auditor-name"
-                  value={auditorName}
-                  onChange={(e) => setAuditorName(e.target.value)}
-                  placeholder="Jane Smith"
-                  disabled={isLoading}
-                  className={inputClass}
-                  style={inputStyle}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="ps-auditor-creds" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
-                  Auditor Credentials
-                </Label>
-                <input
-                  id="ps-auditor-creds"
-                  value={auditorCredentials}
-                  onChange={(e) => setAuditorCredentials(e.target.value)}
-                  placeholder="CPACC, DHS Trusted Tester"
-                  disabled={isLoading}
-                  className={inputClass}
-                  style={inputStyle}
                 />
               </div>
 

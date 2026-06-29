@@ -3,7 +3,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { EchoButton } from '../../components/ui/echo-button'
 import { Label } from '../../components/ui/label'
 import { useToast } from '../../components/ui/use-toast'
-import { ExternalLink, Clock, CheckCircle, AlertTriangle, Upload, X, Eye, EyeOff } from 'lucide-react'
+import { ExternalLink, Clock, CheckCircle, AlertTriangle, Upload, X, Eye, EyeOff, Save } from 'lucide-react'
 
 function SubscriptionBadge({ access, daysRemaining }: { access: string; daysRemaining?: number }) {
   if (access === 'trialing') {
@@ -64,10 +64,28 @@ export default function SettingsPage() {
   const logoInputRef = useRef<HTMLInputElement>(null)
   const avatarInputRef = useRef<HTMLInputElement>(null)
 
+  // ─── Auditor ─────────────────────────────────────────────────────────────
+  const [auditorName, setAuditorName] = useState('')
+  const [auditorCredentials, setAuditorCredentials] = useState('')
+  const [auditorEmail, setAuditorEmail] = useState('')
+
   useEffect(() => {
     setCompanyLogo(localStorage.getItem('echo-company-logo'))
     setUserAvatar(localStorage.getItem('echo-user-avatar'))
+    setAuditorName(localStorage.getItem('echo-auditor-name') ?? '')
+    setAuditorCredentials(localStorage.getItem('echo-auditor-credentials') ?? '')
+    setAuditorEmail(localStorage.getItem('echo-auditor-email') ?? '')
   }, [])
+
+  function handleSaveAuditor() {
+    if (auditorName.trim()) localStorage.setItem('echo-auditor-name', auditorName.trim())
+    else localStorage.removeItem('echo-auditor-name')
+    if (auditorCredentials.trim()) localStorage.setItem('echo-auditor-credentials', auditorCredentials.trim())
+    else localStorage.removeItem('echo-auditor-credentials')
+    if (auditorEmail.trim()) localStorage.setItem('echo-auditor-email', auditorEmail.trim())
+    else localStorage.removeItem('echo-auditor-email')
+    toast({ title: 'Auditor info saved' })
+  }
 
   function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -174,7 +192,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="px-6 py-6 max-w-2xl mx-auto">
+    <div style={{ padding: '12px', minHeight: 'calc(100vh - 40px)' }}>
+      <div style={{ background: '#fcf9f8', borderRadius: '10px', minHeight: '100%' }}>
+        <div className="max-w-2xl mx-auto px-10 py-10">
       <h1 className="font-serif font-bold mb-6" style={{ fontSize: 'clamp(1.75rem, 3vw, 2.25rem)', letterSpacing: '-0.02em', color: '#1a1a1a' }}>Settings</h1>
 
       {/* ── Branding section ─────────────────────────────────────────────────── */}
@@ -298,6 +318,69 @@ export default function SettingsPage() {
               {userAvatar ? 'Replace Avatar' : 'Upload Avatar'}
             </EchoButton>
           </div>
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="mb-8" style={{ height: '1px', background: '#e0dbd9' }} aria-hidden="true" />
+
+      {/* Auditor section */}
+      <section aria-labelledby="auditor-heading" className="mb-8">
+        <h2 id="auditor-heading" className="font-serif font-bold text-xl mb-1" style={{ letterSpacing: '-0.01em' }}>
+          Auditor
+        </h2>
+        <p className="font-sans text-sm mb-5" style={{ color: '#5f5e5e' }}>
+          Appears in the Auditor section of exported VPAT reports.
+        </p>
+        <div className="border p-4 space-y-4" style={{ borderRadius: '8px', borderColor: '#e0dbd9' }}>
+          <div className="space-y-1.5">
+            <Label htmlFor="auditor-name" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
+              Name
+            </Label>
+            <input
+              id="auditor-name"
+              value={auditorName}
+              onChange={(e) => setAuditorName(e.target.value)}
+              placeholder="Jane Smith"
+              className="w-full h-9 px-3 font-sans text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#1d4ed8]"
+              style={{ border: '1px solid #d0cac8' }}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="auditor-credentials" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
+              Credentials
+            </Label>
+            <input
+              id="auditor-credentials"
+              value={auditorCredentials}
+              onChange={(e) => setAuditorCredentials(e.target.value)}
+              placeholder="CPACC, DHS Trusted Tester"
+              className="w-full h-9 px-3 font-sans text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#1d4ed8]"
+              style={{ border: '1px solid #d0cac8' }}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="auditor-email" className="font-sans text-xs font-bold uppercase tracking-widest" style={{ color: '#3a3a3a', letterSpacing: '0.1em' }}>
+              Contact Email
+            </Label>
+            <input
+              id="auditor-email"
+              type="email"
+              value={auditorEmail}
+              onChange={(e) => setAuditorEmail(e.target.value)}
+              placeholder="jane@example.com"
+              className="w-full h-9 px-3 font-sans text-sm bg-white focus:outline-none focus:ring-1 focus:ring-[#1d4ed8]"
+              style={{ border: '1px solid #d0cac8' }}
+            />
+          </div>
+          <EchoButton
+            variant="primary"
+            icon={<Save className="h-3.5 w-3.5" />}
+            iconPosition="left"
+            onClick={handleSaveAuditor}
+          >
+            Save auditor info
+          </EchoButton>
         </div>
       </section>
 
@@ -453,6 +536,8 @@ export default function SettingsPage() {
           </form>
         </div>
       </section>
+        </div>
+      </div>
     </div>
   )
 }
