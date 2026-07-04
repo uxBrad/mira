@@ -192,27 +192,18 @@ function severityColor(severity: string): string {
   return colors[severity] || '#6b7280'
 }
 
-// Maps each WCAG 2.2 A/AA criterion to its POUR principle, mirroring src/lib/utils.ts WCAG_CRITERIA
-const CRITERION_PRINCIPLE: Record<string, 'perception' | 'action' | 'cognition' | 'interaction'> = {
-  '1.1.1': 'perception', '1.2.1': 'perception', '1.2.2': 'perception', '1.2.3': 'perception', '1.2.4': 'perception', '1.2.5': 'perception',
-  '1.3.1': 'perception', '1.3.2': 'perception', '1.3.3': 'perception', '1.3.4': 'perception', '1.3.5': 'perception',
-  '1.4.1': 'perception', '1.4.2': 'perception', '1.4.3': 'perception', '1.4.4': 'perception', '1.4.5': 'perception',
-  '1.4.10': 'perception', '1.4.11': 'perception', '1.4.12': 'perception', '1.4.13': 'perception', '2.3.1': 'perception',
-  '2.1.1': 'action', '2.1.2': 'action', '2.1.4': 'action', '2.2.1': 'action', '2.2.2': 'action', '2.4.1': 'action',
-  '2.4.3': 'action', '2.4.7': 'action', '2.4.11': 'action', '2.5.1': 'action', '2.5.2': 'action', '2.5.4': 'action',
-  '2.5.7': 'action', '2.5.8': 'action',
-  '2.4.2': 'cognition', '2.4.5': 'cognition', '2.4.6': 'cognition', '3.1.1': 'cognition', '3.1.2': 'cognition',
-  '3.2.3': 'cognition', '3.2.4': 'cognition', '3.2.6': 'cognition', '3.3.2': 'cognition',
-  '2.4.4': 'interaction', '2.5.3': 'interaction', '3.2.1': 'interaction', '3.2.2': 'interaction', '3.3.1': 'interaction',
-  '3.3.3': 'interaction', '3.3.4': 'interaction', '3.3.7': 'interaction', '3.3.8': 'interaction',
-  '4.1.1': 'interaction', '4.1.2': 'interaction', '4.1.3': 'interaction'
+// Inline lucide icons (ISC licensed) so the PDF renderer needs no external assets
+const ICON_BADGE_CHECK = `<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>`
+const ICON_TRIANGLE_ALERT = `<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>`
+function icon(paths: string, color: string, size = 40): string {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`
 }
-const PRINCIPLE_ORDER = ['perception', 'action', 'cognition', 'interaction'] as const
-const PRINCIPLE_LABELS: Record<string, string> = {
-  perception: 'Perceivable',
-  action: 'Operable',
-  cognition: 'Understandable',
-  interaction: 'Robust'
+
+const SEVERITY_BLURBS: Record<string, string> = {
+  critical: 'Blocks task completion',
+  serious: 'Major barriers to accessibility',
+  moderate: 'Noticeable friction for users',
+  minor: 'Small usability gaps'
 }
 
 function buildReportHtml(
@@ -228,21 +219,13 @@ function buildReportHtml(
 
   const RED = '#c0392b'
   const GREEN = '#2d7a4f'
-  const GREY = '#aaaaaa'
   const BG = '#f5f0ef'
+  const INK = '#1a1a1a'
+  const MUTED = '#6b7280'
+  const BORDER = '#e5e5e5'
+  const wcagLevel = project.standards || 'WCAG 2.2 AA'
 
-  const TOTAL_CRITERIA = Object.keys(CRITERION_PRINCIPLE).length
-  const totalFindings = findingsData.length
-  const criticalCount = findingsData.filter(f => f.severity === 'critical').length
-  const pagesTestedCount = (() => {
-    try {
-      const urls = project.auditUrls ? JSON.parse(project.auditUrls as string) : []
-      return Array.isArray(urls) ? urls.length : 0
-    } catch {
-      return 0
-    }
-  })()
-
+  // Pass rate — computed only over criteria with a definitive verdict so far
   const criteriaWithActiveFindings = new Set(
     findingsData
       .filter(f => f.wcagCriterion && f.status !== 'resolved' && f.status !== 'wont_fix')
@@ -252,88 +235,42 @@ function buildReportHtml(
   criteriaWithActiveFindings.forEach(cid => { effectiveVerdicts[cid] = 'fail' })
   const passCount = Object.values(effectiveVerdicts).filter(v => v === 'pass').length
   const failCount = Object.values(effectiveVerdicts).filter(v => v === 'fail').length
-  const unknownCount = TOTAL_CRITERIA - passCount - failCount
   const evaluatedCount = passCount + failCount
   const passRate = evaluatedCount > 0 ? Math.round((passCount / evaluatedCount) * 100) : 0
+  const complianceStanding = passRate >= 90 ? 'Excellent' : passRate >= 75 ? 'Good' : passRate >= 50 ? 'Fair' : 'Needs Work'
 
-  // Principle-level (POUR) breakdown for the executive summary page
-  const principleStats = PRINCIPLE_ORDER.map((principle) => {
-    const criteriaIds = Object.keys(CRITERION_PRINCIPLE).filter((id) => CRITERION_PRINCIPLE[id] === principle)
-    const total = criteriaIds.length
-    const pass = criteriaIds.filter((id) => effectiveVerdicts[id] === 'pass').length
-    const fail = criteriaIds.filter((id) => effectiveVerdicts[id] === 'fail').length
-    const unknown = total - pass - fail
-    return { principle, label: PRINCIPLE_LABELS[principle], total, pass, fail, unknown }
-  })
+  // Only outstanding (not resolved / not won't-fix) findings "require action"
+  const activeFindings = findingsData.filter(f => f.status !== 'resolved' && f.status !== 'wont_fix')
+  const severityCounts = {
+    critical: activeFindings.filter(f => f.severity === 'critical').length,
+    serious: activeFindings.filter(f => f.severity === 'serious').length,
+    moderate: activeFindings.filter(f => f.severity === 'moderate').length,
+    minor: activeFindings.filter(f => f.severity === 'minor').length
+  }
 
   // Derive a human-readable audit type from the project standards field
   const auditTypeLabel = project.standards
     ? `${escapeHtml(project.standards)} Compliance Audit`
     : 'Accessibility Compliance Audit'
 
-  function findingBadge(f: typeof findingsData[number]): string {
-    const s = f.status || 'open'
-    if (s === 'resolved') return `<span style="background:#16a34a;color:white;font-size:10px;font-weight:700;padding:3px 10px;letter-spacing:0.08em;text-transform:uppercase;"">PASS</span>`
-    if (s === 'wont_fix') return `<span style="background:#6b7280;color:white;font-size:10px;font-weight:700;padding:3px 10px;letter-spacing:0.08em;text-transform:uppercase;">N/A</span>`
-    return `<span style="background:${RED};color:white;font-size:10px;font-weight:700;padding:3px 10px;letter-spacing:0.08em;text-transform:uppercase;">FAIL</span>`
-  }
-
-  function findingCard(f: typeof findingsData[number]): string {
+  function bigCard(opts: { iconSvg: string; iconColor: string; label: string; headline: string; headlineColor: string; body: string }): string {
     return `
-    <div style="page-break-inside: avoid; margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #e0d9d7;">
-      <!-- Criteria row -->
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 6px;">
-        <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #888;">
-          ${f.wcagCriterion ? `Criteria ${escapeHtml(f.wcagCriterion)}` : '&nbsp;'}
-        </span>
-        ${findingBadge(f)}
-      </div>
-      <!-- Finding title -->
-      <h3 style="font-family: Georgia, 'Times New Roman', serif; font-size: 20px; font-weight: 700; color: #1a1a1a; margin: 0 0 12px;">${escapeHtml(f.title)}</h3>
-      <!-- Meta row -->
-      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
-        ${f.severity ? `<span style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:600; color:${severityColor(f.severity)}; background:${severityColor(f.severity)}18; padding:2px 8px; text-transform:uppercase; letter-spacing:0.06em;">${escapeHtml(f.severity)}</span>` : ''}
-        ${f.pageUrl ? `<span style="font-family:-apple-system,sans-serif; font-size:11px; color:#6b7280; padding:2px 8px; background:#f0ede9;">${escapeHtml(f.pageUrl)}</span>` : ''}
-        ${f.component ? `<span style="font-family:-apple-system,sans-serif; font-size:11px; color:#6b7280; padding:2px 8px; background:#f0ede9;">${escapeHtml(f.component)}</span>` : ''}
-      </div>
-      ${f.description ? `<p style="font-family:-apple-system,sans-serif; margin:0 0 10px; font-size:14px; color:#444; line-height:1.65;">${escapeHtml(f.description)}</p>` : ''}
-      ${f.recommendations ? `
-        <div style="border-left: 3px solid ${RED}; padding-left: 12px; margin-top: 10px;">
-          <p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:${RED}; margin:0 0 4px;">Recommendation</p>
-          <p style="font-family:-apple-system,sans-serif; margin:0; font-size:13px; color:#333; line-height:1.6;">${escapeHtml(f.recommendations)}</p>
-        </div>` : ''}
-      ${f.notes ? `<p style="font-family:-apple-system,sans-serif; margin:10px 0 0; font-size:12px; color:#888; line-height:1.5;"><em>Note: ${escapeHtml(f.notes)}</em></p>` : ''}
-    </div>
-  `
+    <div style="flex:1.4; background:white; border:1px solid ${BORDER}; border-radius:16px; padding:40px 32px; display:flex; flex-direction:column; align-items:center; text-align:center;">
+      <div style="width:64px; height:64px; border-radius:50%; border:1.5px solid ${BORDER}; display:flex; align-items:center; justify-content:center; margin-bottom:20px;">${opts.iconSvg}</div>
+      <p style="font-family:-apple-system,sans-serif; font-size:12px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:${MUTED}; margin-bottom:10px;">${opts.label}</p>
+      <p style="font-family:-apple-system,sans-serif; font-size:32px; font-weight:800; color:${opts.headlineColor}; margin-bottom:18px;">${opts.headline}</p>
+      <p style="font-family:-apple-system,sans-serif; font-size:13px; color:${MUTED}; line-height:1.7; max-width:400px;">${opts.body}</p>
+    </div>`
   }
 
-  // Group findings by severity so an executive can skim critical issues first
-  const SEVERITY_GROUPS: Array<{ key: string; label: string }> = [
-    { key: 'critical', label: 'Critical Issues' },
-    { key: 'serious', label: 'Serious Issues' },
-    { key: 'moderate', label: 'Moderate Issues' },
-    { key: 'minor', label: 'Minor Issues' }
-  ]
-  const groupedFindings = SEVERITY_GROUPS.map((g) => ({
-    ...g,
-    items: findingsData.filter((f) => f.severity === g.key)
-  })).filter((g) => g.items.length > 0)
-  const ungroupedFindings = findingsData.filter((f) => !SEVERITY_GROUPS.some((g) => g.key === f.severity))
-
-  const findingsHtml = [
-    ...groupedFindings.map((g) => `
-      <div style="page-break-inside: avoid; margin-bottom: 16px;">
-        <h3 style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:${severityColor(g.key)}; margin-bottom:16px;">${escapeHtml(g.label)} &middot; ${g.items.length}</h3>
-        ${g.items.map(findingCard).join('')}
-      </div>
-    `),
-    ungroupedFindings.length ? `
-      <div style="page-break-inside: avoid; margin-bottom: 16px;">
-        <h3 style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#888; margin-bottom:16px;">Other Findings &middot; ${ungroupedFindings.length}</h3>
-        ${ungroupedFindings.map(findingCard).join('')}
-      </div>
-    ` : ''
-  ].join('')
+  function smallStatCard(label: string, value: string, caption: string, valueColor = INK, borderColor = BORDER): string {
+    return `
+    <div style="background:white; border:1px solid ${borderColor}; border-radius:12px; padding:18px 20px; flex:1;">
+      <p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:${MUTED}; margin-bottom:8px;">${label}</p>
+      <p style="font-family:-apple-system,sans-serif; font-size:26px; font-weight:800; color:${valueColor}; margin-bottom:6px;">${value}</p>
+      <p style="font-family:-apple-system,sans-serif; font-size:11px; color:${MUTED}; line-height:1.5;">${caption}</p>
+    </div>`
+  }
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -353,8 +290,6 @@ function buildReportHtml(
      COVER PAGE
 ══════════════════════════════════════ -->
 <div style="min-height:100vh; background:${BG}; padding: 8px 80px 72px; display:flex; flex-direction:column; justify-content:space-between;">
-
-  <!-- Top: client + title -->
   <div>
     ${project.clientName ? `<p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; font-size:12px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:${RED}; margin-bottom:24px;">${escapeHtml(project.clientName)}</p>` : ''}
 
@@ -362,101 +297,67 @@ function buildReportHtml(
       ${escapeHtml(auditTypeLabel)}
     </h1>
 
-    <!-- Red decorative bar -->
     <div style="width:56px; height:5px; background:${RED}; margin-bottom:40px;"></div>
 
     ${project.name !== auditTypeLabel ? `<p style="font-family:-apple-system,sans-serif; font-size:16px; color:#555; margin-bottom:8px;">${escapeHtml(project.name)}</p>` : ''}
     ${project.url ? `<p style="font-family:-apple-system,sans-serif; font-size:13px; color:#888;">${escapeHtml(project.url)}</p>` : ''}
   </div>
+  <p style="font-family:-apple-system,sans-serif; font-size:12px; color:#aaa;">Generated ${date} · Mira</p>
+</div>
 
-  <!-- Hero stat: pass rate + supporting metrics -->
-  <div>
-    <div style="display:grid; grid-template-columns:1.1fr 1fr 1fr 1fr; gap:16px; margin-bottom:40px; align-items:stretch;">
-      <div style="background:${RED}; padding:20px 16px;">
-        <p style="font-family:Georgia,serif; font-size:40px; font-weight:700; color:white; line-height:1;">${evaluatedCount > 0 ? `${passRate}%` : '—'}</p>
-        <p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:rgba(255,255,255,0.85); margin-top:6px;">WCAG Pass Rate</p>
-      </div>
-      ${[
-        { label: 'Total Findings', value: totalFindings },
-        { label: 'Critical Issues', value: criticalCount },
-        { label: 'Pages Tested', value: pagesTestedCount }
-      ].map((s) => `
-        <div style="background:white; padding:20px 16px;">
-          <p style="font-family:Georgia,serif; font-size:40px; font-weight:700; color:${RED}; line-height:1;">${s.value}</p>
-          <p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#888; margin-top:6px;">${s.label}</p>
-        </div>
-      `).join('')}
+<!-- ══════════════════════════════════════
+     OVERALL COMPLIANCE
+══════════════════════════════════════ -->
+<div style="padding: 56px 80px 40px; background:white; page-break-before:always;">
+  <h2 style="font-family:-apple-system,sans-serif; font-size:24px; font-weight:800; color:${INK}; margin-bottom:20px;">Overall Compliance</h2>
+  <div style="display:flex; gap:16px; align-items:stretch;">
+    ${bigCard({
+      iconSvg: icon(ICON_BADGE_CHECK, GREEN),
+      iconColor: GREEN,
+      label: 'Overall Compliance',
+      headline: `${evaluatedCount > 0 ? passRate : 0}% Compliant`,
+      headlineColor: INK,
+      body: evaluatedCount > 0
+        ? `${complianceStanding} compliance rate. The compliance percentage shows how many WCAG criteria ${escapeHtml(project.name)} passed out of all criteria evaluated so far. <strong>${passCount} criteria passed out of ${evaluatedCount} evaluated</strong>, which is ${passRate}% compliance. Criteria not yet evaluated or marked not applicable are not counted.`
+        : `No criteria have been evaluated yet. Once the step-by-step audit records pass/fail verdicts, this card will show the live compliance percentage.`
+    })}
+    <div style="flex:1; display:flex; flex-direction:column; gap:16px;">
+      ${smallStatCard('Passed Tests', String(passCount), 'Criteria that passed evaluation')}
+      ${smallStatCard('Pass Rate', evaluatedCount > 0 ? `${passRate}%` : '—', 'Percentage of evaluated criteria passing')}
+      ${smallStatCard('WCAG Level', escapeHtml(wcagLevel), 'Standard being tested against')}
     </div>
-    <p style="font-family:-apple-system,sans-serif; font-size:12px; color:#aaa;">Generated ${date} · Mira</p>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════
-     EXECUTIVE SUMMARY PAGE
+     ISSUES REQUIRING ACTION
 ══════════════════════════════════════ -->
-<div style="padding: 0 80px 64px; background:white; page-break-before:always;">
-  ${project.clientName ? `<p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:${RED}; margin-bottom:16px;">${escapeHtml(project.clientName)}</p>` : ''}
-  <h2 style="font-family:Georgia,serif; font-size:32px; font-weight:700; color:#1a1a1a; margin-bottom:12px;">Executive Summary</h2>
-  <div style="width:40px; height:4px; background:${RED}; margin-bottom:32px;"></div>
-
-  <p style="font-family:-apple-system,sans-serif; font-size:15px; color:#444; line-height:1.7; margin-bottom:36px;">
-    This accessibility audit of <strong>${escapeHtml(project.name)}</strong> evaluated
-    ${pagesTestedCount > 0 ? `<strong>${pagesTestedCount} page${pagesTestedCount !== 1 ? 's' : ''}</strong> against` : 'the site against'}
-    <strong>${TOTAL_CRITERIA} WCAG 2.2 A &amp; AA success criteria</strong> and identified
-    <strong>${totalFindings} finding${totalFindings !== 1 ? 's' : ''}</strong>${criticalCount > 0 ? `, including <strong style="color:${RED}">${criticalCount} critical issue${criticalCount !== 1 ? 's' : ''}</strong>` : ''}.
-    ${evaluatedCount > 0 ? ` Of the criteria evaluated, <strong style="color:${passRate >= 80 ? GREEN : passRate >= 50 ? '#8b6914' : RED}">${passRate}% are currently passing</strong>.` : ''}
-    ${totalFindings === 0 ? ' No accessibility issues were found during this audit.' : ''}
-  </p>
-
-  <!-- Overall audit results -->
-  <h3 style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#888; margin-bottom:20px;">Overall Results &mdash; WCAG 2.2 A &amp; AA (${TOTAL_CRITERIA} Criteria)</h3>
-  ${[
-    { label: 'Failed', count: failCount, color: RED },
-    { label: 'Unknown', count: unknownCount, color: GREY },
-    { label: 'Passed', count: passCount, color: GREEN }
-  ].map((s) => `
-    <div style="display:flex; align-items:center; gap:14px; margin-bottom:10px;">
-      <span style="font-family:-apple-system,sans-serif; font-size:12px; font-weight:600; color:#333; min-width:72px;">${s.label}</span>
-      <div style="flex:1; background:#ede9e7; height:16px;">
-        <div style="width:${Math.round((s.count / TOTAL_CRITERIA) * 100)}%; background:${s.color}; height:100%;"></div>
-      </div>
-      <span style="font-family:Georgia,serif; font-size:16px; font-weight:700; color:${s.color}; min-width:36px; text-align:right;">${s.count}</span>
+<div style="padding: 24px 80px 64px; background:white;">
+  <h2 style="font-family:-apple-system,sans-serif; font-size:24px; font-weight:800; color:${INK}; margin-bottom:20px;">Issues Requiring Action</h2>
+  <div style="display:flex; gap:16px; align-items:stretch;">
+    ${bigCard({
+      iconSvg: icon(ICON_TRIANGLE_ALERT, RED),
+      iconColor: RED,
+      label: 'Total Issue Types Identified',
+      headline: String(activeFindings.length),
+      headlineColor: INK,
+      body: activeFindings.length > 0
+        ? `These issues prevent full ${escapeHtml(wcagLevel)} compliance and should be addressed.`
+        : `No outstanding issues. All logged findings for this project have been resolved.`
+    })}
+    <div style="flex:1; display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      ${smallStatCard('Critical Issues', String(severityCounts.critical), SEVERITY_BLURBS.critical, severityColor('critical'), severityColor('critical'))}
+      ${smallStatCard('Serious Issues', String(severityCounts.serious), SEVERITY_BLURBS.serious, severityColor('serious'), severityColor('serious'))}
+      ${smallStatCard('Moderate Issues', String(severityCounts.moderate), SEVERITY_BLURBS.moderate, severityColor('moderate'), severityColor('moderate'))}
+      ${smallStatCard('Minor Issues', String(severityCounts.minor), SEVERITY_BLURBS.minor, severityColor('minor'), severityColor('minor'))}
     </div>
-  `).join('')}
-
-  <!-- Principle-level (POUR) breakdown -->
-  <h3 style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#888; margin:36px 0 20px;">Results by WCAG Principle</h3>
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:8px;">
-    ${principleStats.map((p) => `
-      <div style="border:1px solid #e0dbd9; padding:16px 18px;">
-        <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;">
-          <span style="font-family:Georgia,serif; font-size:16px; font-weight:700; color:#1a1a1a;">${p.label}</span>
-          <span style="font-family:-apple-system,sans-serif; font-size:11px; color:#888;">${p.pass} of ${p.total} passing</span>
-        </div>
-        <div style="display:flex; height:10px; background:#ede9e7; overflow:hidden;">
-          ${p.fail > 0 ? `<div style="width:${Math.round((p.fail / p.total) * 100)}%; background:${RED};"></div>` : ''}
-          ${p.unknown > 0 ? `<div style="width:${Math.round((p.unknown / p.total) * 100)}%; background:${GREY};"></div>` : ''}
-          ${p.pass > 0 ? `<div style="width:${Math.round((p.pass / p.total) * 100)}%; background:${GREEN};"></div>` : ''}
-        </div>
-      </div>
-    `).join('')}
   </div>
 
   ${project.description ? `
-  <div style="margin-top:36px; padding:20px 24px; background:${BG};">
+  <div style="margin-top:32px; padding:20px 24px; background:${BG}; border-radius:12px;">
     <p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#888; margin-bottom:8px;">Audit Scope</p>
     <p style="font-family:-apple-system,sans-serif; font-size:14px; color:#444; line-height:1.6;">${escapeHtml(project.description)}</p>
   </div>` : ''}
-</div>
-
-<!-- ══════════════════════════════════════
-     FINDINGS PAGES
-══════════════════════════════════════ -->
-<div style="padding: 16px 80px 64px; background:white; page-break-before:always;">
-  ${project.clientName ? `<p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:${RED}; margin-bottom:16px;">${escapeHtml(project.clientName)}</p>` : ''}
-  <h2 style="font-family:Georgia,serif; font-size:32px; font-weight:700; color:#1a1a1a; margin-bottom:12px;">Detailed Findings</h2>
-  <div style="width:40px; height:4px; background:${RED}; margin-bottom:40px;"></div>
-  ${findingsHtml || '<p style="font-family:-apple-system,sans-serif; font-size:14px; color:#aaa; font-style:italic;">No findings recorded for this project.</p>'}
 </div>
 
 </body>
@@ -941,4 +842,5 @@ function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;')
 }
+
 
