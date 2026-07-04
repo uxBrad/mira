@@ -192,6 +192,28 @@ function severityColor(severity: string): string {
   return colors[severity] || '#6b7280'
 }
 
+// Maps each WCAG 2.2 A/AA criterion to its POUR principle, mirroring src/lib/utils.ts WCAG_CRITERIA
+const CRITERION_PRINCIPLE: Record<string, 'perception' | 'action' | 'cognition' | 'interaction'> = {
+  '1.1.1': 'perception', '1.2.1': 'perception', '1.2.2': 'perception', '1.2.3': 'perception', '1.2.4': 'perception', '1.2.5': 'perception',
+  '1.3.1': 'perception', '1.3.2': 'perception', '1.3.3': 'perception', '1.3.4': 'perception', '1.3.5': 'perception',
+  '1.4.1': 'perception', '1.4.2': 'perception', '1.4.3': 'perception', '1.4.4': 'perception', '1.4.5': 'perception',
+  '1.4.10': 'perception', '1.4.11': 'perception', '1.4.12': 'perception', '1.4.13': 'perception', '2.3.1': 'perception',
+  '2.1.1': 'action', '2.1.2': 'action', '2.1.4': 'action', '2.2.1': 'action', '2.2.2': 'action', '2.4.1': 'action',
+  '2.4.3': 'action', '2.4.7': 'action', '2.4.11': 'action', '2.5.1': 'action', '2.5.2': 'action', '2.5.4': 'action',
+  '2.5.7': 'action', '2.5.8': 'action',
+  '2.4.2': 'cognition', '2.4.5': 'cognition', '2.4.6': 'cognition', '3.1.1': 'cognition', '3.1.2': 'cognition',
+  '3.2.3': 'cognition', '3.2.4': 'cognition', '3.2.6': 'cognition', '3.3.2': 'cognition',
+  '2.4.4': 'interaction', '2.5.3': 'interaction', '3.2.1': 'interaction', '3.2.2': 'interaction', '3.3.1': 'interaction',
+  '3.3.3': 'interaction', '3.3.4': 'interaction', '3.3.7': 'interaction', '3.3.8': 'interaction',
+  '4.1.1': 'interaction', '4.1.2': 'interaction', '4.1.3': 'interaction'
+}
+const PRINCIPLE_ORDER = ['perception', 'action', 'cognition', 'interaction'] as const
+const PRINCIPLE_LABELS: Record<string, string> = {
+  perception: 'Perceivable',
+  action: 'Operable',
+  cognition: 'Understandable',
+  interaction: 'Robust'
+}
 
 function buildReportHtml(
   project: typeof projects.$inferSelect,
@@ -205,10 +227,22 @@ function buildReportHtml(
   })
 
   const RED = '#c0392b'
+  const GREEN = '#2d7a4f'
+  const GREY = '#aaaaaa'
   const BG = '#f5f0ef'
 
-  const TOTAL_CRITERIA = 57
+  const TOTAL_CRITERIA = Object.keys(CRITERION_PRINCIPLE).length
   const totalFindings = findingsData.length
+  const criticalCount = findingsData.filter(f => f.severity === 'critical').length
+  const pagesTestedCount = (() => {
+    try {
+      const urls = project.auditUrls ? JSON.parse(project.auditUrls as string) : []
+      return Array.isArray(urls) ? urls.length : 0
+    } catch {
+      return 0
+    }
+  })()
+
   const criteriaWithActiveFindings = new Set(
     findingsData
       .filter(f => f.wcagCriterion && f.status !== 'resolved' && f.status !== 'wont_fix')
@@ -219,6 +253,18 @@ function buildReportHtml(
   const passCount = Object.values(effectiveVerdicts).filter(v => v === 'pass').length
   const failCount = Object.values(effectiveVerdicts).filter(v => v === 'fail').length
   const unknownCount = TOTAL_CRITERIA - passCount - failCount
+  const evaluatedCount = passCount + failCount
+  const passRate = evaluatedCount > 0 ? Math.round((passCount / evaluatedCount) * 100) : 0
+
+  // Principle-level (POUR) breakdown for the executive summary page
+  const principleStats = PRINCIPLE_ORDER.map((principle) => {
+    const criteriaIds = Object.keys(CRITERION_PRINCIPLE).filter((id) => CRITERION_PRINCIPLE[id] === principle)
+    const total = criteriaIds.length
+    const pass = criteriaIds.filter((id) => effectiveVerdicts[id] === 'pass').length
+    const fail = criteriaIds.filter((id) => effectiveVerdicts[id] === 'fail').length
+    const unknown = total - pass - fail
+    return { principle, label: PRINCIPLE_LABELS[principle], total, pass, fail, unknown }
+  })
 
   // Derive a human-readable audit type from the project standards field
   const auditTypeLabel = project.standards
@@ -232,9 +278,8 @@ function buildReportHtml(
     return `<span style="background:${RED};color:white;font-size:10px;font-weight:700;padding:3px 10px;letter-spacing:0.08em;text-transform:uppercase;">FAIL</span>`
   }
 
-  const findingsHtml = findingsData
-    .map(
-      (f) => `
+  function findingCard(f: typeof findingsData[number]): string {
+    return `
     <div style="page-break-inside: avoid; margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid #e0d9d7;">
       <!-- Criteria row -->
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 6px;">
@@ -260,8 +305,35 @@ function buildReportHtml(
       ${f.notes ? `<p style="font-family:-apple-system,sans-serif; margin:10px 0 0; font-size:12px; color:#888; line-height:1.5;"><em>Note: ${escapeHtml(f.notes)}</em></p>` : ''}
     </div>
   `
-    )
-    .join('')
+  }
+
+  // Group findings by severity so an executive can skim critical issues first
+  const SEVERITY_GROUPS: Array<{ key: string; label: string }> = [
+    { key: 'critical', label: 'Critical Issues' },
+    { key: 'serious', label: 'Serious Issues' },
+    { key: 'moderate', label: 'Moderate Issues' },
+    { key: 'minor', label: 'Minor Issues' }
+  ]
+  const groupedFindings = SEVERITY_GROUPS.map((g) => ({
+    ...g,
+    items: findingsData.filter((f) => f.severity === g.key)
+  })).filter((g) => g.items.length > 0)
+  const ungroupedFindings = findingsData.filter((f) => !SEVERITY_GROUPS.some((g) => g.key === f.severity))
+
+  const findingsHtml = [
+    ...groupedFindings.map((g) => `
+      <div style="page-break-inside: avoid; margin-bottom: 16px;">
+        <h3 style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:${severityColor(g.key)}; margin-bottom:16px;">${escapeHtml(g.label)} &middot; ${g.items.length}</h3>
+        ${g.items.map(findingCard).join('')}
+      </div>
+    `),
+    ungroupedFindings.length ? `
+      <div style="page-break-inside: avoid; margin-bottom: 16px;">
+        <h3 style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#888; margin-bottom:16px;">Other Findings &middot; ${ungroupedFindings.length}</h3>
+        ${ungroupedFindings.map(findingCard).join('')}
+      </div>
+    ` : ''
+  ].join('')
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -297,14 +369,17 @@ function buildReportHtml(
     ${project.url ? `<p style="font-family:-apple-system,sans-serif; font-size:13px; color:#888;">${escapeHtml(project.url)}</p>` : ''}
   </div>
 
-  <!-- Stats row -->
+  <!-- Hero stat: pass rate + supporting metrics -->
   <div>
-    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:40px;">
+    <div style="display:grid; grid-template-columns:1.1fr 1fr 1fr 1fr; gap:16px; margin-bottom:40px; align-items:stretch;">
+      <div style="background:${RED}; padding:20px 16px;">
+        <p style="font-family:Georgia,serif; font-size:40px; font-weight:700; color:white; line-height:1;">${evaluatedCount > 0 ? `${passRate}%` : '—'}</p>
+        <p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:rgba(255,255,255,0.85); margin-top:6px;">WCAG Pass Rate</p>
+      </div>
       ${[
         { label: 'Total Findings', value: totalFindings },
-        { label: 'Failed', value: failCount },
-        { label: 'Unknown', value: unknownCount },
-        { label: 'Passed', value: passCount }
+        { label: 'Critical Issues', value: criticalCount },
+        { label: 'Pages Tested', value: pagesTestedCount }
       ].map((s) => `
         <div style="background:white; padding:20px 16px;">
           <p style="font-family:Georgia,serif; font-size:40px; font-weight:700; color:${RED}; line-height:1;">${s.value}</p>
@@ -317,35 +392,55 @@ function buildReportHtml(
 </div>
 
 <!-- ══════════════════════════════════════
-     SUMMARY PAGE
+     EXECUTIVE SUMMARY PAGE
 ══════════════════════════════════════ -->
 <div style="padding: 0 80px 64px; background:white; page-break-before:always;">
   ${project.clientName ? `<p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:${RED}; margin-bottom:16px;">${escapeHtml(project.clientName)}</p>` : ''}
-  <h2 style="font-family:Georgia,serif; font-size:32px; font-weight:700; color:#1a1a1a; margin-bottom:12px;">Summary</h2>
+  <h2 style="font-family:Georgia,serif; font-size:32px; font-weight:700; color:#1a1a1a; margin-bottom:12px;">Executive Summary</h2>
   <div style="width:40px; height:4px; background:${RED}; margin-bottom:32px;"></div>
 
   <p style="font-family:-apple-system,sans-serif; font-size:15px; color:#444; line-height:1.7; margin-bottom:36px;">
-    This accessibility audit of <strong>${escapeHtml(project.name)}</strong> identified
-    <strong>${totalFindings} finding${totalFindings !== 1 ? 's' : ''}</strong> across the evaluated scope.
-    ${failCount > 0 ? `<strong style="color:${RED}">${failCount} WCAG criterion${failCount !== 1 ? 'a' : ''}</strong> did not pass. ` : ''}
-    ${totalFindings === 0 ? 'No accessibility issues were found during this audit.' : ''}
+    This accessibility audit of <strong>${escapeHtml(project.name)}</strong> evaluated
+    ${pagesTestedCount > 0 ? `<strong>${pagesTestedCount} page${pagesTestedCount !== 1 ? 's' : ''}</strong> against` : 'the site against'}
+    <strong>${TOTAL_CRITERIA} WCAG 2.2 A &amp; AA success criteria</strong> and identified
+    <strong>${totalFindings} finding${totalFindings !== 1 ? 's' : ''}</strong>${criticalCount > 0 ? `, including <strong style="color:${RED}">${criticalCount} critical issue${criticalCount !== 1 ? 's' : ''}</strong>` : ''}.
+    ${evaluatedCount > 0 ? ` Of the criteria evaluated, <strong style="color:${passRate >= 80 ? GREEN : passRate >= 50 ? '#8b6914' : RED}">${passRate}% are currently passing</strong>.` : ''}
+    ${totalFindings === 0 ? ' No accessibility issues were found during this audit.' : ''}
   </p>
 
-  <!-- Audit results -->
-  <h3 style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#888; margin-bottom:20px;">Audit Results &mdash; WCAG 2.2 A &amp; AA (57 Criteria)</h3>
+  <!-- Overall audit results -->
+  <h3 style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#888; margin-bottom:20px;">Overall Results &mdash; WCAG 2.2 A &amp; AA (${TOTAL_CRITERIA} Criteria)</h3>
   ${[
-    { label: 'Failed', count: failCount, color: '#c0392b' },
-    { label: 'Unknown', count: unknownCount, color: '#aaaaaa' },
-    { label: 'Passed', count: passCount, color: '#2d7a4f' }
+    { label: 'Failed', count: failCount, color: RED },
+    { label: 'Unknown', count: unknownCount, color: GREY },
+    { label: 'Passed', count: passCount, color: GREEN }
   ].map((s) => `
     <div style="display:flex; align-items:center; gap:14px; margin-bottom:10px;">
       <span style="font-family:-apple-system,sans-serif; font-size:12px; font-weight:600; color:#333; min-width:72px;">${s.label}</span>
       <div style="flex:1; background:#ede9e7; height:16px;">
-        <div style="width:${Math.round((s.count / 57) * 100)}%; background:${s.color}; height:100%;"></div>
+        <div style="width:${Math.round((s.count / TOTAL_CRITERIA) * 100)}%; background:${s.color}; height:100%;"></div>
       </div>
       <span style="font-family:Georgia,serif; font-size:16px; font-weight:700; color:${s.color}; min-width:36px; text-align:right;">${s.count}</span>
     </div>
   `).join('')}
+
+  <!-- Principle-level (POUR) breakdown -->
+  <h3 style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#888; margin:36px 0 20px;">Results by WCAG Principle</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:8px;">
+    ${principleStats.map((p) => `
+      <div style="border:1px solid #e0dbd9; padding:16px 18px;">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;">
+          <span style="font-family:Georgia,serif; font-size:16px; font-weight:700; color:#1a1a1a;">${p.label}</span>
+          <span style="font-family:-apple-system,sans-serif; font-size:11px; color:#888;">${p.pass} of ${p.total} passing</span>
+        </div>
+        <div style="display:flex; height:10px; background:#ede9e7; overflow:hidden;">
+          ${p.fail > 0 ? `<div style="width:${Math.round((p.fail / p.total) * 100)}%; background:${RED};"></div>` : ''}
+          ${p.unknown > 0 ? `<div style="width:${Math.round((p.unknown / p.total) * 100)}%; background:${GREY};"></div>` : ''}
+          ${p.pass > 0 ? `<div style="width:${Math.round((p.pass / p.total) * 100)}%; background:${GREEN};"></div>` : ''}
+        </div>
+      </div>
+    `).join('')}
+  </div>
 
   ${project.description ? `
   <div style="margin-top:36px; padding:20px 24px; background:${BG};">
@@ -846,3 +941,4 @@ function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;')
 }
+
