@@ -50,7 +50,6 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
       'WCAG Level',
       'Standards',
       'Category',
-      'Severity',
       'Status',
       'Page URL',
       'Description',
@@ -70,7 +69,6 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
           : ''
       ),
       escapeCsvField(f.category),
-      escapeCsvField(f.severity),
       escapeCsvField(f.status),
       escapeCsvField(f.pageUrl),
       escapeCsvField(f.description),
@@ -112,7 +110,7 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
 
       const { filePath, canceled } = await dialog.showSaveDialog({
         title: 'Export Report as PDF',
-        defaultPath: `${project.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-accessibility-report.pdf`,
+        defaultPath: `${project.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-accessibility-report-${format}.pdf`,
         filters: [{ name: 'PDF', extensions: ['pdf'] }]
       })
 
@@ -165,7 +163,8 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
       const pdfData = await pdfWindow.webContents.printToPDF({
         pageSize: 'A4',
         printBackground: true,
-        margins: { marginType: 'none' }
+        margins: { marginType: 'none' },
+        landscape: format !== 'vpat'
       })
 
       console.log('[PDF Export] PDF generated, size:', pdfData.length, 'bytes')
@@ -182,28 +181,39 @@ export function registerExportHandlers(ipcMain: IpcMain, _getMainWindow: _GetMai
   })
 }
 
-function severityColor(severity: string): string {
-  const colors: Record<string, string> = {
-    critical: '#dc2626',
-    serious: '#ea580c',
-    moderate: '#d97706',
-    minor: '#65a30d'
-  }
-  return colors[severity] || '#6b7280'
-}
-
 // Inline lucide icons (ISC licensed) so the PDF renderer needs no external assets
 const ICON_BADGE_CHECK = `<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>`
 const ICON_TRIANGLE_ALERT = `<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>`
+const ICON_FILE = `<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>`
+const ICON_EYE = `<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>`
+const ICON_BRAIN = `<path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M19.938 10.5a4 4 0 0 1 .585.396"/><path d="M6 18a4 4 0 0 1-1.967-.516"/><path d="M19.967 17.484A4 4 0 0 1 18 18"/>`
+const ICON_FOOTPRINTS = `<path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4"/><path d="M4 13h4"/>`
+const ICON_PUZZLE = `<path d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"/>`
 function icon(paths: string, color: string, size = 40): string {
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`
 }
 
-const SEVERITY_BLURBS: Record<string, string> = {
-  critical: 'Blocks task completion',
-  serious: 'Major barriers to accessibility',
-  moderate: 'Noticeable friction for users',
-  minor: 'Small usability gaps'
+// Maps each WCAG 2.2 A/AA criterion to its POUR principle, mirroring src/lib/utils.ts WCAG_CRITERIA
+const CRITERION_PRINCIPLE: Record<string, 'perception' | 'action' | 'cognition' | 'interaction'> = {
+  '1.1.1': 'perception', '1.2.1': 'perception', '1.2.2': 'perception', '1.2.3': 'perception', '1.2.4': 'perception', '1.2.5': 'perception',
+  '1.3.1': 'perception', '1.3.2': 'perception', '1.3.3': 'perception', '1.3.4': 'perception', '1.3.5': 'perception',
+  '1.4.1': 'perception', '1.4.2': 'perception', '1.4.3': 'perception', '1.4.4': 'perception', '1.4.5': 'perception',
+  '1.4.10': 'perception', '1.4.11': 'perception', '1.4.12': 'perception', '1.4.13': 'perception', '2.3.1': 'perception',
+  '2.1.1': 'action', '2.1.2': 'action', '2.1.4': 'action', '2.2.1': 'action', '2.2.2': 'action', '2.4.1': 'action',
+  '2.4.3': 'action', '2.4.7': 'action', '2.4.11': 'action', '2.5.1': 'action', '2.5.2': 'action', '2.5.4': 'action',
+  '2.5.7': 'action', '2.5.8': 'action',
+  '2.4.2': 'cognition', '2.4.5': 'cognition', '2.4.6': 'cognition', '3.1.1': 'cognition', '3.1.2': 'cognition',
+  '3.2.3': 'cognition', '3.2.4': 'cognition', '3.2.6': 'cognition', '3.3.2': 'cognition',
+  '2.4.4': 'interaction', '2.5.3': 'interaction', '3.2.1': 'interaction', '3.2.2': 'interaction', '3.3.1': 'interaction',
+  '3.3.3': 'interaction', '3.3.4': 'interaction', '3.3.7': 'interaction', '3.3.8': 'interaction',
+  '4.1.1': 'interaction', '4.1.2': 'interaction', '4.1.3': 'interaction'
+}
+const CATEGORY_ORDER = ['perception', 'action', 'cognition', 'interaction'] as const
+const CATEGORY_META: Record<string, { label: string; description: string; icon: string; color: string }> = {
+  perception: { label: 'Perceivable', description: 'Information and user interface components must be presentable to users in ways they can perceive.', icon: ICON_EYE, color: '#2563eb' },
+  action: { label: 'Operable', description: 'User interface components and navigation must be operable.', icon: ICON_FOOTPRINTS, color: '#0d9488' },
+  cognition: { label: 'Understandable', description: 'Information and the operation of the user interface must be understandable.', icon: ICON_BRAIN, color: '#7c3aed' },
+  interaction: { label: 'Robust', description: 'Content must be robust enough to be interpreted reliably by a wide variety of user agents, including assistive technologies.', icon: ICON_PUZZLE, color: '#db2777' }
 }
 
 function buildReportHtml(
@@ -241,12 +251,25 @@ function buildReportHtml(
 
   // Only outstanding (not resolved / not won't-fix) findings "require action"
   const activeFindings = findingsData.filter(f => f.status !== 'resolved' && f.status !== 'wont_fix')
-  const severityCounts = {
-    critical: activeFindings.filter(f => f.severity === 'critical').length,
-    serious: activeFindings.filter(f => f.severity === 'serious').length,
-    moderate: activeFindings.filter(f => f.severity === 'moderate').length,
-    minor: activeFindings.filter(f => f.severity === 'minor').length
-  }
+  const pagesAffectedCount = new Set(activeFindings.filter(f => f.pageUrl).map(f => f.pageUrl)).size
+
+  // Category breakdown — buckets findings by their WCAG POUR principle, derived from wcagCriterion.
+  // The 4 real principles always show (even at zero) so the page reads as a complete picture;
+  // "Uncategorized" only shows up when there's actually a finding with no mapped criterion.
+  const categoryStats = [...CATEGORY_ORDER, 'uncategorized'].map((cat) => {
+    const items = cat === 'uncategorized'
+      ? activeFindings.filter(f => !f.wcagCriterion || !CRITERION_PRINCIPLE[f.wcagCriterion])
+      : activeFindings.filter(f => f.wcagCriterion && CRITERION_PRINCIPLE[f.wcagCriterion] === cat)
+    return {
+      key: cat,
+      label: cat === 'uncategorized' ? 'Uncategorized' : CATEGORY_META[cat].label,
+      description: cat === 'uncategorized' ? 'Findings not yet assigned a category.' : CATEGORY_META[cat].description,
+      iconSvg: cat === 'uncategorized' ? ICON_TRIANGLE_ALERT : CATEGORY_META[cat].icon,
+      color: cat === 'uncategorized' ? '#6b7280' : CATEGORY_META[cat].color,
+      count: items.length,
+      pagesWithIssues: new Set(items.filter(f => f.pageUrl).map(f => f.pageUrl)).size
+    }
+  }).filter(c => c.key !== 'uncategorized' || c.count > 0)
 
   // Derive a human-readable audit type from the project standards field
   const auditTypeLabel = project.standards
@@ -272,6 +295,29 @@ function buildReportHtml(
     </div>`
   }
 
+  function topStatCard(iconSvg: string, iconColor: string, value: string, label: string): string {
+    return `
+    <div style="flex:1; border:1px solid ${BORDER}; border-radius:12px; padding:24px; background:white;">
+      <div style="margin-bottom:16px;">${icon(iconSvg, iconColor, 28)}</div>
+      <p style="font-family:-apple-system,sans-serif; font-size:30px; font-weight:800; color:#1d4ed8; margin-bottom:6px;">${value}</p>
+      <p style="font-family:-apple-system,sans-serif; font-size:13px; color:${MUTED}; line-height:1.4;">${label}</p>
+    </div>`
+  }
+
+  function categoryCard(cat: typeof categoryStats[number]): string {
+    return `
+    <div style="border:1.5px solid ${cat.color}; border-radius:12px; padding:24px; background:white;">
+      <p style="font-family:-apple-system,sans-serif; font-size:16px; font-weight:700; color:${INK}; margin-bottom:8px;">${escapeHtml(cat.label)}</p>
+      <p style="font-family:-apple-system,sans-serif; font-size:24px; font-weight:800; color:#1d4ed8; margin-bottom:2px;">${cat.count} <span style="font-size:13px; font-weight:600; color:${MUTED};">issue${cat.count !== 1 ? 's' : ''}</span></p>
+      <p style="font-family:-apple-system,sans-serif; font-size:12px; color:${MUTED}; margin-bottom:14px;">${cat.pagesWithIssues} page${cat.pagesWithIssues !== 1 ? 's' : ''} with issues</p>
+      <div style="height:1px; background:#f0f0f0; margin-bottom:14px;"></div>
+      <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:12px;">
+        <p style="font-family:-apple-system,sans-serif; font-size:12px; color:${MUTED}; line-height:1.6; flex:1;">${escapeHtml(cat.description)}</p>
+        <div style="flex-shrink:0; opacity:0.5;">${icon(cat.iconSvg, cat.color, 28)}</div>
+      </div>
+    </div>`
+  }
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -289,11 +335,12 @@ function buildReportHtml(
 <!-- ══════════════════════════════════════
      COVER PAGE
 ══════════════════════════════════════ -->
-<div style="min-height:100vh; background:${BG}; padding: 8px 80px 72px; display:flex; flex-direction:column; justify-content:space-between;">
+<div style="min-height:100vh; background:white; padding: 8px 80px 56px; display:flex; flex-direction:column; justify-content:space-between;">
   <div>
+    ${project.clientLogoPath ? `<img src="${project.clientLogoPath}" alt="${project.clientName ? escapeHtml(project.clientName) + ' logo' : 'Client logo'}" style="max-height:48px; max-width:220px; object-fit:contain; margin-bottom:16px; display:block;">` : ''}
     ${project.clientName ? `<p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; font-size:12px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:${RED}; margin-bottom:24px;">${escapeHtml(project.clientName)}</p>` : ''}
 
-    <h1 style="font-family:Georgia,'Times New Roman',serif; font-size:52px; font-weight:700; line-height:1.15; color:#1a1a1a; margin-bottom:20px;">
+    <h1 style="font-family:Georgia,'Times New Roman',serif; font-size:48px; font-weight:700; line-height:1.15; color:#1a1a1a; margin-bottom:20px;">
       ${escapeHtml(auditTypeLabel)}
     </h1>
 
@@ -327,37 +374,76 @@ function buildReportHtml(
       ${smallStatCard('WCAG Level', escapeHtml(wcagLevel), 'Standard being tested against')}
     </div>
   </div>
+
+  ${project.scope ? `
+  <div style="margin-top:24px; padding:20px 24px; background:${BG}; border-radius:12px;">
+    <p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#888; margin-bottom:8px;">Audit Scope</p>
+    <p style="font-family:-apple-system,sans-serif; font-size:14px; color:#444; line-height:1.6;">${escapeHtml(project.scope)}</p>
+  </div>` : ''}
+
+  <!-- ── Detailed Findings ── -->
+  <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-top:36px;">
+    <div>
+      <h2 style="font-family:-apple-system,sans-serif; font-size:26px; font-weight:800; color:${INK};">Detailed Findings</h2>
+      <p style="font-family:-apple-system,sans-serif; font-size:14px; color:${MUTED}; margin-top:4px;">Accessibility Issues Summary</p>
+    </div>
+    <p style="font-family:-apple-system,sans-serif; font-size:12px; font-weight:800; letter-spacing:0.12em; text-transform:uppercase; color:${INK};">Mira</p>
+  </div>
+  <div style="height:1px; background:${BORDER}; margin:20px 0 32px;"></div>
+
+  <div style="display:flex; gap:16px;">
+    ${topStatCard(ICON_TRIANGLE_ALERT, INK, String(activeFindings.length), 'Issue Types Found')}
+    ${topStatCard(ICON_FILE, INK, String(pagesAffectedCount), 'Pages Affected')}
+  </div>
 </div>
 
+${categoryStats.length > 0 ? `
 <!-- ══════════════════════════════════════
-     ISSUES REQUIRING ACTION
+     ISSUES BY CATEGORY
 ══════════════════════════════════════ -->
-<div style="padding: 24px 80px 64px; background:white;">
-  <h2 style="font-family:-apple-system,sans-serif; font-size:24px; font-weight:800; color:${INK}; margin-bottom:20px;">Issues Requiring Action</h2>
-  <div style="display:flex; gap:16px; align-items:stretch;">
-    ${bigCard({
-      iconSvg: icon(ICON_TRIANGLE_ALERT, RED),
-      iconColor: RED,
-      label: 'Total Issue Types Identified',
-      headline: String(activeFindings.length),
-      headlineColor: INK,
-      body: activeFindings.length > 0
-        ? `These issues prevent full ${escapeHtml(wcagLevel)} compliance and should be addressed.`
-        : `No outstanding issues. All logged findings for this project have been resolved.`
-    })}
-    <div style="flex:1; display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-      ${smallStatCard('Critical Issues', String(severityCounts.critical), SEVERITY_BLURBS.critical, severityColor('critical'), severityColor('critical'))}
-      ${smallStatCard('Serious Issues', String(severityCounts.serious), SEVERITY_BLURBS.serious, severityColor('serious'), severityColor('serious'))}
-      ${smallStatCard('Moderate Issues', String(severityCounts.moderate), SEVERITY_BLURBS.moderate, severityColor('moderate'), severityColor('moderate'))}
-      ${smallStatCard('Minor Issues', String(severityCounts.minor), SEVERITY_BLURBS.minor, severityColor('minor'), severityColor('minor'))}
+<div style="padding: 48px 80px 40px; background:white; page-break-before:always;">
+  <h2 style="font-family:-apple-system,sans-serif; font-size:26px; font-weight:800; color:${INK}; margin-bottom:20px;">Issues by Category</h2>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+    ${categoryStats.map(categoryCard).join('')}
+  </div>
+</div>` : ''}
+
+<!-- ══════════════════════════════════════
+     ABOUT THIS REPORT
+══════════════════════════════════════ -->
+<div style="padding: 48px 80px 40px; background:white; page-break-before:always;">
+  <h2 style="font-family:-apple-system,sans-serif; font-size:26px; font-weight:800; color:${INK}; margin-bottom:20px;">About This Report</h2>
+  <div style="height:1px; background:${BORDER}; margin:0 0 32px;"></div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:56px;">
+    <div>
+      <h3 style="font-family:-apple-system,sans-serif; font-size:14px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:${MUTED}; margin-bottom:10px;">What is this report?</h3>
+      <p style="font-family:-apple-system,sans-serif; font-size:13px; color:#444; line-height:1.7; margin-bottom:28px;">
+        This report summarizes the accessibility audit conducted for <strong>${escapeHtml(project.name)}</strong> against ${escapeHtml(wcagLevel)}. It is intended to give both technical and non-technical stakeholders a clear picture of overall compliance and the issues that need attention.
+      </p>
+
+      <h3 style="font-family:-apple-system,sans-serif; font-size:14px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:${MUTED}; margin-bottom:10px;">Methodology</h3>
+      <p style="font-family:-apple-system,sans-serif; font-size:13px; color:#444; line-height:1.7;">
+        This audit was conducted using a combination of manual inspection and assistive-technology testing, evaluated against WCAG success criteria. Testing included keyboard navigation, screen reader compatibility, color contrast verification, and functional testing of interactive components.
+      </p>
+    </div>
+    <div>
+      <h3 style="font-family:-apple-system,sans-serif; font-size:14px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:${MUTED}; margin-bottom:10px;">WCAG Principles</h3>
+      <div style="margin-bottom:28px;">
+        ${CATEGORY_ORDER.map((cat) => `
+          <div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:10px;">
+            <div style="width:10px; height:10px; border-radius:50%; background:${CATEGORY_META[cat].color}; margin-top:4px; flex-shrink:0;"></div>
+            <p style="font-family:-apple-system,sans-serif; font-size:13px; color:#444; line-height:1.5;"><strong style="color:${INK};">${CATEGORY_META[cat].label}</strong> — ${CATEGORY_META[cat].description}</p>
+          </div>
+        `).join('')}
+      </div>
+
+      <h3 style="font-family:-apple-system,sans-serif; font-size:14px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:${MUTED}; margin-bottom:10px;">Disclaimer</h3>
+      <p style="font-family:-apple-system,sans-serif; font-size:13px; color:#444; line-height:1.7;">
+        This assessment is based on the pages and components in scope at the time of testing and reflects a point-in-time evaluation. It is not a legal certification of accessibility. Generated ${date} using Mira.
+      </p>
     </div>
   </div>
-
-  ${project.description ? `
-  <div style="margin-top:32px; padding:20px 24px; background:${BG}; border-radius:12px;">
-    <p style="font-family:-apple-system,sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#888; margin-bottom:8px;">Audit Scope</p>
-    <p style="font-family:-apple-system,sans-serif; font-size:14px; color:#444; line-height:1.6;">${escapeHtml(project.description)}</p>
-  </div>` : ''}
 </div>
 
 </body>
@@ -540,7 +626,6 @@ function buildVpatHtml(
     const displayed = issues.slice(0, 3)
     for (const i of displayed) {
       const title = escapeHtml(i.title || 'Unnamed issue')
-      const severity = i.severity ? ` <span style="color:#888;font-style:italic">(${escapeHtml(i.severity)})</span>` : ''
       const locationParts = [i.pageUrl, i.component].filter(Boolean).map(s => escapeHtml(s!))
       const location = locationParts.length ? ` <span style="color:#6b7280">— ${locationParts.join(', ')}</span>` : ''
       const firstSentence = i.description
@@ -556,7 +641,7 @@ function buildVpatHtml(
         ? `<br><span style="color:#888;font-size:9px;font-style:italic">${escapeHtml(i.notes.slice(0, 120))}${i.notes.length > 120 ? '…' : ''}</span>`
         : ''
 
-      parts.push(`<strong style="font-size:10px">${title}</strong>${severity}${location}${desc}${rec}${note}`)
+      parts.push(`<strong style="font-size:10px">${title}</strong>${location}${desc}${rec}${note}`)
     }
 
     if (issues.length > 3) {
@@ -842,5 +927,7 @@ function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;')
 }
+
+
 
 
