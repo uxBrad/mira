@@ -30,7 +30,6 @@ export const findings = sqliteTable('findings', {
   wcagLevel: text('wcag_level'),
   standards: text('standards'), // JSON array string
   category: text('category'),
-  severity: text('severity').default('moderate'),
   status: text('status').default('open'),
   pageUrl: text('page_url'), // audit page path e.g. "/home"
   component: text('component'), // component name e.g. "Navigation"
@@ -49,7 +48,6 @@ export const findingTemplates = sqliteTable('finding_templates', {
   wcagLevel: text('wcag_level'),
   standards: text('standards'), // JSON array string
   category: text('category'),
-  severity: text('severity').default('moderate'),
   recommendations: text('recommendations'),
   notes: text('notes'),
   createdAt: integer('created_at').notNull(),

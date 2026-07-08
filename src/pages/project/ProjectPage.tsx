@@ -26,13 +26,6 @@ import { useToast } from '../../components/ui/use-toast'
 import { ToastAction } from '../../components/ui/toast'
 import { EchoButton } from '../../components/ui/echo-button'
 import { KVTag } from '../../components/ui/kv-tag'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription
-} from '../../components/ui/dialog'
 
 
 interface Project {
@@ -63,7 +56,6 @@ interface Finding {
   wcagLevel: string | null
   standards: string[]
   category: string | null
-  severity: string | null
   status: string | null
   pageUrl: string | null
   component: string | null
@@ -191,13 +183,12 @@ export default function ProjectPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [editFinding, setEditFinding] = useState<Finding | null>(null)
   const [importOpen, setImportOpen] = useState(false)
-  const [isExporting, setIsExporting] = useState<'pdf' | 'csv' | null>(null)
-  const [showFormatDialog, setShowFormatDialog] = useState(false)
+  const [isExporting, setIsExporting] = useState<'summary' | 'vpat' | 'csv' | null>(null)
   const [principleFilter, setPrincipleFilter] = useState<string[]>([])
   const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [pageFilter, setPageFilter] = useState<string[]>([])
   const [componentFilter, setComponentFilter] = useState<string[]>([])
-  const [findingInitialData, setFindingInitialData] = useState<Partial<{title:string;description:string;wcagCriterion:string;wcagLevel:string;standards:string[];category:string;severity:string;status:string;pageUrl:string;component:string;screenshotPath:string;recommendations:string;notes:string}> | undefined>(undefined)
+  const [findingInitialData, setFindingInitialData] = useState<Partial<{title:string;description:string;wcagCriterion:string;wcagLevel:string;standards:string[];category:string;status:string;pageUrl:string;component:string;screenshotPath:string;recommendations:string;notes:string}> | undefined>(undefined)
   const [groupByCriteria, setGroupByCriteria] = useState(false)
   const [auditVerdicts, setAuditVerdicts] = useState<Record<string, 'pass' | 'partial' | 'na' | 'fail'>>(() => {
     try {
@@ -455,8 +446,7 @@ export default function ProjectPage() {
   }
 
   async function handleExportPDF(format: 'summary' | 'vpat' = 'summary') {
-    setIsExporting('pdf')
-    setShowFormatDialog(false)
+    setIsExporting(format)
     try {
       let auditState: { criteriaVerdict: Record<string, 'pass' | 'partial' | 'na' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>>; criterionNotes?: Record<string, string>; auditorName?: string; auditorCredentials?: string; auditorEmail?: string } = { criteriaVerdict: {}, criteriaProgress: {} }
       try {
@@ -490,10 +480,6 @@ export default function ProjectPage() {
     } finally {
       setIsExporting(null)
     }
-  }
-
-  function handleClickExportPDF() {
-    setShowFormatDialog(true)
   }
 
   async function handleExportCSV() {
@@ -998,7 +984,6 @@ export default function ProjectPage() {
               wcagLevel: editFinding.wcagLevel ?? undefined,
               standards: editFinding.standards,
               category: editFinding.category ?? undefined,
-              severity: editFinding.severity ?? undefined,
               status: editFinding.status ?? undefined,
               pageUrl: editFinding.pageUrl ?? undefined,
               component: editFinding.component ?? undefined,
@@ -1109,11 +1094,14 @@ export default function ProjectPage() {
                   Export your audit results.
                 </p>
                 <div className="space-y-2">
-                  <EchoButton variant="primary" icon={<Download className="h-4 w-4" />} iconPosition="right" fullWidth onClick={handleClickExportPDF} disabled={!!isExporting} aria-busy={isExporting === 'pdf'}>
-                    {isExporting === 'pdf' ? 'Generating…' : 'Export Report (PDF)'}
+                  <EchoButton variant="primary" icon={<Download className="h-4 w-4" />} iconPosition="right" fullWidth onClick={() => handleExportPDF('summary')} disabled={!!isExporting} aria-busy={isExporting === 'summary'}>
+                    {isExporting === 'summary' ? 'Generating…' : 'Summary Report (PDF)'}
+                  </EchoButton>
+                  <EchoButton icon={<Download className="h-4 w-4" />} iconPosition="right" fullWidth onClick={() => handleExportPDF('vpat')} disabled={!!isExporting} aria-busy={isExporting === 'vpat'}>
+                    {isExporting === 'vpat' ? 'Generating…' : 'VPAT Report (PDF)'}
                   </EchoButton>
                   <EchoButton icon={<Download className="h-4 w-4" />} iconPosition="right" fullWidth onClick={handleExportCSV} disabled={!!isExporting || findings.length === 0} aria-busy={isExporting === 'csv'}>
-                    {isExporting === 'csv' ? 'Exporting…' : 'Export Report (CSV)'}
+                    {isExporting === 'csv' ? 'Exporting…' : 'Raw Data (CSV)'}
                   </EchoButton>
                 </div>
               </div>
@@ -1323,38 +1311,6 @@ export default function ProjectPage() {
               toast({ title: 'Findings imported', description: 'The findings have been added to your project.' })
             }}
           />
-
-          {/* Format selection dialog */}
-          <Dialog open={showFormatDialog} onOpenChange={setShowFormatDialog}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Choose Report Format</DialogTitle>
-                <DialogDescription>
-                  Select the format for your accessibility report export.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-3 py-4">
-                <button
-                  onClick={() => handleExportPDF('summary')}
-                  disabled={!!isExporting}
-                  className="w-full flex flex-col items-start p-4 border rounded-lg hover:bg-slate-50 transition-colors text-left"
-                  style={{ borderColor: '#e0dbd9' }}
-                >
-                  <span className="font-semibold" style={{ color: '#1d4ed8' }}>Summary Report</span>
-                  <span className="text-xs text-gray-600 mt-1">Executive overview with findings grouped by severity</span>
-                </button>
-                <button
-                  onClick={() => handleExportPDF('vpat')}
-                  disabled={!!isExporting}
-                  className="w-full flex flex-col items-start p-4 border rounded-lg hover:bg-slate-50 transition-colors text-left"
-                  style={{ borderColor: '#e0dbd9' }}
-                >
-                  <span className="font-semibold" style={{ color: '#1d4ed8' }}>VPAT Report</span>
-                  <span className="text-xs text-gray-600 mt-1">Voluntary Product Accessibility Template with criterion-by-criterion assessment</span>
-                </button>
-              </div>
-            </DialogContent>
-          </Dialog>
         </>
       )}
     </div>

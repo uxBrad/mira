@@ -20,7 +20,7 @@ import {
   DialogFooter,
   DialogDescription
 } from '../../components/ui/dialog'
-import { WCAG_CRITERIA, SEVERITY_OPTIONS, CATEGORY_OPTIONS, STANDARDS_OPTIONS } from '../../lib/utils'
+import { WCAG_CRITERIA, CATEGORY_OPTIONS, STANDARDS_OPTIONS } from '../../lib/utils'
 import { useTemplates, Template } from '../../hooks/useTemplates'
 import { useToast } from '../../components/ui/use-toast'
 
@@ -31,7 +31,6 @@ interface TemplateFormData {
   wcagLevel?: string
   standards?: string[]
   category?: string
-  severity?: string
   recommendations?: string
   notes?: string
 }
@@ -55,7 +54,6 @@ function TemplateFormSidebar({
   const [wcagLevel, setWcagLevel] = useState(initialData?.wcagLevel || '')
   const [standards, setStandards] = useState<string[]>(initialData?.standards || [])
   const [category, setCategory] = useState(initialData?.category || '')
-  const [severity, setSeverity] = useState(initialData?.severity || 'moderate')
   const [recommendations, setRecommendations] = useState(initialData?.recommendations || '')
   const [notes, setNotes] = useState(initialData?.notes || '')
   const [criterionSearch, setCriterionSearch] = useState('')
@@ -71,7 +69,6 @@ function TemplateFormSidebar({
       setWcagLevel(initialData?.wcagLevel || '')
       setStandards(initialData?.standards || [])
       setCategory(initialData?.category || '')
-      setSeverity(initialData?.severity || 'moderate')
       setRecommendations(initialData?.recommendations || '')
       setNotes(initialData?.notes || '')
       setCriterionSearch('')
@@ -126,7 +123,6 @@ function TemplateFormSidebar({
         wcagLevel: wcagLevel || undefined,
         standards: standards.length > 0 ? standards : undefined,
         category: category || undefined,
-        severity,
         recommendations: recommendations.trim() || undefined,
         notes: notes.trim() || undefined
       })
@@ -206,37 +202,20 @@ function TemplateFormSidebar({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="tf-severity" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
-                    Severity
-                  </Label>
-                  <Select value={severity} onValueChange={setSeverity} disabled={isLoading}>
-                    <SelectTrigger id="tf-severity">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SEVERITY_OPTIONS.map((s) => (
-                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="tf-category" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
-                    Category
-                  </Label>
-                  <Select value={category} onValueChange={setCategory} disabled={isLoading}>
-                    <SelectTrigger id="tf-category">
-                      <SelectValue placeholder="Select…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CATEGORY_OPTIONS.map((c) => (
-                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="tf-category" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">
+                  Category
+                </Label>
+                <Select value={category} onValueChange={setCategory} disabled={isLoading}>
+                  <SelectTrigger id="tf-category">
+                    <SelectValue placeholder="Select…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORY_OPTIONS.map((c) => (
+                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1.5">
@@ -377,20 +356,6 @@ function TemplateFormSidebar({
   )
 }
 
-const SEVERITY_LABELS: Record<string, string> = {
-  critical: 'Critical',
-  serious: 'Serious',
-  moderate: 'Moderate',
-  minor: 'Minor'
-}
-
-const SEVERITY_COLORS: Record<string, string> = {
-  critical: '#c0392b',
-  serious: '#c0392b',
-  moderate: '#8b6914',
-  minor: '#2d7a4f'
-}
-
 export default function TemplatesPage() {
   const { templates, isLoading, error, createTemplate, updateTemplate, deleteTemplate } = useTemplates()
   const { toast } = useToast()
@@ -481,23 +446,15 @@ export default function TemplatesPage() {
                   }}
                   aria-label={template.title}
                 >
-                  {/* Top row: severity + level | criterion + actions */}
+                  {/* Top row: level | criterion + actions */}
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div className="flex items-center gap-2 flex-wrap">
-                      {template.severity && (
-                        <span
-                          className="font-sans text-xs font-semibold"
-                          style={{ color: SEVERITY_COLORS[template.severity] ?? '#5f5e5e' }}
-                        >
-                          {SEVERITY_LABELS[template.severity] ?? template.severity}
-                        </span>
-                      )}
                       {template.wcagLevel && (
                         <span
                           className="font-sans text-xs font-semibold uppercase"
                           style={{ color: '#5f5e5e', letterSpacing: '0.1em' }}
                         >
-                          · Level {template.wcagLevel}
+                          Level {template.wcagLevel}
                         </span>
                       )}
                     </div>
@@ -619,7 +576,6 @@ export default function TemplatesPage() {
           wcagLevel: editTemplate.wcagLevel ?? undefined,
           standards: editTemplate.standards,
           category: editTemplate.category ?? undefined,
-          severity: editTemplate.severity ?? undefined,
           recommendations: editTemplate.recommendations ?? undefined,
           notes: editTemplate.notes ?? undefined
         } : undefined}

@@ -1,33 +1,49 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
+// Electron prefixes rejected ipcMain.handle errors with "Error invoking remote
+// method '<channel>': Error: <message>" — strip that so the renderer sees the
+// original message the handler threw.
+async function invoke<T>(channel: string, ...args: unknown[]): Promise<T> {
+  try {
+    return await ipcRenderer.invoke(channel, ...args)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    const cleaned = message.replace(/^Error invoking remote method '[^']+':\s*(?:Error:\s*)?/, '')
+    throw new Error(cleaned || message)
+  }
+}
+
 // Auth API
 const authAPI = {
   register: (data: { email: string; password: string; name: string }) =>
-    ipcRenderer.invoke('auth:register', data),
+    invoke('auth:register', data),
   login: (data: { email: string; password: string }) =>
-    ipcRenderer.invoke('auth:login', data),
-  logout: () => ipcRenderer.invoke('auth:logout'),
-  getSession: () => ipcRenderer.invoke('auth:getSession'),
-  forgotPassword: (email: string) => ipcRenderer.invoke('auth:forgotPassword', email),
+    invoke('auth:login', data),
+  logout: () => invoke('auth:logout'),
+  getSession: () => invoke('auth:getSession'),
+  getRememberedCredentials: () => invoke('auth:getRememberedCredentials'),
+  saveRememberedCredentials: (data: { email: string; password: string } | null) =>
+    invoke('auth:saveRememberedCredentials', data),
+  forgotPassword: (email: string) => invoke('auth:forgotPassword', email),
   verifyEmail: (email: string, code: string) =>
-    ipcRenderer.invoke('auth:verifyEmail', { email, code }),
+    invoke('auth:verifyEmail', { email, code }),
   resendVerification: (email: string) =>
-    ipcRenderer.invoke('auth:resendVerification', email),
+    invoke('auth:resendVerification', email),
   resetPassword: (data: { email: string; code: string; password: string }) =>
-    ipcRenderer.invoke('auth:resetPassword', data),
-  getSubscriptionStatus: () => ipcRenderer.invoke('auth:getSubscriptionStatus'),
+    invoke('auth:resetPassword', data),
+  getSubscriptionStatus: () => invoke('auth:getSubscriptionStatus'),
   createCheckout: (plan: 'monthly' | 'yearly') =>
-    ipcRenderer.invoke('auth:createCheckout', plan),
-  openBillingPortal: () => ipcRenderer.invoke('auth:openBillingPortal'),
+    invoke('auth:createCheckout', plan),
+  openBillingPortal: () => invoke('auth:openBillingPortal'),
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
-    ipcRenderer.invoke('auth:changePassword', data)
+    invoke('auth:changePassword', data)
 }
 
 // Projects API
 const projectsAPI = {
-  list: () => ipcRenderer.invoke('projects:list'),
-  get: (id: string) => ipcRenderer.invoke('projects:get', id),
+  list: () => invoke('projects:list'),
+  get: (id: string) => invoke('projects:get', id),
   create: (data: {
     name: string
     clientName?: string
@@ -37,7 +53,7 @@ const projectsAPI = {
     auditUrls?: string[]
     components?: string[]
     clientLogoPath?: string
-  }) => ipcRenderer.invoke('projects:create', data),
+  }) => invoke('projects:create', data),
   update: (
     id: string,
     data: {
@@ -51,14 +67,14 @@ const projectsAPI = {
       components?: string[]
       clientLogoPath?: string | null
     }
-  ) => ipcRenderer.invoke('projects:update', id, data),
-  delete: (id: string) => ipcRenderer.invoke('projects:delete', id)
+  ) => invoke('projects:update', id, data),
+  delete: (id: string) => invoke('projects:delete', id)
 }
 
 // Findings API
 const findingsAPI = {
-  list: (projectId: string) => ipcRenderer.invoke('findings:list', projectId),
-  get: (id: string) => ipcRenderer.invoke('findings:get', id),
+  list: (projectId: string) => invoke('findings:list', projectId),
+  get: (id: string) => invoke('findings:get', id),
   create: (data: {
     projectId: string
     title: string
@@ -67,24 +83,23 @@ const findingsAPI = {
     wcagLevel?: string
     standards?: string[]
     category?: string
-    severity?: string
     status?: string
     pageUrl?: string
     component?: string
     screenshotPath?: string
     recommendations?: string
     notes?: string
-  }) => ipcRenderer.invoke('findings:create', data),
+  }) => invoke('findings:create', data),
   update: (id: string, data: Record<string, unknown>) =>
-    ipcRenderer.invoke('findings:update', id, data),
-  delete: (id: string) => ipcRenderer.invoke('findings:delete', id),
+    invoke('findings:update', id, data),
+  delete: (id: string) => invoke('findings:delete', id),
   addScreenshot: (findingId: string, sourcePath: string) =>
-    ipcRenderer.invoke('findings:addScreenshot', findingId, sourcePath)
+    invoke('findings:addScreenshot', findingId, sourcePath)
 }
 
 // Templates API
 const templatesAPI = {
-  list: () => ipcRenderer.invoke('templates:list'),
+  list: () => invoke('templates:list'),
   create: (data: {
     title: string
     description?: string
@@ -92,45 +107,44 @@ const templatesAPI = {
     wcagLevel?: string
     standards?: string[]
     category?: string
-    severity?: string
     recommendations?: string
     notes?: string
-  }) => ipcRenderer.invoke('templates:create', data),
+  }) => invoke('templates:create', data),
   update: (id: string, data: Record<string, unknown>) =>
-    ipcRenderer.invoke('templates:update', id, data),
-  delete: (id: string) => ipcRenderer.invoke('templates:delete', id)
+    invoke('templates:update', id, data),
+  delete: (id: string) => invoke('templates:delete', id)
 }
 
 // Import API
 const importAPI = {
-  chooseFile: () => ipcRenderer.invoke('import:chooseFile'),
-  parseFile: (filePath: string) => ipcRenderer.invoke('import:parseFile', filePath),
+  chooseFile: () => invoke('import:chooseFile'),
+  parseFile: (filePath: string) => invoke('import:parseFile', filePath),
   importFindings: (projectId: string, findings: unknown[]) =>
-    ipcRenderer.invoke('import:importFindings', projectId, findings)
+    invoke('import:importFindings', projectId, findings)
 }
 
 // Update API
 const updateAPI = {
   onAvailable: (cb: () => void) => ipcRenderer.on('update:available', cb),
   onReady: (cb: () => void) => ipcRenderer.on('update:ready', cb),
-  install: () => ipcRenderer.invoke('update:install')
+  install: () => invoke('update:install')
 }
 
 // Export API
 const exportAPI = {
   pdf: (projectId: string, format?: 'summary' | 'vpat', auditState?: { criteriaVerdict: Record<string, 'pass' | 'fail'>; criteriaProgress: Partial<Record<string, 'complete'>> }) =>
-    ipcRenderer.invoke('export:pdf', projectId, format || 'summary', auditState),
-  csv: (projectId: string) => ipcRenderer.invoke('export:csv', projectId),
-  chooseScreenshot: () => ipcRenderer.invoke('export:chooseScreenshot')
+    invoke('export:pdf', projectId, format || 'summary', auditState),
+  csv: (projectId: string) => invoke('export:csv', projectId),
+  chooseScreenshot: () => invoke('export:chooseScreenshot')
 }
 
 // System API
 const systemAPI = {
-  openFile: (filePath: string) => ipcRenderer.invoke('system:openFile', filePath),
-  quit: () => ipcRenderer.invoke('system:quit'),
-  saveClipboardImage: (base64: string) => ipcRenderer.invoke('system:saveClipboardImage', base64),
-  readClipboardImage: () => ipcRenderer.invoke('system:readClipboardImage'),
-  readFileAsBase64: (filePath: string) => ipcRenderer.invoke('system:readFileAsBase64', filePath)
+  openFile: (filePath: string) => invoke('system:openFile', filePath),
+  quit: () => invoke('system:quit'),
+  saveClipboardImage: (base64: string) => invoke('system:saveClipboardImage', base64),
+  readClipboardImage: () => invoke('system:readClipboardImage'),
+  readFileAsBase64: (filePath: string) => invoke('system:readFileAsBase64', filePath)
 }
 
 if (process.contextIsolated) {

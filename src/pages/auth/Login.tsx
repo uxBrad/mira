@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { EchoButton } from '../../components/ui/echo-button'
@@ -9,8 +9,19 @@ import logoSrc from '../../assets/logo.png'
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    window.api.auth.getRememberedCredentials().then((saved) => {
+      if (saved) {
+        setEmail(saved.email)
+        setPassword(saved.password)
+        setRememberMe(true)
+      }
+    })
+  }, [])
 
   const [needsVerification, setNeedsVerification] = useState(false)
   const [verifyCode, setVerifyCode] = useState('')
@@ -30,6 +41,7 @@ export default function LoginPage() {
     setIsLoading(true)
     try {
       await login(email, password)
+      await window.api.auth.saveRememberedCredentials(rememberMe ? { email, password } : null)
       navigate('/')
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed.'
@@ -38,6 +50,8 @@ export default function LoginPage() {
         setVerifyCode('')
         setVerifyError(null)
         setResendSent(false)
+      } else if (message.toLowerCase().includes('invalid email or password')) {
+        setError('Invalid email or password, please try again.')
       } else {
         setError(message)
       }
@@ -88,14 +102,11 @@ export default function LoginPage() {
     <div className="min-h-screen flex" style={{ background: '#fcf9f8' }}>
       {/* Left brand panel */}
       <div
-        className="hidden lg:flex w-2/5 flex-col justify-between px-12 py-12"
+        className="hidden lg:flex w-2/5 flex-col justify-center relative px-12 py-12"
         style={{ background: '#f6f3f2' }}
       >
-        <div className="flex items-center gap-3">
-          <img src={logoSrc} alt="" aria-hidden="true" style={{ width: '32px', height: '32px' }} />
-          <span className="font-display text-xl font-bold text-foreground">Mira</span>
-        </div>
         <div>
+          <img src={logoSrc} alt="Mira" style={{ width: '112px', height: '112px' }} className="mb-10" />
           <p className="font-display text-3xl font-semibold leading-snug text-foreground mb-4">
             The professional tool for accessibility auditing.
           </p>
@@ -103,7 +114,7 @@ export default function LoginPage() {
             Document, classify, and report WCAG findings with precision.
           </p>
         </div>
-        <p className="font-data text-xs text-muted-foreground">
+        <p className="font-data text-xs text-muted-foreground absolute left-12 bottom-12">
           © {new Date().getFullYear()} Mira
         </p>
       </div>
@@ -172,7 +183,7 @@ export default function LoginPage() {
                     style={{ justifyContent: 'center' }}
                   >
                     {isVerifying ? (
-                      <span className="flex items-center gap-2">
+                      <span className="flex items-center justify-center gap-2">
                         <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
                         Verifying…
                       </span>
@@ -201,9 +212,6 @@ export default function LoginPage() {
             </>
           ) : (
             <>
-              <div className="mb-6 hidden lg:block">
-                <img src={logoSrc} alt="Mira" style={{ width: '56px', height: '56px' }} />
-              </div>
               <h1 className="text-2xl font-semibold tracking-tight mb-1">Welcome back</h1>
               <p className="font-data text-sm text-muted-foreground mb-8">Sign in to your account</p>
 
@@ -212,8 +220,8 @@ export default function LoginPage() {
                   <div
                     role="alert"
                     aria-live="assertive"
-                    className="mb-6 px-4 py-3 font-sans text-sm"
-                    style={{ background: '#ebe7e7', color: '#1d4ed8' }}
+                    className="mb-6 px-4 py-3 font-sans text-sm font-medium"
+                    style={{ background: '#fdecea', color: '#c0392b', border: '1px solid #f5c6c2' }}
                   >
                     {error}
                   </div>
@@ -260,6 +268,18 @@ export default function LoginPage() {
                     />
                   </div>
 
+                  <label className="flex items-center gap-2 font-data text-sm cursor-pointer select-none" style={{ color: '#5f5e5e' }}>
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      disabled={isLoading}
+                      className="h-4 w-4"
+                      style={{ accentColor: '#1d4ed8' }}
+                    />
+                    Remember me
+                  </label>
+
                   <EchoButton
                     type="submit"
                     variant="primary"
@@ -268,7 +288,7 @@ export default function LoginPage() {
                     style={{ justifyContent: 'center' }}
                   >
                     {isLoading ? (
-                      <span className="flex items-center gap-2">
+                      <span className="flex items-center justify-center gap-2">
                         <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
                         Signing in…
                       </span>

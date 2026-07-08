@@ -134,7 +134,7 @@ export default function RegisterPage() {
                   style={{ justifyContent: 'center' }}
                 >
                   {isLoading ? (
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center justify-center gap-2">
                       <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
                       Verifying…
                     </span>
@@ -260,7 +260,7 @@ export default function RegisterPage() {
                 style={{ justifyContent: 'center' }}
               >
                 {isLoading ? (
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center justify-center gap-2">
                     <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
                     Creating account…
                   </span>

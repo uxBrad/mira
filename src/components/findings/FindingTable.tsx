@@ -9,7 +9,6 @@ interface Finding {
   wcagLevel: string | null
   standards: string[]
   category: string | null
-  severity: string | null
   status: string | null
   pageUrl: string | null
   component: string | null

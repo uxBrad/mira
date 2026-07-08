@@ -15,6 +15,8 @@ interface Window {
         refreshToken: string
         user: { id: string; email: string; name: string | null }
       } | null>
+      getRememberedCredentials: () => Promise<{ email: string; password: string } | null>
+      saveRememberedCredentials: (data: { email: string; password: string } | null) => Promise<{ success: boolean }>
       verifyEmail: (email: string, code: string) => Promise<{ success: boolean }>
       resendVerification: (email: string) => Promise<{ success: boolean }>
       forgotPassword: (email: string) => Promise<{ message: string }>
@@ -111,7 +113,6 @@ interface Window {
         wcagLevel: string | null
         standards: string | null
         category: string | null
-        severity: string | null
         status: string | null
         pageUrl: string | null
         component: string | null
@@ -130,7 +131,6 @@ interface Window {
         wcagLevel?: string
         standards?: string[]
         category?: string
-        severity?: string
         status?: string
         pageUrl?: string
         component?: string
@@ -151,7 +151,6 @@ interface Window {
         wcagLevel: string | null
         standards: string[]
         category: string | null
-        severity: string | null
         recommendations: string | null
         notes: string | null
         createdAt: number
@@ -164,7 +163,6 @@ interface Window {
         wcagLevel?: string
         standards?: string[]
         category?: string
-        severity?: string
         recommendations?: string
         notes?: string
       }) => Promise<unknown>
@@ -194,7 +192,6 @@ interface Window {
           wcagCriterionName: string
           wcagLevel: string
           category: string
-          severity: 'critical' | 'serious' | 'moderate' | 'minor'
           status: 'open' | 'needs_review'
           pageUrl: string
           pageTitle: string

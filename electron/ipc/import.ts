@@ -17,7 +17,6 @@ export interface ImportedFinding {
   wcagCriterionName: string
   wcagLevel: string
   category: string
-  severity: 'critical' | 'serious' | 'moderate' | 'minor'
   status: 'open' | 'needs_review'
   pageUrl: string
   pageTitle: string
@@ -54,17 +53,6 @@ function getCategoryFromCriterion(criterionId: string): string {
     case 3: return 'cognition'
     default: return 'interaction'
   }
-}
-
-function mapSeverity(
-  toolkitLevel: number | string,
-  issueType: string
-): 'critical' | 'serious' | 'moderate' | 'minor' {
-  if (issueType === 'Recommendation') return 'minor'
-  const level = typeof toolkitLevel === 'number' ? toolkitLevel : parseInt(String(toolkitLevel), 10)
-  if (level === 1) return 'critical'
-  if (level === 2) return 'serious'
-  return 'moderate'
 }
 
 function mapStatus(issueType: string): 'open' | 'needs_review' {
@@ -132,7 +120,6 @@ function parseIBMReport(filePath: string): ParseResult {
       criterionName: string
       wcagLevel: string
       issueType: string
-      toolkitLevel: number
       instances: Array<{ element: string; issue: string }>
     }
   >()
@@ -142,7 +129,6 @@ function parseIBMReport(filePath: string): ParseResult {
   for (const row of rows) {
     const checkpointRaw = String(row['Checkpoint'] ?? '')
     const issueType = String(row['Issue type'] ?? row['Issue Type'] ?? '')
-    const toolkitLevel = Number(row['Toolkit level'] ?? row['Toolkit Level'] ?? 2)
     const wcagLevel = String(row['WCAG level'] ?? row['WCAG Level'] ?? 'AA')
     const element = String(row['Element'] ?? '')
     const issue = String(row['Issue'] ?? '')
@@ -163,7 +149,6 @@ function parseIBMReport(filePath: string): ParseResult {
           criterionName,
           wcagLevel,
           issueType,
-          toolkitLevel,
           instances: []
         })
       }
@@ -174,10 +159,9 @@ function parseIBMReport(filePath: string): ParseResult {
   const result: ImportedFinding[] = []
 
   for (const [, group] of groups) {
-    const { criterionId, criterionName, wcagLevel, issueType, toolkitLevel, instances } = group
+    const { criterionId, criterionName, wcagLevel, issueType, instances } = group
     const count = instances.length
     const uniqueElements = [...new Set(instances.map((i) => i.element).filter(Boolean))]
-    const severity = mapSeverity(toolkitLevel, issueType)
     const status = mapStatus(issueType)
 
     const title = `${criterionId}: ${criterionName} (${count} instance${count !== 1 ? 's' : ''})`
@@ -191,7 +175,6 @@ function parseIBMReport(filePath: string): ParseResult {
       wcagCriterionName: criterionName,
       wcagLevel,
       category: getCategoryFromCriterion(criterionId),
-      severity,
       status,
       pageUrl,
       pageTitle,
@@ -246,7 +229,6 @@ export function registerImportHandlers(ipcMain: IpcMain): void {
           wcagLevel: f.wcagLevel || null,
           standards: JSON.stringify(['WCAG 2.1']),
           category: f.category || null,
-          severity: f.severity,
           status: f.status,
           pageUrl: f.pageUrl || null,
           component: null,

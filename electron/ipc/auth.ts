@@ -11,7 +11,12 @@ interface SessionData {
   }
 }
 
-const store = new Store<{ session: SessionData | null }>({
+interface RememberedCredentials {
+  email: string
+  password: string
+}
+
+const store = new Store<{ session: SessionData | null; rememberedCredentials: RememberedCredentials | null }>({
   name: 'grounds-session',
   encryptionKey: 'gfa-session-key-v1'
 })
@@ -117,6 +122,16 @@ export function registerAuthHandlers(ipcMain: IpcMain): void {
 
   ipcMain.handle('auth:getSession', () => {
     return store.get('session') || null
+  })
+
+  ipcMain.handle('auth:getRememberedCredentials', () => {
+    return store.get('rememberedCredentials') || null
+  })
+
+  ipcMain.handle('auth:saveRememberedCredentials', (_, data: RememberedCredentials | null) => {
+    if (data) store.set('rememberedCredentials', data)
+    else store.delete('rememberedCredentials')
+    return { success: true }
   })
 
   ipcMain.handle('auth:forgotPassword', async (_, email: string) => {

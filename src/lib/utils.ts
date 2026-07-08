@@ -89,13 +89,6 @@ export const WCAG_CRITERIA = [
 
 export type WcagCriterion = (typeof WCAG_CRITERIA)[number]
 
-export const SEVERITY_OPTIONS = [
-  { value: 'critical', label: 'Critical', description: 'Blocks access entirely for some users' },
-  { value: 'serious', label: 'Serious', description: 'Causes significant difficulty for some users' },
-  { value: 'moderate', label: 'Moderate', description: 'Causes some difficulty but has workarounds' },
-  { value: 'minor', label: 'Minor', description: 'Minor inconvenience, minimal impact' }
-] as const
-
 export const CATEGORY_OPTIONS = [
   { value: 'perception', label: 'Perception', description: 'How users perceive visual, auditory, tactile content' },
   { value: 'cognition', label: 'Cognition', description: 'How users understand and process information' },

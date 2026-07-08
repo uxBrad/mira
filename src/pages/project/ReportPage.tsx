@@ -4,13 +4,6 @@ import { AlertCircle, CheckCircle2, Clock, Check, ChevronDown, ChevronRight, Dow
 import { WCAG_CRITERIA } from '../../lib/utils'
 import type { CriterionVerdict, CriterionProgress } from '../../components/audit/StepAuditPanel'
 import { useToast } from '../../components/ui/use-toast'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription
-} from '../../components/ui/dialog'
 
 interface Project {
   id: string
@@ -25,7 +18,6 @@ interface Finding {
   id: string
   title: string
   wcagCriterion: string | null
-  severity: string | null
   status: string | null
   pageUrl: string | null
   component: string | null
@@ -41,13 +33,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   interaction: 'Robust',
 }
 
-const SEVERITY_COLORS: Record<string, string> = {
-  critical: '#c0392b',
-  serious: '#c0392b',
-  moderate: '#8b6914',
-  minor: '#2d7a4f',
-}
-
 export default function ReportPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -56,12 +41,8 @@ export default function ReportPage() {
   const [findings, setFindings] = useState<Finding[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [expandedCriteria, setExpandedCriteria] = useState<Set<string>>(new Set())
-  const [isExportingPdf, setIsExportingPdf] = useState(false)
+  const [isExportingPdf, setIsExportingPdf] = useState<'summary' | 'vpat' | null>(null)
   const [isExportingCsv, setIsExportingCsv] = useState(false)
-  const [showFormatDialog, setShowFormatDialog] = useState(false)
-
-  // Debug: log component load
-  console.log('[ReportPage] Component rendered, showFormatDialog:', showFormatDialog)
 
   useEffect(() => {
     if (!id) return
@@ -79,8 +60,7 @@ export default function ReportPage() {
 
   const handleExportPdf = async (format: 'summary' | 'vpat') => {
     if (!id) return
-    setIsExportingPdf(true)
-    setShowFormatDialog(false)
+    setIsExportingPdf(format)
     try {
       // Read audit state from localStorage to pass to export handler
       const auditKey = `echo-step-audit-${id}`
@@ -128,15 +108,8 @@ export default function ReportPage() {
       toast({ variant: 'destructive', title: 'Export failed', description: message })
       console.error('PDF export error:', error)
     } finally {
-      setIsExportingPdf(false)
+      setIsExportingPdf(null)
     }
-  }
-
-  const handleClickExportPdf = () => {
-    console.log('[Export] PDF button clicked, opening format dialog')
-    console.log('[Export] Current showFormatDialog:', showFormatDialog)
-    setShowFormatDialog(true)
-    console.log('[Export] Set showFormatDialog to true')
   }
 
   const handleExportCsv = async () => {
@@ -270,22 +243,31 @@ export default function ReportPage() {
           {/* Export buttons */}
           <div className="flex items-center gap-2">
             <button
-              onClick={handleClickExportPdf}
-              disabled={isExportingPdf || isExportingCsv}
+              onClick={() => handleExportPdf('summary')}
+              disabled={!!isExportingPdf || isExportingCsv}
               className="font-sans text-xs font-bold uppercase tracking-widest inline-flex items-center gap-1.5 px-3 py-2 rounded hover:opacity-70 transition-opacity disabled:opacity-50"
               style={{ color: '#fff', background: '#1d4ed8', letterSpacing: '0.12em' }}
             >
               <Download size={14} />
-              {isExportingPdf ? 'Exporting...' : 'PDF'}
+              {isExportingPdf === 'summary' ? 'Exporting...' : 'Summary Report (PDF)'}
+            </button>
+            <button
+              onClick={() => handleExportPdf('vpat')}
+              disabled={!!isExportingPdf || isExportingCsv}
+              className="font-sans text-xs font-bold uppercase tracking-widest inline-flex items-center gap-1.5 px-3 py-2 rounded hover:opacity-70 transition-opacity disabled:opacity-50"
+              style={{ color: '#fff', background: '#1d4ed8', letterSpacing: '0.12em' }}
+            >
+              <Download size={14} />
+              {isExportingPdf === 'vpat' ? 'Exporting...' : 'VPAT Report (PDF)'}
             </button>
             <button
               onClick={handleExportCsv}
-              disabled={isExportingPdf || isExportingCsv}
+              disabled={!!isExportingPdf || isExportingCsv}
               className="font-sans text-xs font-bold uppercase tracking-widest inline-flex items-center gap-1.5 px-3 py-2 rounded hover:opacity-70 transition-opacity disabled:opacity-50"
               style={{ color: '#fff', background: '#1d4ed8', letterSpacing: '0.12em' }}
             >
               <Download size={14} />
-              {isExportingCsv ? 'Exporting...' : 'CSV'}
+              {isExportingCsv ? 'Exporting...' : 'Raw Data (CSV)'}
             </button>
           </div>
         </div>
@@ -449,22 +431,9 @@ export default function ReportPage() {
                               className="flex items-start gap-4 px-6 py-3"
                               style={{ borderBottom: '1px solid #e0dbd9' }}
                             >
-                              {/* Severity dot */}
-                              <div
-                                className="flex-shrink-0 mt-1 w-2 h-2 rounded-full"
-                                style={{ background: SEVERITY_COLORS[f.severity ?? ''] ?? '#5f5e5e' }}
-                              />
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap mb-0.5">
                                   <span className="font-sans text-sm font-semibold" style={{ color: '#1a1a1a' }}>{f.title}</span>
-                                  {f.severity && (
-                                    <span
-                                      className="font-sans text-xs font-bold uppercase"
-                                      style={{ color: SEVERITY_COLORS[f.severity] ?? '#5f5e5e', letterSpacing: '0.06em' }}
-                                    >
-                                      {f.severity}
-                                    </span>
-                                  )}
                                 </div>
                                 {f.description && (
                                   <p className="font-sans text-xs leading-relaxed" style={{ color: '#5f5e5e' }}>{f.description}</p>
@@ -502,38 +471,6 @@ export default function ReportPage() {
           )
         })}
       </div>
-
-      {/* Format selection dialog */}
-      <Dialog open={showFormatDialog} onOpenChange={setShowFormatDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Choose Report Format</DialogTitle>
-            <DialogDescription>
-              Select the format for your accessibility report export.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-4">
-            <button
-              onClick={() => handleExportPdf('summary')}
-              disabled={isExportingPdf}
-              className="w-full flex flex-col items-start p-4 border rounded-lg hover:bg-slate-50 transition-colors text-left"
-              style={{ borderColor: '#e0dbd9' }}
-            >
-              <span className="font-semibold" style={{ color: '#1d4ed8' }}>Summary Report</span>
-              <span className="text-xs text-gray-600 mt-1">Executive overview with findings grouped by severity</span>
-            </button>
-            <button
-              onClick={() => handleExportPdf('vpat')}
-              disabled={isExportingPdf}
-              className="w-full flex flex-col items-start p-4 border rounded-lg hover:bg-slate-50 transition-colors text-left"
-              style={{ borderColor: '#e0dbd9' }}
-            >
-              <span className="font-semibold" style={{ color: '#1d4ed8' }}>VPAT Report</span>
-              <span className="text-xs text-gray-600 mt-1">Voluntary Product Accessibility Template with criterion-by-criterion assessment</span>
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

@@ -2,8 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/button'
+import { EchoButton } from '../../components/ui/echo-button'
 import { useToast } from '../../components/ui/use-toast'
 import { Check, LogOut } from 'lucide-react'
+import TitlebarDrag from '../../components/layout/TitlebarDrag'
+import logoSrc from '../../assets/logo.png'
 
 const FEATURES = [
   'Unlimited audit projects',
@@ -50,11 +53,10 @@ export default function PaywallPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
+      <TitlebarDrag />
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mx-auto mb-4" aria-hidden="true">
-            <span className="text-primary-foreground font-bold text-xl">m</span>
-          </div>
+          <img src={logoSrc} alt="Mira" className="mx-auto mb-4" style={{ width: '48px', height: '48px' }} />
           <h1 className="text-3xl font-bold mb-2">Your trial has ended</h1>
           <p className="text-muted-foreground text-lg">
             Subscribe to continue using Mira.
@@ -83,15 +85,15 @@ export default function PaywallPage() {
               <span className="text-3xl font-bold">$4.99</span>
               <span className="text-muted-foreground">/month</span>
             </div>
-            <Button
-              className="w-full"
-              variant="outline"
+            <EchoButton
+              fullWidth
               onClick={() => handleCheckout('monthly')}
               disabled={isLoadingMonthly || isLoadingYearly}
               aria-busy={isLoadingMonthly}
+              style={{ justifyContent: 'center' }}
             >
               {isLoadingMonthly ? 'Opening checkout…' : 'Subscribe monthly'}
-            </Button>
+            </EchoButton>
           </div>
 
           {/* Yearly — highlighted */}
@@ -107,14 +109,16 @@ export default function PaywallPage() {
               <span className="text-muted-foreground">/year</span>
             </div>
             <p className="text-xs text-muted-foreground mb-4">~$4.17/month</p>
-            <Button
-              className="w-full"
+            <EchoButton
+              variant="primary"
+              fullWidth
               onClick={() => handleCheckout('yearly')}
               disabled={isLoadingMonthly || isLoadingYearly}
               aria-busy={isLoadingYearly}
+              style={{ justifyContent: 'center' }}
             >
               {isLoadingYearly ? 'Opening checkout…' : 'Subscribe yearly'}
-            </Button>
+            </EchoButton>
           </div>
         </div>
 

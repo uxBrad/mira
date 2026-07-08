@@ -43,7 +43,6 @@ export function registerFindingHandlers(ipcMain: IpcMain): void {
       wcagLevel: data.wcagLevel || null,
       standards: data.standards ? JSON.stringify(data.standards) : null,
       category: data.category || null,
-      severity: data.severity || 'moderate',
       status: data.status || 'open',
       pageUrl: data.pageUrl || null,
       component: data.component || null,

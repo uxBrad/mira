@@ -105,7 +105,6 @@ interface StepAuditPanelProps {
     wcagCriterion?: string
     wcagLevel?: string
     standards?: string[]
-    severity?: string
     recommendations?: string
     pageUrl?: string
     component?: string

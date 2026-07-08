@@ -2,6 +2,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { Toaster } from './components/ui/toaster'
 import AppShell from './components/layout/AppShell'
+import TitlebarDrag from './components/layout/TitlebarDrag'
 
 // Auth pages
 import LoginPage from './pages/auth/Login'
@@ -22,6 +23,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen" role="status" aria-label="Loading">
+        <TitlebarDrag />
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -40,6 +42,7 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen" role="status" aria-label="Loading">
+        <TitlebarDrag />
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -49,7 +52,12 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/" replace />
   }
 
-  return <>{children}</>
+  return (
+    <>
+      <TitlebarDrag />
+      {children}
+    </>
+  )
 }
 
 function AppRoutes() {

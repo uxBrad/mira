@@ -8,7 +8,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '../ui/dialog'
-import { Button } from '../ui/button'
+import { EchoButton } from '../ui/echo-button'
 
 // ─── Types (mirrored from electron/ipc/import.ts) ────────────────────────────
 
@@ -20,7 +20,6 @@ interface ImportedFinding {
   wcagCriterionName: string
   wcagLevel: string
   category: string
-  severity: 'critical' | 'serious' | 'moderate' | 'minor'
   status: 'open' | 'needs_review'
   pageUrl: string
   pageTitle: string
@@ -41,15 +40,6 @@ interface ImportFindingsDialogProps {
   onOpenChange: (open: boolean) => void
   projectId: string
   onImported: () => void
-}
-
-// ─── Severity colours ─────────────────────────────────────────────────────────
-
-const SEVERITY_STYLE: Record<string, { bg: string; color: string }> = {
-  critical:  { bg: '#fde8e8', color: '#c0392b' },
-  serious:   { bg: '#fdeede', color: '#a84300' },
-  moderate:  { bg: '#fdf5dc', color: '#8b6914' },
-  minor:     { bg: '#e8f5ee', color: '#2d7a4f' }
 }
 
 const ISSUE_TYPE_STYLE: Record<string, { bg: string; color: string }> = {
@@ -244,13 +234,14 @@ export function ImportFindingsDialog({
                   {error}
                 </div>
               )}
-              <Button
+              <EchoButton
+                variant="primary"
+                icon={<Upload className="h-4 w-4" />}
                 onClick={handleChooseFile}
                 disabled={isLoading}
               >
-                <Upload className="h-4 w-4 mr-2" />
                 {isLoading ? 'Reading file…' : 'Choose file'}
-              </Button>
+              </EchoButton>
             </div>
           )}
 
@@ -343,9 +334,6 @@ export function ImportFindingsDialog({
                     <span className="font-sans text-xs font-bold uppercase" style={{ color: '#5f5e5e', letterSpacing: '0.08em', width: 70, textAlign: 'center' }}>
                       Type
                     </span>
-                    <span className="font-sans text-xs font-bold uppercase" style={{ color: '#5f5e5e', letterSpacing: '0.08em', width: 72, textAlign: 'center' }}>
-                      Severity
-                    </span>
                     <span className="font-sans text-xs font-bold uppercase" style={{ color: '#5f5e5e', letterSpacing: '0.08em', width: 28 }} />
                   </div>
 
@@ -353,7 +341,6 @@ export function ImportFindingsDialog({
                   {visible.map((f) => {
                     const isSelected = selectedIds.has(f.previewId)
                     const isExpanded = expandedIds.has(f.previewId)
-                    const sevStyle = SEVERITY_STYLE[f.severity] ?? SEVERITY_STYLE.moderate
                     const typeStyle = ISSUE_TYPE_STYLE[f.issueType] ?? ISSUE_TYPE_STYLE['Violation']
 
                     return (
@@ -418,23 +405,6 @@ export function ImportFindingsDialog({
                             {f.issueType === 'Needs review' ? 'Review' : f.issueType}
                           </span>
 
-                          {/* Severity badge */}
-                          <span
-                            className="font-sans text-xs font-bold uppercase flex-shrink-0"
-                            style={{
-                              background: sevStyle.bg,
-                              color: sevStyle.color,
-                              padding: '2px 6px',
-                              borderRadius: '3px',
-                              width: 72,
-                              textAlign: 'center',
-                              fontSize: '10px',
-                              letterSpacing: '0.06em'
-                            }}
-                          >
-                            {f.severity}
-                          </span>
-
                           {/* Expand toggle */}
                           <button
                             onClick={() => toggleExpand(f.previewId)}
@@ -497,17 +467,12 @@ export function ImportFindingsDialog({
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={reset}
-                >
+                <EchoButton onClick={reset}>
                   Import another file
-                </Button>
-                <Button
-                  onClick={() => handleClose(false)}
-                >
+                </EchoButton>
+                <EchoButton variant="primary" onClick={() => handleClose(false)}>
                   Done
-                </Button>
+                </EchoButton>
               </div>
             </div>
           )}
@@ -517,22 +482,20 @@ export function ImportFindingsDialog({
         {step === 'preview' && (
           <DialogFooter style={{ padding: '16px 28px', borderTop: '1px solid #e0dbd9', flexShrink: 0 }}>
             <div className="flex items-center justify-between w-full gap-3">
-              <Button
-                variant="outline"
-                onClick={() => { reset(); setStep('idle') }}
-              >
+              <EchoButton onClick={() => { reset(); setStep('idle') }}>
                 Choose different file
-              </Button>
+              </EchoButton>
               <div className="flex items-center gap-3">
                 <span className="font-sans text-sm" style={{ color: '#5f5e5e' }}>
                   {selectedVisible.length} finding{selectedVisible.length !== 1 ? 's' : ''} to import
                 </span>
-                <Button
+                <EchoButton
+                  variant="primary"
                   onClick={handleImport}
                   disabled={selectedVisible.length === 0}
                 >
                   Import {selectedVisible.length > 0 ? selectedVisible.length : ''} finding{selectedVisible.length !== 1 ? 's' : ''}
-                </Button>
+                </EchoButton>
               </div>
             </div>
           </DialogFooter>

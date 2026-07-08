@@ -25,7 +25,6 @@ export function registerTemplateHandlers(ipcMain: IpcMain): void {
         wcagLevel?: string
         standards?: string[]
         category?: string
-        severity?: string
         recommendations?: string
         notes?: string
       }
@@ -42,7 +41,6 @@ export function registerTemplateHandlers(ipcMain: IpcMain): void {
         wcagLevel: data.wcagLevel || null,
         standards: data.standards && data.standards.length > 0 ? JSON.stringify(data.standards) : null,
         category: data.category || null,
-        severity: data.severity || 'moderate',
         recommendations: data.recommendations || null,
         notes: data.notes || null,
         createdAt: now,

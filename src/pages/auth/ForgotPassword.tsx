@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Button } from '../../components/ui/button'
-import { Input } from '../../components/ui/input'
+import { EchoButton } from '../../components/ui/echo-button'
 import { Label } from '../../components/ui/label'
 import { useToast } from '../../components/ui/use-toast'
+import logoSrc from '../../assets/logo.png'
 
 type Step = 'email' | 'reset' | 'done'
 
@@ -23,11 +23,14 @@ export default function ForgotPasswordPage() {
     setError(null)
     setIsLoading(true)
     try {
+      // The server returns success even when no account matches this email
+      // (to avoid email enumeration) — it only throws on a genuine send failure.
       await window.api.auth.forgotPassword(email)
       setStep('reset')
-    } catch {
-      // Always show the next step to avoid email enumeration
-      setStep('reset')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not send the reset code. Please try again.'
+      setError(message)
+      toast({ variant: 'destructive', title: 'Failed to send reset code', description: message })
     } finally {
       setIsLoading(false)
     }
@@ -63,12 +66,13 @@ export default function ForgotPasswordPage() {
     }
   }
 
+  const inputClass = 'w-full h-10 px-3 font-sans text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1d4ed8] transition-colors'
+  const inputStyle = { border: '1px solid #d0cac8' }
+
   const Logo = () => (
-    <div className="flex items-center gap-2.5 mb-8 justify-center">
-      <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center" aria-hidden="true">
-        <span className="text-primary-foreground font-bold text-base">m</span>
-      </div>
-      <span className="font-bold text-xl">Mira</span>
+    <div className="flex items-center gap-3 mb-8 justify-center">
+      <img src={logoSrc} alt="" aria-hidden="true" style={{ width: '32px', height: '32px' }} />
+      <span className="font-display font-bold text-xl">Mira</span>
     </div>
   )
 
@@ -82,9 +86,9 @@ export default function ForgotPasswordPage() {
             <p className="text-sm text-muted-foreground mb-6">
               Your password has been updated. You can now sign in with your new password.
             </p>
-            <Button size="lg" className="w-full" onClick={() => navigate('/login')}>
+            <EchoButton variant="primary" fullWidth onClick={() => navigate('/login')} style={{ justifyContent: 'center' }}>
               Sign in
-            </Button>
+            </EchoButton>
           </div>
         </div>
       </div>
@@ -116,8 +120,8 @@ export default function ForgotPasswordPage() {
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="code">Reset code</Label>
-                  <Input
+                  <Label htmlFor="code" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">Reset code</Label>
+                  <input
                     id="code"
                     type="text"
                     inputMode="numeric"
@@ -127,15 +131,16 @@ export default function ForgotPasswordPage() {
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="123456"
-                    className="text-center text-2xl tracking-[0.3em] font-mono"
                     disabled={isLoading}
                     autoFocus
+                    className={`${inputClass} text-center text-2xl tracking-[0.3em] font-mono`}
+                    style={inputStyle}
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="new-password">New password</Label>
-                  <Input
+                  <Label htmlFor="new-password" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">New password</Label>
+                  <input
                     id="new-password"
                     type="password"
                     autoComplete="new-password"
@@ -145,6 +150,8 @@ export default function ForgotPasswordPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     aria-describedby="new-password-hint"
                     disabled={isLoading}
+                    className={inputClass}
+                    style={inputStyle}
                   />
                   <p id="new-password-hint" className="text-xs text-muted-foreground">
                     At least 8 characters
@@ -152,8 +159,8 @@ export default function ForgotPasswordPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="confirm-new-password">Confirm new password</Label>
-                  <Input
+                  <Label htmlFor="confirm-new-password" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">Confirm new password</Label>
+                  <input
                     id="confirm-new-password"
                     type="password"
                     autoComplete="new-password"
@@ -161,24 +168,27 @@ export default function ForgotPasswordPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={isLoading}
+                    className={inputClass}
+                    style={inputStyle}
                   />
                 </div>
 
-                <Button
+                <EchoButton
                   type="submit"
-                  size="lg"
-                  className="w-full"
+                  variant="primary"
+                  fullWidth
                   disabled={isLoading || code.length !== 6 || !password || !confirmPassword}
+                  style={{ justifyContent: 'center' }}
                 >
                   {isLoading ? (
-                    <>
+                    <span className="flex items-center justify-center gap-2">
                       <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
                       Resetting…
-                    </>
+                    </span>
                   ) : (
                     'Reset password'
                   )}
-                </Button>
+                </EchoButton>
 
                 <button
                   type="button"
@@ -206,10 +216,19 @@ export default function ForgotPasswordPage() {
           </p>
 
           <form onSubmit={handleEmailSubmit} noValidate aria-label="Forgot password form">
+            {error && (
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="mb-4 rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive"
+              >
+                {error}
+              </div>
+            )}
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="email">Email address</Label>
-                <Input
+                <Label htmlFor="email" className="font-data text-xs font-medium tracking-widest uppercase text-muted-foreground">Email address</Label>
+                <input
                   id="email"
                   type="email"
                   autoComplete="email"
@@ -218,19 +237,21 @@ export default function ForgotPasswordPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   disabled={isLoading}
+                  className={inputClass}
+                  style={inputStyle}
                 />
               </div>
 
-              <Button type="submit" size="lg" className="w-full" disabled={isLoading || !email}>
+              <EchoButton type="submit" variant="primary" fullWidth disabled={isLoading || !email} style={{ justifyContent: 'center' }}>
                 {isLoading ? (
-                  <>
+                  <span className="flex items-center justify-center gap-2">
                     <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" aria-hidden="true" />
                     Sending…
-                  </>
+                  </span>
                 ) : (
                   'Send reset code'
                 )}
-              </Button>
+              </EchoButton>
             </div>
           </form>
         </div>

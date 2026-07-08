@@ -19,7 +19,7 @@ const baseStyles = `
 `
 
 export async function sendVerificationEmail(to: string, code: string): Promise<void> {
-  await getResend().emails.send({
+  const { error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to,
     subject: 'Your verification code — Mira',
@@ -40,10 +40,11 @@ export async function sendVerificationEmail(to: string, code: string): Promise<v
       </div>
     `
   })
+  if (error) throw new Error(`Resend failed to send verification email: ${error.message}`)
 }
 
 export async function sendPasswordResetEmail(to: string, code: string): Promise<void> {
-  await getResend().emails.send({
+  const { error } = await getResend().emails.send({
     from: FROM_EMAIL,
     to,
     subject: 'Your password reset code — Mira',
@@ -64,4 +65,5 @@ export async function sendPasswordResetEmail(to: string, code: string): Promise<
       </div>
     `
   })
+  if (error) throw new Error(`Resend failed to send password reset email: ${error.message}`)
 }

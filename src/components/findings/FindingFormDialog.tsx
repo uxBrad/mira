@@ -19,7 +19,7 @@ import {
   SelectValue
 } from '../ui/select'
 import { Badge } from '../ui/badge'
-import { WCAG_CRITERIA, SEVERITY_OPTIONS, CATEGORY_OPTIONS, STANDARDS_OPTIONS } from '../../lib/utils'
+import { WCAG_CRITERIA, CATEGORY_OPTIONS, STANDARDS_OPTIONS } from '../../lib/utils'
 import { X, Image } from 'lucide-react'
 
 interface FindingFormData {
@@ -30,7 +30,6 @@ interface FindingFormData {
   wcagLevel?: string
   standards?: string[]
   category?: string
-  severity?: string
   status?: string
   pageUrl?: string
   screenshotPath?: string
@@ -61,7 +60,6 @@ export function FindingFormDialog({
   const [wcagLevel, setWcagLevel] = useState(initialData?.wcagLevel || '')
   const [standards, setStandards] = useState<string[]>(initialData?.standards || [])
   const [category, setCategory] = useState(initialData?.category || '')
-  const [severity, setSeverity] = useState(initialData?.severity || 'moderate')
   const [status, setStatus] = useState(initialData?.status || 'open')
   const [pageUrl, setPageUrl] = useState(initialData?.pageUrl || '')
   const [screenshotPath, setScreenshotPath] = useState(initialData?.screenshotPath || '')
@@ -79,7 +77,6 @@ export function FindingFormDialog({
       setWcagLevel(initialData?.wcagLevel || '')
       setStandards(initialData?.standards || [])
       setCategory(initialData?.category || '')
-      setSeverity(initialData?.severity || 'moderate')
       setStatus(initialData?.status || 'open')
       setPageUrl(initialData?.pageUrl || '')
       setScreenshotPath(initialData?.screenshotPath || '')
@@ -127,7 +124,6 @@ export function FindingFormDialog({
         wcagLevel: wcagLevel || undefined,
         standards: standards.length > 0 ? standards : undefined,
         category: category || undefined,
-        severity,
         status,
         pageUrl: pageUrl.trim() || undefined,
         screenshotPath: screenshotPath || undefined,
@@ -186,37 +182,20 @@ export function FindingFormDialog({
               />
             </div>
 
-            {/* Severity + Status */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="finding-severity">Severity</Label>
-                <Select value={severity} onValueChange={setSeverity} disabled={isLoading}>
-                  <SelectTrigger id="finding-severity">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SEVERITY_OPTIONS.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>
-                        {s.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="finding-status">Status</Label>
-                <Select value={status} onValueChange={setStatus} disabled={isLoading}>
-                  <SelectTrigger id="finding-status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                    <SelectItem value="wont_fix">Won&apos;t Fix</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Status */}
+            <div className="space-y-1.5">
+              <Label htmlFor="finding-status">Status</Label>
+              <Select value={status} onValueChange={setStatus} disabled={isLoading}>
+                <SelectTrigger id="finding-status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="open">Open</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="resolved">Resolved</SelectItem>
+                  <SelectItem value="wont_fix">Won&apos;t Fix</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Category */}

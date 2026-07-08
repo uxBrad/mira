@@ -8,7 +8,6 @@ export interface Template {
   wcagLevel: string | null
   standards: string[]
   category: string | null
-  severity: string | null
   recommendations: string | null
   notes: string | null
   createdAt: number

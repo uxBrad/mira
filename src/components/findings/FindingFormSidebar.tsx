@@ -23,7 +23,6 @@ interface FindingFormData {
   wcagLevel?: string
   standards?: string[]
   category?: string
-  severity?: string
   status?: string
   pageUrl?: string
   component?: string
@@ -40,7 +39,6 @@ interface FindingTemplate {
   wcagLevel: string | null
   standards: string[]
   category: string | null
-  severity: string | null
   recommendations: string | null
   notes: string | null
 }
