@@ -170,7 +170,7 @@ export default function RegisterPage() {
         <div className="border rounded-xl p-6 shadow-sm bg-card">
           <h1 className="text-xl font-semibold mb-1">Create an account</h1>
           <p className="text-sm text-muted-foreground mb-6">
-            Start your 7-day free trial. No credit card required.
+            Start your 30-day free trial. No credit card required.
           </p>
 
           <form onSubmit={handleRegister} noValidate aria-label="Create account form">

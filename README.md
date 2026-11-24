@@ -114,4 +114,4 @@ npm run build:linux  # Linux AppImage
 - **Filtering** — filter findings by severity and status
 - **PDF export** — branded accessibility audit report with executive summary
 - **CSV export** — flat spreadsheet of all findings for a project
-- **Subscription** — 7-day free trial, then monthly or yearly plan via Stripe
+- **Subscription** — 30-day free trial, then monthly or yearly plan via Stripe
